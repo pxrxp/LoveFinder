@@ -1,0 +1,48 @@
+{
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "dependencies": {
+    "typescript": "^5.9.2",
+    "@nestjs/common": "^11.0.1",
+    "@nestjs/core": "^11.0.1",
+    "@nestjs/platform-express": "^11.0.1",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "react-native": "0.81.5",
+    "@react-navigation/native": "^7.1.8",
+    "@react-navigation/bottom-tabs": "^7.4.0",
+    "expo": "~54.0.31",
+    "expo-router": "~6.0.21",
+    "expo-status-bar": "~3.0.9",
+    "expo-splash-screen": "~31.0.13",
+    "@expo/vector-icons": "^15.0.3"
+  },
+  "devDependencies": {
+    "eslint": "^9.25.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "eslint-config-prettier": "^10.0.1",
+    "eslint-plugin-prettier": "^5.2.2",
+    "prettier": "^3.4.2"
+  },
+  "scripts": {
+    "lint": "eslint '{apps,libs}/**/*.{ts,tsx}' --fix",
+    "up": "docker compose up -d",
+    "down": "docker compose down",
+    "up:db": "docker compose up -d db",
+    "down:db": "docker compose stop db",
+    "it:db": "docker compose exec -it db bash",
+    "logs:db": "docker compose logs -f db",
+    "psql": "docker compose exec -it db bash -c 'psql -U $POSTGRES_USER -d $POSTGRES_DB'",
+    "build:backend": "docker compose build backend",
+    "up:backend": "docker compose up -d backend",
+    "down:backend": "docker compose stop backend",
+    "it:backend": "docker compose exec -it backend bash",
+    "logs:backend": "docker compose logs -f backend",
+    "mobile:start": "bun run --cwd apps/mobile start"
+  }
+}
