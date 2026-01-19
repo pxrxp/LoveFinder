@@ -183,7 +183,9 @@ CREATE TABLE IF NOT EXISTS PHOTOS (
 	IS_PRIMARY BOOL NOT NULL DEFAULT FALSE
 );
 
-CREATE INDEX IDX_USERS_LOCATION ON USERS (LATITUDE, LONGITUDE);
+CREATE INDEX idx_users_demographics ON users (gender, birth_date) WHERE is_active = true;
+
+CREATE INDEX idx_users_location ON users USING gist (ll_to_earth(latitude, longitude));
 
 CREATE INDEX IDX_REPORTS_REPORTER ON REPORTS (REPORTER_ID);
 
