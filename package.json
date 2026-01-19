@@ -33,6 +33,7 @@
     "lint": "eslint '{apps,libs}/**/*.{ts,tsx}' --fix",
     "up": "docker compose up -d",
     "down": "docker compose down",
+    "ps": "docker compose ps",
     "up:db": "docker compose up -d db",
     "down:db": "docker compose stop db",
     "it:db": "docker compose exec -it db bash",
@@ -43,6 +44,8 @@
     "down:backend": "docker compose stop backend",
     "it:backend": "docker compose exec -it backend bash",
     "logs:backend": "docker compose logs -f backend",
-    "mobile:start": "bun run --cwd apps/mobile start"
+    "start:mobile": "bun run --cwd apps/mobile start",
+    "build-ts:backend": "bun run --cwd apps/backend build",
+    "start:backend": "bun run --cwd apps/backend start:dev"
   }
 }
