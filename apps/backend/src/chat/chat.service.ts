@@ -37,7 +37,7 @@ export class ChatService {
 				SELECT
 				    MESSAGE_ID,
 				    SENDER_ID,
-				    MSG_CONTENT,
+				    MESSAGE_CONTENT,
 				    IS_READ,
 				    SENT_AT
 				FROM MESSAGES

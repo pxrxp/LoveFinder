@@ -11,17 +11,26 @@ services:
     ports:
       - "${DB_PORT}:5432"
 
+  redis:
+    image: redis:8-alpine
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+
   backend:
     build:
       context: .
       dockerfile: ./apps/backend/Dockerfile
     depends_on:
       - db
-    environment:
-      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:${DB_PORT}/${POSTGRES_DB}
-      PORT: ${BACKEND_PORT}
+      - redis
+    env_file:
+      - .env
     ports:
       - "${BACKEND_PORT}:${BACKEND_PORT}"
 
 volumes:
   pgdata: {} 
+  redisdata: {} 
