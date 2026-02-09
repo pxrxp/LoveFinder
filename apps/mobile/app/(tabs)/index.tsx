@@ -10,7 +10,7 @@ export default function HomeScreen() {
         alignItems: "center",
       }}
     >
-      <Link href="/chat">Chat</Link>
+      <Link href="/(onboarding)">Chat</Link>
       <Link href="/profile">Profile</Link>
     </View>
   );

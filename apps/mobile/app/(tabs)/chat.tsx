@@ -9,7 +9,7 @@ export default function ChatScreen() {
         alignItems: "center",
       }}
     >
-      <Text>Chat</Text>
+      <Text>Chats</Text>
     </View>
   );
 }
