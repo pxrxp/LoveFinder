@@ -1,0 +1,18 @@
+const BACKEND_BASE_URL = 'http://192.168.1.70:3000/api/v1/'
+
+export const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
+  const res = await fetch(`${BACKEND_BASE_URL}${endpoint}`, {
+    ...options,
+    credentials: "include",
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers
+    }
+  });
+
+  if (!res.ok) {
+    throw new Error('Unauthorized');
+  }
+
+  return res;
+}
