@@ -1,62 +1,185 @@
 import { useFetch } from "@/hooks/useFetch";
-import { apiFetch } from "@/services/api";
-import { ActivityIndicator, FlatList, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-
+import { ActivityIndicator, Text, View, Dimensions } from "react-native";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
-  runOnJS,
+  withTiming,
 } from "react-native-reanimated";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import AntDesign from "@expo/vector-icons/AntDesign";
+import Entypo from "@expo/vector-icons/Entypo";
+import MaskedView from "@react-native-masked-view/masked-view";
+import { LinearGradient } from "expo-linear-gradient";
+import { useEffect, useState } from "react";
+import { scheduleOnRN } from "react-native-worklets";
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+
+type SwipeStatus = "rejected" | "accepted" | "pending";
+interface FeedUser {
+  user_id: string;
+  full_name: string;
+  age: number;
+  bio: string;
+  image_url: string;
+  allow_messages_from_strangers: boolean;
+}
+
+const Card = ({ style, showHeartStyle, showCrossStyle, item, isTop }: any) => (
+  <Animated.View
+    style={[
+      {
+        position: "absolute",
+        inset: 0,
+        backgroundColor: "blue",
+        borderRadius: 20,
+        justifyContent: "center",
+        alignItems: "center",
+      },
+      isTop ? style : { zIndex: -1 },
+    ]}
+  >
+    {isTop && (
+      <>
+        <Animated.View
+          style={[{ position: "absolute", top: 30, left: 30 }, showHeartStyle]}
+        >
+          <MaskedView
+            style={{ transform: [{ rotateZ: "-20deg" }] }}
+            maskElement={<AntDesign name="heart" size={100} color="white" />}
+          >
+            <LinearGradient
+              colors={["#2EB62C", "#C5E8B7"]}
+              start={{ x: 1, y: 0 }}
+              end={{ x: 0, y: 1 }}
+              style={{ width: 100, height: 100 }}
+            />
+          </MaskedView>
+        </Animated.View>
+
+        <Animated.View
+          style={[{ position: "absolute", top: 25, right: 30 }, showCrossStyle]}
+        >
+          <MaskedView
+            style={{ transform: [{ rotateZ: "20deg" }] }}
+            maskElement={<Entypo name="cross" size={125} color="white" />}
+          >
+            <LinearGradient
+              colors={["#FD267D", "#FE6D58"]}
+              start={{ x: 1, y: 0 }}
+              end={{ x: 0, y: 1 }}
+              style={{ width: 125, height: 125 }}
+            />
+          </MaskedView>
+        </Animated.View>
+      </>
+    )}
+    <Text className="text-white text-2xl font-bold">{item.full_name}</Text>
+  </Animated.View>
+);
 
 export default function HomeScreen() {
-  const { data, error, loading, refetch } = useFetch("feed");
+  const insets = useSafeAreaInsets();
+  const { data, error, loading } = useFetch("feed");
+  const [cards, setCards] = useState<FeedUser[]>([]);
+
+  useEffect(() => {
+    if (data) setCards([...data].reverse());
+  }, [data]);
 
   const x = useSharedValue(0);
+  const y = useSharedValue(0);
+  const status = useSharedValue<SwipeStatus>("pending");
+
+  const removeTopCard = () => {
+    setCards((prev) => prev.slice(0, -1));
+    x.value = 0;
+    y.value = 0;
+    status.value = "pending";
+  };
 
   const gesture = Gesture.Pan()
     .onUpdate((event) => {
       x.value = event.translationX;
+      y.value = event.translationY;
+
+      const swipePercent = Math.abs(x.value) / SCREEN_WIDTH;
+      if (swipePercent >= 0.15) {
+        status.value = x.value > 0 ? "accepted" : "rejected";
+      } else {
+        status.value = "pending";
+      }
     })
     .onEnd(() => {
-      x.value = withSpring(0);
+      const swipePercent = Math.abs(x.value) / SCREEN_WIDTH;
+
+      if (swipePercent >= 0.15) {
+        x.value = withTiming(
+          Math.sign(x.value) * SCREEN_WIDTH * 1.5,
+          {},
+          (finished) => {
+            if (finished) scheduleOnRN(removeTopCard);
+          }
+        );
+      } else {
+        status.value = "pending";
+        x.value = withSpring(0);
+        y.value = withSpring(0);
+      }
     });
 
   const style = useAnimatedStyle(() => ({
-    transform: [{ translateX: x.value }],
+    transform: [
+      { translateX: 1.5 * x.value },
+      { translateY: 2 * y.value },
+      { rotateZ: `${-0.17 * x.value}deg` },
+    ],
   }));
 
-  if (loading) return <ActivityIndicator size="large" />;
+  const showHeartStyle = useAnimatedStyle(() => ({
+    opacity: status.value === "accepted" ? 1 : 0,
+  }));
+
+  const showCrossStyle = useAnimatedStyle(() => ({
+    opacity: status.value === "rejected" ? 1 : 0,
+  }));
+
+  if (loading) return <ActivityIndicator size="large" className="flex-1" />;
   if (error) return <Text>Error: {error}</Text>;
 
   return (
     <SafeAreaView
       style={{
         flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
+        paddingHorizontal: 10,
+        paddingTop: 10,
+        paddingBottom: insets.bottom + 20,
       }}
     >
-      <GestureDetector gesture={gesture}>
-        <Animated.View
-          style={[
-            {
-              width: 120,
-              height: 120,
-              backgroundColor: "blue",
-              borderRadius: 20,
-            },
-            style,
-          ]}
-        />
-      </GestureDetector>
-      <FlatList
-        data={data}
-        keyExtractor={(item) => item.user_id}
-        renderItem={({ item }) => <></>}
-      />
+      <View className="flex-1 relative">
+        {cards.map((item, index) => {
+          const isTop = index === cards.length - 1;
+          return (
+            <GestureDetector
+              key={item.user_id}
+              gesture={isTop ? gesture : Gesture.Native()}
+            >
+              <Card
+                style={style}
+                showHeartStyle={showHeartStyle}
+                showCrossStyle={showCrossStyle}
+                item={item}
+                isTop={isTop}
+              />
+            </GestureDetector>
+          );
+        })}
+      </View>
     </SafeAreaView>
   );
 }

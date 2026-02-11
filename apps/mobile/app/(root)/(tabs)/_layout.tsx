@@ -19,11 +19,13 @@ export default function TabsLayout() {
         tabBarStyle: {
           height: isAndroid ? 48 + insets.bottom : 65 + insets.bottom,
           paddingBottom: isAndroid ? 4 : 10,
+          position: "absolute",
+          bottom: 0,
         },
         tabBarLabel: ({ focused, children }) => (
           <Text
             style={{
-              fontWeight: focused ? '700' : '400',
+              fontWeight: focused ? "700" : "400",
             }}
           >
             {children}
@@ -67,7 +69,7 @@ export default function TabsLayout() {
         name="chat"
         options={{
           tabBarLabel: "Chat",
-          tabBarBadge: '',
+          tabBarBadge: "",
           tabBarIcon: ({ focused }) =>
             focused ? (
               <Ionicons name="chatbubble" style={styles.focusedIcon} />
