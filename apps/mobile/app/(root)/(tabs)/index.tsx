@@ -1,5 +1,12 @@
 import { useFetch } from "@/hooks/useFetch";
-import { ActivityIndicator, Text, View, Dimensions } from "react-native";
+import {
+  ActivityIndicator,
+  Text,
+  View,
+  Dimensions,
+  ImageBackground,
+  StyleSheet,
+} from "react-native";
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -36,56 +43,73 @@ const Card = ({ style, showHeartStyle, showCrossStyle, item, isTop }: any) => (
       {
         position: "absolute",
         inset: 0,
-        backgroundColor: "blue",
-        borderRadius: 20,
-        justifyContent: "center",
-        alignItems: "center",
       },
       isTop ? style : { zIndex: -1 },
     ]}
   >
-    {isTop && (
-      <>
-        <Animated.View
-          style={[{ position: "absolute", top: 30, left: 30 }, showHeartStyle]}
-        >
-          <MaskedView
-            style={{ transform: [{ rotateZ: "-20deg" }] }}
-            maskElement={<AntDesign name="heart" size={100} color="white" />}
+    <ImageBackground
+      source={{ uri: item.image_url }}
+      className="flex-1 justify-end p-5 rounded-3xl overflow-hidden"
+    >
+      {isTop && (
+        <>
+          <Animated.View
+            style={[
+              { position: "absolute", top: 30, left: 30 },
+              showHeartStyle,
+            ]}
           >
-            <LinearGradient
-              colors={["#2EB62C", "#C5E8B7"]}
-              start={{ x: 1, y: 0 }}
-              end={{ x: 0, y: 1 }}
-              style={{ width: 100, height: 100 }}
-            />
-          </MaskedView>
-        </Animated.View>
+            <MaskedView
+              style={{ transform: [{ rotateZ: "-20deg" }] }}
+              maskElement={<AntDesign name="heart" size={100} color="white" />}
+            >
+              <LinearGradient
+                colors={["#2EB62C", "#C5E8B7"]}
+                start={{ x: 1, y: 0 }}
+                end={{ x: 0, y: 1 }}
+                style={{ width: 100, height: 100 }}
+              />
+            </MaskedView>
+          </Animated.View>
 
-        <Animated.View
-          style={[{ position: "absolute", top: 25, right: 30 }, showCrossStyle]}
-        >
-          <MaskedView
-            style={{ transform: [{ rotateZ: "20deg" }] }}
-            maskElement={<Entypo name="cross" size={125} color="white" />}
+          <Animated.View
+            style={[
+              { position: "absolute", top: 25, right: 30 },
+              showCrossStyle,
+            ]}
           >
-            <LinearGradient
-              colors={["#FD267D", "#FE6D58"]}
-              start={{ x: 1, y: 0 }}
-              end={{ x: 0, y: 1 }}
-              style={{ width: 125, height: 125 }}
-            />
-          </MaskedView>
-        </Animated.View>
-      </>
-    )}
-    <Text className="text-white text-2xl font-bold">{item.full_name}</Text>
+            <MaskedView
+              style={{ transform: [{ rotateZ: "20deg" }] }}
+              maskElement={<Entypo name="cross" size={125} color="white" />}
+            >
+              <LinearGradient
+                colors={["#FD267D", "#FE6D58"]}
+                start={{ x: 1, y: 0 }}
+                end={{ x: 0, y: 1 }}
+                style={{ width: 125, height: 125 }}
+              />
+            </MaskedView>
+          </Animated.View>
+        </>
+      )}
+
+      <LinearGradient
+        colors={["transparent", "rgba(0,0,0,0.7)"]}
+        style={{ ...StyleSheet.absoluteFillObject }}
+      />
+
+      <View className="flex-row">
+        <Text className="text-white text-3xl font-bold">{item.full_name}</Text>
+        <Text className="text-white text-3xl font-regular"> {item.age}</Text>
+      </View>
+      <Text className="text-white text-base font-regular">{item.bio}</Text>
+    </ImageBackground>
   </Animated.View>
 );
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
-  const { data, error, loading } = useFetch("feed");
+  const { data, error, loading } = useFetch<FeedUser[]>("feed");
   const [cards, setCards] = useState<FeedUser[]>([]);
 
   useEffect(() => {
@@ -109,7 +133,7 @@ export default function HomeScreen() {
       y.value = event.translationY;
 
       const swipePercent = Math.abs(x.value) / SCREEN_WIDTH;
-      if (swipePercent >= 0.15) {
+      if (swipePercent >= 0.1) {
         status.value = x.value > 0 ? "accepted" : "rejected";
       } else {
         status.value = "pending";
@@ -118,13 +142,13 @@ export default function HomeScreen() {
     .onEnd(() => {
       const swipePercent = Math.abs(x.value) / SCREEN_WIDTH;
 
-      if (swipePercent >= 0.15) {
+      if (swipePercent >= 0.1) {
         x.value = withTiming(
           Math.sign(x.value) * SCREEN_WIDTH * 1.5,
           {},
           (finished) => {
             if (finished) scheduleOnRN(removeTopCard);
-          }
+          },
         );
       } else {
         status.value = "pending";
@@ -154,10 +178,8 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView
+      className="flex-1 px-5 pt-2 bg-bgPrimaryLight dark:bg-bgPrimaryDark"
       style={{
-        flex: 1,
-        paddingHorizontal: 10,
-        paddingTop: 10,
         paddingBottom: insets.bottom + 20,
       }}
     >

@@ -1,52 +1,61 @@
-import { StyleSheet, Text } from "react-native";
+import { Text, View, Platform } from "react-native";
 import { Tabs } from "expo-router";
 import MaskedView from "@react-native-masked-view/masked-view";
 import { LinearGradient } from "expo-linear-gradient";
-
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import Ionicons from "@expo/vector-icons/Ionicons";
-
-import { Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTheme } from "@/contexts/ThemeContext";
+import { colors } from "@/constants/colors";
 
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
   const isAndroid = Platform.OS === "android";
+  const { theme } = useTheme();
+  const themeColors = colors[theme];
+
+  const renderLabel = (label: string, focused: boolean) => (
+    <Text
+      style={{
+        fontSize: 12,
+        paddingTop: 3,
+        fontWeight: focused ? "700" : "400",
+        color: focused ? themeColors.textPrimary : themeColors.tabIconInactive,
+      }}
+    >
+      {label}
+    </Text>
+  );
 
   return (
     <Tabs
       screenOptions={{
-        tabBarStyle: {
-          height: isAndroid ? 48 + insets.bottom : 65 + insets.bottom,
-          paddingBottom: isAndroid ? 4 : 10,
-          position: "absolute",
-          bottom: 0,
-        },
-        tabBarLabel: ({ focused, children }) => (
-          <Text
-            style={{
-              fontWeight: focused ? "700" : "400",
-            }}
-          >
-            {children}
-          </Text>
-        ),
-        tabBarLabelStyle: styles.iconLabel,
-        tabBarBadgeStyle: styles.badge,
         headerShown: false,
+        tabBarStyle: {
+          height: isAndroid ? 60 + insets.bottom : 77 + insets.bottom,
+          paddingBottom: isAndroid ? 4 : 10,
+          paddingTop: 3,
+          position: "absolute",
+          borderTopWidth: 0,
+          elevation: 0,
+        },
+        tabBarBackground: () => (
+          <View style={{ flex: 1, backgroundColor: themeColors.bgPrimary }} />
+        ),
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
-          tabBarLabel: "Home",
+          tabBarLabel: ({ focused }) => renderLabel("Swipe", focused),
           tabBarIcon: ({ focused }) =>
             focused ? (
               <MaskedView
                 maskElement={
                   <MaterialCommunityIcons
                     name="heart-multiple"
-                    style={styles.focusedIcon}
+                    size={27}
+                    color={themeColors.textPrimary}
                   />
                 }
               >
@@ -60,7 +69,8 @@ export default function TabsLayout() {
             ) : (
               <MaterialCommunityIcons
                 name="heart-multiple-outline"
-                style={styles.unfocusedIcon}
+                size={24}
+                color={themeColors.tabIconInactive}
               />
             ),
         }}
@@ -68,51 +78,29 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="chat"
         options={{
-          tabBarLabel: "Chat",
-          tabBarBadge: "",
-          tabBarIcon: ({ focused }) =>
-            focused ? (
-              <Ionicons name="chatbubble" style={styles.focusedIcon} />
-            ) : (
-              <Ionicons
-                name="chatbubble-outline"
-                style={styles.unfocusedIcon}
-              />
-            ),
+        tabBarLabel: ({ focused }) => renderLabel("Chat", focused),
+          tabBarIcon: ({ focused }) => (
+            <Ionicons
+              name={focused ? "chatbubble" : "chatbubble-outline"}
+              size={focused ? 27 : 24}
+              color={focused ? themeColors.textPrimary : themeColors.tabIconInactive}
+            />
+          ),
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          tabBarLabel: "Profile",
-          tabBarIcon: ({ focused }) =>
-            focused ? (
-              <Ionicons name="person" style={styles.focusedIcon} />
-            ) : (
-              <Ionicons name="person-outline" style={styles.unfocusedIcon} />
-            ),
+        tabBarLabel: ({ focused }) => renderLabel("Profile", focused),
+          tabBarIcon: ({ focused }) => (
+            <Ionicons
+              name={focused ? "person" : "person-outline"}
+              size={focused ? 27 : 24}
+              color={focused ? themeColors.textPrimary : themeColors.tabIconInactive}
+            />
+          ),
         }}
       />
     </Tabs>
   );
 }
-
-const styles = StyleSheet.create({
-  focusedIcon: {
-    fontSize: 27,
-    color: "black",
-  },
-  unfocusedIcon: {
-    fontSize: 24,
-    color: "gray",
-  },
-  iconLabel: {
-    paddingTop: 3,
-    fontSize: 12,
-  },
-  badge: {
-    backgroundColor: "#FD267D",
-    minWidth: 9,
-    height: 9,
-  },
-});

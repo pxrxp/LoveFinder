@@ -1,8 +1,15 @@
 import { apiFetch } from '@/services/api';
 import { useState, useEffect, useCallback } from 'react';
 
-export function useFetch(endpoint: string) {
-  const [data, setData] = useState<any>([]);
+interface FetchState<T> {
+  data: T | null;
+  loading: boolean;
+  error: string | null;
+  refetch: () => Promise<void>;
+}
+
+export function useFetch<T = any>(endpoint: string): FetchState<T> {
+  const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -10,11 +17,12 @@ export function useFetch(endpoint: string) {
     setLoading(true);
     try {
       const response = await apiFetch(endpoint);
-      const json = await response.json();
+      const json: T = await response.json();
       setData(json);
       setError(null);
     } catch (err: any) {
       setError(err.message);
+      setData(null);
     } finally {
       setLoading(false);
     }
@@ -22,7 +30,8 @@ export function useFetch(endpoint: string) {
 
   useEffect(() => {
     loadData();
-  }, [loadData]); 
+  }, [loadData]);
 
   return { data, loading, error, refetch: loadData };
 }
+

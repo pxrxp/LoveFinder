@@ -1,11 +1,20 @@
 import { Stack } from 'expo-router';
-import {ActivityIndicator, Text, View} from 'react-native';
-import { useContext } from 'react';
+import {ActivityIndicator, Appearance, Text, View} from 'react-native';
+import { useContext, useEffect } from 'react';
 import { AuthContext } from '@/contexts/AuthContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTheme } from '@/contexts/ThemeContext';
+import { useColorScheme } from "nativewind";
 
 export default function AppLayout() {
   const { user, loading } = useContext(AuthContext)!;
+
+  const { theme } = useTheme();
+  const { setColorScheme } = useColorScheme();
+
+  useEffect(() => {
+    setColorScheme(theme);
+  }, [theme]);
 
   if (loading) return (
     <SafeAreaView className='flex-1 p-10'>

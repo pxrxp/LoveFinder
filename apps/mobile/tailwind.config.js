@@ -1,8 +1,10 @@
 /** @type {import('tailwindcss').Config} */
+const { colors: colorMap } = require("./constants/colors");
+
 module.exports = {
   content: [
     "./app/**/*.{js,jsx,ts,tsx}",
-    "./components/**/*.{js,jsx,ts,tsx}"
+    "./components/**/*.{js,jsx,ts,tsx}",
   ],
   theme: {
     extend: {
@@ -13,20 +15,23 @@ module.exports = {
         semiBold: ["OpenSans-SemiBold"],
         semiBoldItalic: ["OpenSans-SemiBoldItalic"],
         light: ["OpenSans-Light"],
-
         condensed: ["OpenSans-Condensed-Regular"],
         condensedBold: ["OpenSans-Condensed-Bold"],
         semiCondensed: ["OpenSans-SemiCondensed-Regular"],
         semiCondensedBold: ["OpenSans-SemiCondensed-Bold"],
       },
       colors: {
-        textPrimaryLight: "#000000",
-        textPrimaryDark: "#ffffff",
-        textSecondaryLight: "#808080",
-        textSecondaryDark: "#d1d1d1",
-      }
+        textPrimaryLight: colorMap.light.textPrimary,
+        textPrimaryDark: colorMap.dark.textPrimary,
+        textSecondaryLight: colorMap.light.textSecondary,
+        textSecondaryDark: colorMap.dark.textSecondary,
+        bgPrimaryLight: colorMap.light.bgPrimary,
+        bgPrimaryDark: colorMap.dark.bgPrimary,
+      },
     },
   },
   plugins: [],
   presets: [require("nativewind/preset")],
-}
+  darkMode: "class",
+};
+
