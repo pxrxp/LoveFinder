@@ -8,7 +8,7 @@ interface FetchState<T> {
   refetch: () => Promise<void>;
 }
 
-export function useFetch<T = any>(endpoint: string): FetchState<T> {
+export function useFetch<T = any>(endpoint: string, options?: RequestInit): FetchState<T> {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -16,7 +16,7 @@ export function useFetch<T = any>(endpoint: string): FetchState<T> {
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await apiFetch(endpoint);
+      const response = await apiFetch(endpoint, options);
       const json: T = await response.json();
       setData(json);
       setError(null);

@@ -10,6 +10,7 @@ export const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
       ...options.headers
     }
   });
+  console.log(res);
 
   if (!res.ok) {
     throw new Error('Unauthorized');

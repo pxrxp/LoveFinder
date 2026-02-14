@@ -7,16 +7,19 @@ import {
   ImageBackground,
   StyleSheet,
 } from "react-native";
+
 import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
+
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
   withTiming,
 } from "react-native-reanimated";
+
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import Entypo from "@expo/vector-icons/Entypo";
@@ -24,10 +27,11 @@ import MaskedView from "@react-native-masked-view/masked-view";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useState } from "react";
 import { scheduleOnRN } from "react-native-worklets";
+import { apiFetch } from "@/services/api";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
-type SwipeStatus = "rejected" | "accepted" | "pending";
+type SwipeStatus = "dislike" | "like" | "pending";
 interface FeedUser {
   user_id: string;
   full_name: string;
@@ -127,6 +131,14 @@ export default function HomeScreen() {
     status.value = "pending";
   };
 
+  const postSwipe = async (receiver_id: string, type: "like" | "dislike") => {
+    try {
+      await apiFetch(`swipes/${receiver_id}/${type}`, { method: "POST" });
+    } catch (err) {
+      console.error("Swipe POST failed", err);
+    }
+  };
+
   const gesture = Gesture.Pan()
     .onUpdate((event) => {
       x.value = event.translationX;
@@ -134,20 +146,27 @@ export default function HomeScreen() {
 
       const swipePercent = Math.abs(x.value) / SCREEN_WIDTH;
       if (swipePercent >= 0.1) {
-        status.value = x.value > 0 ? "accepted" : "rejected";
+        status.value = x.value > 0 ? "like" : "dislike";
       } else {
         status.value = "pending";
       }
     })
     .onEnd(() => {
       const swipePercent = Math.abs(x.value) / SCREEN_WIDTH;
+      const topCard = cards[cards.length - 1];
+      if (!topCard) return;
 
       if (swipePercent >= 0.1) {
         x.value = withTiming(
           Math.sign(x.value) * SCREEN_WIDTH * 1.5,
           {},
           (finished) => {
-            if (finished) scheduleOnRN(removeTopCard);
+            if (finished) {
+              if (status.value !== "pending") {
+                scheduleOnRN(postSwipe, topCard.user_id, status.value);
+              }
+              scheduleOnRN(removeTopCard);
+            }
           },
         );
       } else {
@@ -166,11 +185,11 @@ export default function HomeScreen() {
   }));
 
   const showHeartStyle = useAnimatedStyle(() => ({
-    opacity: status.value === "accepted" ? 1 : 0,
+    opacity: status.value === "like" ? 1 : 0,
   }));
 
   const showCrossStyle = useAnimatedStyle(() => ({
-    opacity: status.value === "rejected" ? 1 : 0,
+    opacity: status.value === "dislike" ? 1 : 0,
   }));
 
   if (loading) return <ActivityIndicator size="large" className="flex-1" />;
