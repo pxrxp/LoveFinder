@@ -1,19 +1,38 @@
-import { Controller, Get, Param, ParseUUIDPipe, UseGuards } from '@nestjs/common';
+import { Controller, Get, Patch, Delete, Post, Param, Body, ParseUUIDPipe } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { GetUser } from '../auth/decorators/get-user.decorator';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { CreateUserDto } from './dto/create-user.dto';
 import { UserDto } from './dto/user.dto';
+import { Public } from '../auth/decorators/public.decorator';
+import { GetUser } from '../auth/decorators/get-user.decorator';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService) { }
+
+  @Public()
+  @Post()
+  async create(@Body() dto: CreateUserDto): Promise<UserDto> {
+    return this.usersService.create(dto);
+  }
 
   @Get('me')
-  getProfile(@GetUser() user:UserDto) {
+  async me(@GetUser() user: UserDto) {
     return user;
   }
 
   @Get(':id')
-  async getUser(@Param('id', ParseUUIDPipe) user_id: string) : Promise<UserDto>{
-    return this.usersService.findById(user_id);
+  async get(@Param('id', ParseUUIDPipe) id: string): Promise<UserDto | null> {
+    return this.usersService.findById(id);
+  }
+
+  @Patch()
+  async update(@GetUser() user: UserDto, @Body() dto: UpdateUserDto): Promise<UserDto | null> {
+    return this.usersService.update(user.user_id, dto);
+  }
+
+  @Delete()
+  async deactivate(@GetUser() user: UserDto): Promise<void> {
+    return this.usersService.deactivate(user.user_id);
   }
 }

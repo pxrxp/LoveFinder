@@ -1,4 +1,4 @@
-import { Controller, Get, Param, ParseUUIDPipe, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, ParseUUIDPipe, Query } from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { ConversationDto } from './dto/conversation.dto';
 import { PaginationPipe } from '../common/pipes/pagination.pipe';

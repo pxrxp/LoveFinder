@@ -8,9 +8,14 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { AuthenticatedGuard } from './auth/guards/authenticated.guard';
 import { APP_GUARD } from '@nestjs/core';
+import { PhotosModule } from './photos/photos.module';
+import { SwipesModule } from './swipes/swipes.module';
+import { BlocksModule } from './blocks/blocks.module';
+import { ReportsModule } from './reports/reports.module';
+import { InterestsModule } from './interests/interests.module';
 
 @Module({
-  imports: [ChatModule, FeedModule, LiveChatModule, AuthModule, UsersModule],
+  imports: [ChatModule, FeedModule, LiveChatModule, AuthModule, UsersModule, PhotosModule, SwipesModule, BlocksModule, ReportsModule, InterestsModule],
   controllers: [AppController],
   providers: [
     AppService,

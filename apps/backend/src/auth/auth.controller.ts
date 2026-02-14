@@ -19,6 +19,7 @@ export class AuthController {
 
   @Post('logout')
   logout(@Req() request: AuthRequest) {
+    request.logout(() => {});
     request.session.destroy(() => {});
     return { message: 'Logged out' };
   }

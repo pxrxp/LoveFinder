@@ -16,8 +16,8 @@ export default function TabsLayout() {
 
   const renderLabel = (label: string, focused: boolean) => (
     <Text
+      className="text-sm font-regular"
       style={{
-        fontSize: 12,
         paddingTop: 3,
         fontWeight: focused ? "700" : "400",
         color: focused ? themeColors.textPrimary : themeColors.tabIconInactive,

@@ -99,7 +99,7 @@ const Card = ({ style, showHeartStyle, showCrossStyle, item, isTop }: any) => (
       />
 
       <View className="flex-row">
-        <Text className="text-white text-3xl font-bold">{item.full_name}</Text>
+        <Text className="text-white text-3xl font-bold">{item.full_name} </Text>
         <Text className="text-white text-3xl font-regular"> {item.age}</Text>
       </View>
       <Text className="text-white text-base font-regular">{item.bio}</Text>

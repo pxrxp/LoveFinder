@@ -5,13 +5,14 @@ export class UserDto {
   full_name!: string;
   gender!: string;
   sexual_orientation!: string;
+  profile_picture_url!: string | null;
   birth_date!: Date;
   bio!: string;
   created_at!: Date;
   pref_genders!: string;
   pref_min_age!: number;
   pref_max_age!: number;
-  pref_distance_radius!: number;
-  is_active!: number;
+  pref_distance_radius_km!: number;
+  is_active!: boolean;
   allow_messages_from_strangers!: boolean;
 };

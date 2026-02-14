@@ -1,16 +1,23 @@
+import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import { Image } from "react-native";
 
 export default function ProfilePicture({
   url,
   size,
+  color = "black"
 }: {
-  url: string;
+  url: string | null | undefined;
   size: number;
+  color?: string
 }) {
-  return (
-    <Image
-      source={{ uri: url }}
-      style={{ width: size, height: size, borderRadius: size / 2 }}
-    />
-  );
+  if (url) {
+    return (
+      <Image
+        source={{ uri: url }}
+        style={{ width: size, height: size, borderRadius: size / 2 }}
+      />
+    );
+  } else {
+    return <FontAwesome5 name="user-circle" size={size} color={color} />;
+  }
 }

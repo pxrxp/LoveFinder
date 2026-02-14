@@ -1,5 +1,5 @@
 import { useFetch } from "@/hooks/useFetch";
-import { Link } from "expo-router";
+import { Link, Stack } from "expo-router";
 import { FlatList, Image, Text, View } from "react-native";
 import {
   SafeAreaView,
@@ -12,10 +12,12 @@ import { useTheme } from "@/contexts/ThemeContext";
 import ProfilePicture from "@/components/ProfilePicture";
 
 interface Conversation {
+  other_user_id: string;
   full_name: string;
   profile_picture_url: string;
-  receiver_id: string;
-  sent_at: string;
+  last_message: string;
+  last_message_sender_id: string;
+  last_message_sent_at: Date;
 }
 
 function timeAgo(past: Date | string): string {
@@ -45,42 +47,78 @@ export default function ChatScreen() {
   const themeColors = colors[theme];
 
   return (
-    <View
-      className="flex-1 px-7 bg-bgPrimaryLight dark:bg-bgPrimaryDark"
-      style={{
-        paddingBottom: insets.bottom + 20,
-      }}
-    >
-      <FlatList
-        data={data}
-        keyExtractor={(item) => item.receiver_id}
-        ListEmptyComponent={
-          <View className="flex-row justify-center py-10">
-            <Entypo
-              name="emoji-sad"
-              size={64}
-              color={themeColors.textPrimary}
-            />
-            <Text className="text-textPrimaryLight dark:text-textPrimaryDark font-bold text-2xl ml-5 mt-5">
-              Nothing to see here!
-            </Text>
-          </View>
-        }
-        ListFooterComponent={<View className="w-full h-20" />}
-        renderItem={({ item }) => {
-          return (
-            <Link className="my-5 flex-row" href={`/chat/${item.receiver_id}`}>
-              <ProfilePicture url={item.profile_picture_url} size={90} />
-              <View className="flex-1 p-5">
-                <Text className="text-textPrimaryLight dark:text-textPrimaryDark font-bold text-xl">
-                  {item.full_name}
-                </Text>
-                <Text className="text-gray-400">{timeAgo(item.sent_at)}</Text>
-              </View>
-            </Link>
-          );
+    <>
+      <Stack.Screen
+        options={{
+          headerTitle: "Chats"
         }}
       />
-    </View>
+      <View
+        className="flex-1 px-7 bg-bgPrimaryLight dark:bg-bgPrimaryDark"
+        style={{
+          paddingBottom: insets.bottom + 20,
+        }}
+      >
+        <FlatList
+          data={data}
+          keyExtractor={(item) => item.other_user_id}
+          ListEmptyComponent={
+            <View className="flex-row justify-center py-10">
+              <Entypo
+                name="emoji-sad"
+                size={64}
+                color={themeColors.textPrimary}
+              />
+              <Text className="text-textPrimaryLight dark:text-textPrimaryDark font-bold text-2xl ml-5 mt-5">
+                Nothing to see here!
+              </Text>
+            </View>
+          }
+          ListFooterComponent={<View className="w-full h-20" />}
+          renderItem={({ item }) => {
+            return (
+              <Link
+                className="my-5 flex-row items-center w-full"
+                href={`/chat/${item.other_user_id}`}
+              >
+                <ProfilePicture
+                  url={item.profile_picture_url}
+                  size={90}
+                  color={themeColors.textPrimary}
+                />
+
+                <View className="flex-1 pl-5 py-1">
+                  <Text
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                    className="text-textPrimaryLight dark:text-textPrimaryDark font-bold text-xl"
+                  >
+                    {item.full_name}
+                  </Text>
+
+                  <View className="flex-row justify-between items-center w-[15.6rem]">
+                    <Text className="text-gray-400 font-regular">
+                      {timeAgo(item.last_message_sent_at)}
+                    </Text>
+                    <Text className="text-textPrimaryDark font-light bg-gray-500 px-2 py-1 rounded-full">
+                      Your turn
+                    </Text>
+                  </View>
+
+                  <Text
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                    className="text-gray-400 font-regular"
+                  >
+                    {item.last_message}
+                  </Text>
+                  <View className="w-full h-[1.5px] bg-gray-500 relative top-3 rounded-full" />
+                </View>
+              </Link>
+            );
+          }}
+        />
+      </View>
+    </>
   );
 }

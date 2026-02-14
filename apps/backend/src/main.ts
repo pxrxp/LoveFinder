@@ -4,6 +4,7 @@ import { AppModule } from './app.module';
 import { createClient } from 'redis';
 import session from 'express-session';
 import passport from 'passport';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -20,6 +21,12 @@ async function bootstrap() {
   });
 
   app.setGlobalPrefix('api/v1');
+
+  app.useGlobalPipes(new ValidationPipe({
+    whitelist: true,
+    forbidNonWhitelisted: true,
+    transform: true,
+  }));
 
   app.use(
     session({

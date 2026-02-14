@@ -13,6 +13,7 @@
     "@types/argon2": "^0.15.4",
     "@types/redis": "^4.0.11",
     "argon2": "^0.44.0",
+    "class-transformer": "^0.5.1",
     "connect-redis": "^9.0.0",
     "expo": "~54.0.32",
     "expo-router": "~6.0.22",
