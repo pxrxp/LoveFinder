@@ -8,14 +8,19 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { AuthenticatedGuard } from './auth/guards/authenticated.guard';
 import { APP_GUARD } from '@nestjs/core';
+import { ServeStaticModule } from '@nestjs/serve-static';
 import { PhotosModule } from './photos/photos.module';
 import { SwipesModule } from './swipes/swipes.module';
 import { BlocksModule } from './blocks/blocks.module';
 import { ReportsModule } from './reports/reports.module';
 import { InterestsModule } from './interests/interests.module';
+import { join } from 'path';
 
 @Module({
-  imports: [ChatModule, FeedModule, LiveChatModule, AuthModule, UsersModule, PhotosModule, SwipesModule, BlocksModule, ReportsModule, InterestsModule],
+  imports: [ChatModule, FeedModule, LiveChatModule, AuthModule, UsersModule, PhotosModule, SwipesModule, BlocksModule, ReportsModule, InterestsModule, ServeStaticModule.forRoot({
+    rootPath: join(__dirname, '..', 'uploads'),
+    serveRoot: '/static',
+  })],
   controllers: [AppController],
   providers: [
     AppService,
@@ -25,4 +30,4 @@ import { InterestsModule } from './interests/interests.module';
     },
   ]
 })
-export class AppModule {}
+export class AppModule { }

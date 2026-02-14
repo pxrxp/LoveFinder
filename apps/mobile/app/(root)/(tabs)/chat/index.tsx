@@ -42,7 +42,7 @@ function timeAgo(past: Date | string): string {
 
 export default function ChatScreen() {
   const insets = useSafeAreaInsets();
-  const { data, error, loading } = useFetch<Conversation[]>("chat");
+  const { data, loading, refetch } = useFetch<Conversation[]>("chat");
   const { theme } = useTheme();
   const themeColors = colors[theme];
 
@@ -61,6 +61,8 @@ export default function ChatScreen() {
       >
         <FlatList
           data={data}
+          onRefresh={refetch}
+          refreshing={loading}
           keyExtractor={(item) => item.other_user_id}
           ListEmptyComponent={
             <View className="flex-row justify-center py-10">
@@ -97,7 +99,7 @@ export default function ChatScreen() {
                   </Text>
 
                   <View className="flex-row justify-between items-center w-[15.6rem]">
-                    <Text className="text-gray-400 font-regular">
+                    <Text className="text-gray-500 font-regular">
                       {timeAgo(item.last_message_sent_at)}
                     </Text>
                     <Text className="text-textPrimaryDark font-light bg-gray-500 px-2 py-1 rounded-full">
@@ -108,7 +110,7 @@ export default function ChatScreen() {
                   <Text
                     numberOfLines={1}
                     ellipsizeMode="tail"
-                    className="text-gray-400 font-regular"
+                    className="text-gray-500 font-regular"
                   >
                     {item.last_message}
                   </Text>
