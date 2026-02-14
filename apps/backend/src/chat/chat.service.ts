@@ -70,6 +70,7 @@ export class ChatService {
 				FROM MESSAGES
 				WHERE (SENDER_ID = ${user_id} AND RECEIVER_ID = ${other_user_id})
 				   OR (SENDER_ID = ${other_user_id} AND RECEIVER_ID = ${user_id})
+				   AND IS_DELETED = FALSE
 				ORDER BY
 						SENT_AT DESC
 				OFFSET
@@ -81,16 +82,28 @@ export class ChatService {
 	}
 
 	async sendMessage(
-		sender_id: string,
-		receiver_id: string,
-		message: string
-	): Promise<MessageDto> {
-		const [msg] = await Bun.sql`
-      INSERT INTO MESSAGES (SENDER_ID, RECEIVER_ID, MESSAGE_CONTENT)
-      VALUES (${sender_id}, ${receiver_id}, ${message})
-      RETURNING MESSAGE_ID, SENDER_ID, RECEIVER_ID, MESSAGE_CONTENT, IS_READ, SENT_AT
-    `;
-		return msg;
+	  senderId: string,
+	  receiverId: string,
+	  content: string,
+	  type: 'text' | 'image' = 'text'
+	) {
+	  const [msg] = await Bun.sql`
+	    INSERT INTO MESSAGES (
+	      SENDER_ID,
+	      RECEIVER_ID,
+	      MESSAGE_TYPE,
+	      MESSAGE_CONTENT
+	    )
+	    VALUES (
+	      ${senderId},
+	      ${receiverId},
+	      ${type},
+	      ${content}
+	    )
+	    RETURNING *
+	  `;
+
+	  return msg;
 	}
 
 	async markAsRead(user_id: string, other_user_id: string): Promise<void> {
@@ -101,11 +114,20 @@ export class ChatService {
     `;
 	}
 
-	async deleteMessage(user_id: string, message_id: string): Promise<void> {
-		await Bun.sql`
-      DELETE FROM MESSAGES
-      WHERE MESSAGE_ID = ${message_id} AND SENDER_ID = ${user_id}
-    `;
+	async deleteMessage(userId: string, messageId: string) {
+	  const result = await Bun.sql`
+	    UPDATE messages
+	    SET is_deleted = TRUE
+	    WHERE message_id = ${messageId}
+	      AND sender_id = ${userId}
+	    RETURNING message_id
+	  `;
+
+	  if (result.length === 0) {
+	    throw new Error("Message not found or unauthorized");
+	  }
+
+	  return result[0];
 	}
 
 	getRoomId(user1: string, user2: string) {

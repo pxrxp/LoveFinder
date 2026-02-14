@@ -90,7 +90,8 @@ export class LiveChatGateway implements OnGatewayConnection, OnGatewayDisconnect
   async handleSendMessage(
     @ConnectedSocket() socket: Socket,
     @MessageBody('other_user_id') otherUserId: string,
-    @MessageBody('message') message: string
+    @MessageBody('message') message: string,
+    @MessageBody('message_type') messageType: 'text' | 'image'
   ) {
     const user = getSocketUser(socket);
     if (!user) return;
@@ -101,19 +102,14 @@ export class LiveChatGateway implements OnGatewayConnection, OnGatewayDisconnect
       const msg = await this.chatService.sendMessage(
         user.user_id,
         otherUserId,
-        message
+        message,
+        messageType
       );
 
-      this.server.to(roomId).emit('new_message', {
-        room_id: roomId,
-        sender_id: user.user_id,
-        receiver_id: otherUserId,
-        message_content: message,
-        sent_at: msg.sent_at
-      });
+      this.server.to(roomId).emit('new_message', msg);
+
     } catch (err: any) {
       socket.emit('send_message_error', {
-        room_id: roomId,
         error: err.message
       });
     }
