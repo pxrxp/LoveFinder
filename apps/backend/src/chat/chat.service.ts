@@ -79,4 +79,36 @@ export class ChatService {
 
 		`);
 	}
+
+	async sendMessage(
+		sender_id: string,
+		receiver_id: string,
+		message: string
+	): Promise<MessageDto> {
+		const [msg] = await Bun.sql`
+      INSERT INTO MESSAGES (SENDER_ID, RECEIVER_ID, MESSAGE_CONTENT)
+      VALUES (${sender_id}, ${receiver_id}, ${message})
+      RETURNING MESSAGE_ID, SENDER_ID, RECEIVER_ID, MESSAGE_CONTENT, IS_READ, SENT_AT
+    `;
+		return msg;
+	}
+
+	async markAsRead(user_id: string, other_user_id: string): Promise<void> {
+		await Bun.sql`
+      UPDATE MESSAGES
+      SET IS_READ = TRUE
+      WHERE RECEIVER_ID = ${user_id} AND SENDER_ID = ${other_user_id}
+    `;
+	}
+
+	async deleteMessage(user_id: string, message_id: string): Promise<void> {
+		await Bun.sql`
+      DELETE FROM MESSAGES
+      WHERE MESSAGE_ID = ${message_id} AND SENDER_ID = ${user_id}
+    `;
+	}
+
+	getRoomId(user1: string, user2: string) {
+		return [user1, user2].sort().join('_');
+	}
 }

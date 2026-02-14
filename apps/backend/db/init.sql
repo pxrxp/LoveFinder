@@ -212,20 +212,19 @@ CREATE TABLE IF NOT EXISTS SWIPES (
 
 CREATE OR REPLACE FUNCTION CHECK_ALLOW_MESSAGES_FROM_STRANGERS () RETURNS TRIGGER AS $$
 BEGIN
-    IF NOT EXISTS(
+    IF NOT EXISTS (
         SELECT 1
-        FROM users
-        WHERE user_id = NEW.receiver_id AND allow_messages_from_strangers = TRUE
-    )
-    AND NOT EXISTS(
-        SELECT 1
-        FROM swipes s
-        WHERE (s.swiper_id = NEW.sender_id AND s.receiver_id = NEW.receiver_id)
-           OR (s.receiver_id = NEW.sender_id AND s.swiper_id = NEW.receiver_id)
+        FROM swipes s1
+        JOIN swipes s2
+          ON s1.swiper_id = s2.receiver_id
+         AND s1.receiver_id = s2.swiper_id
+        WHERE s1.swiper_id = NEW.sender_id
+          AND s1.receiver_id = NEW.receiver_id
+          AND s1.swipe_type = 'like'
+          AND s2.swipe_type = 'like'
     ) THEN
-        RAISE EXCEPTION 'Receiver does not allow messages from strangers';
+        RAISE EXCEPTION 'Cannot message: users have not mutually liked each other';
     END IF;
-
     RETURN NEW;
 END;
 $$ LANGUAGE PLPGSQL;

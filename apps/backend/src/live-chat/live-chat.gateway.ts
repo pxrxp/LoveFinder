@@ -1,53 +1,144 @@
-import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
-import { LiveChatService } from './live-chat.service';
+import {
+  ConnectedSocket,
+  MessageBody,
+  OnGatewayConnection,
+  OnGatewayDisconnect,
+  SubscribeMessage,
+  WebSocketGateway,
+  WebSocketServer
+} from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
+import { sessionMiddleware } from '../common/middlwares/session.middleware';
+import { UserDto } from '../users/dto/user.dto';
+import { ChatService } from '../chat/chat.service';
+import { UsersService } from '../users/users.service';
+
+export interface AuthenticatedRequest extends Request {
+  user?: UserDto;
+}
+
+function getSocketUser(socket: Socket): UserDto | null {
+  const req = socket.request as unknown as AuthenticatedRequest;
+  return req.user ?? null;
+}
 
 @WebSocketGateway({
   cors: { origin: '*' }
 })
 export class LiveChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
-  constructor(private readonly liveChatService: LiveChatService) { }
+  constructor(
+    private readonly chatService: ChatService, private readonly usersService: UsersService
+  ) { }
 
   @WebSocketServer()
   server!: Server;
 
+  afterInit(server: Server) {
+    server.use((socket, next) => {
+      sessionMiddleware(socket.request as any, {} as any, async () => {
+        const userId = (socket.request as any).session?.passport?.user;
+        if (!userId) return next(new Error('Unauthorized'));
+
+        const user = await this.usersService.findById(userId);
+        (socket.request as any).user = user;
+        next();
+      });
+    });
+  }
+
   handleConnection(socket: Socket) {
-    console.log(socket.id, ' connected');
+    const user = getSocketUser(socket);
+    if (!user) {
+      console.log('Unauthorized socket connection, disconnecting', socket.id);
+      socket.disconnect();
+      return;
+    }
+    console.log(`User ${user.user_id} connected on socket ${socket.id}`);
   }
 
   handleDisconnect(socket: Socket) {
-    console.log(socket.id, ' disconnected');
+    console.log(getSocketUser(socket)?.user_id || socket.id, 'disconnected');
   }
 
   @SubscribeMessage('join_room')
-  handleJoinRoom(
+  async handleJoinRoom(
     @ConnectedSocket() socket: Socket,
-    @MessageBody("user_id") userId: string,
-    @MessageBody("room_id") roomId: string
+    @MessageBody('other_user_id') otherUserId: string
   ) {
+    const user = getSocketUser(socket);
+    if (!user) return;
+
+    const roomId = this.chatService.getRoomId(user.user_id, otherUserId);
     socket.join(roomId);
-    socket.emit('join_room', userId);
+    socket.emit('join_room', { room_id: roomId });
   }
 
   @SubscribeMessage('leave_room')
-  handleLeaveRoom(
+  async handleLeaveRoom(
     @ConnectedSocket() socket: Socket,
-    @MessageBody('user_id') userId: string,
-    @MessageBody("room_id") roomId: string
+    @MessageBody('other_user_id') otherUserId: string
   ) {
+    const user = getSocketUser(socket);
+    if (!user) return;
+
+    const roomId = this.chatService.getRoomId(user.user_id, otherUserId);
     socket.leave(roomId);
-    socket.emit('leave_room', userId);
+    socket.emit('leave_room', { room_id: roomId });
   }
 
   @SubscribeMessage('send_message')
-  handleSendMessage(
+  async handleSendMessage(
     @ConnectedSocket() socket: Socket,
-    @MessageBody('room_id') roomId: string,
-    @MessageBody('message') message: string,
+    @MessageBody('other_user_id') otherUserId: string,
+    @MessageBody('message') message: string
   ) {
-    this.server.to(roomId).emit('new_message', {
-      sender: socket.id,
-      message,
-    });
+    const user = getSocketUser(socket);
+    if (!user) return;
+
+    const roomId = this.chatService.getRoomId(user.user_id, otherUserId);
+
+    try {
+      const msg = await this.chatService.sendMessage(
+        user.user_id,
+        otherUserId,
+        message
+      );
+
+      this.server.to(roomId).emit('new_message', {
+        room_id: roomId,
+        sender_id: user.user_id,
+        receiver_id: otherUserId,
+        message_content: message,
+        sent_at: msg.sent_at
+      });
+    } catch (err: any) {
+      socket.emit('send_message_error', {
+        room_id: roomId,
+        error: err.message
+      });
+    }
+  }
+
+  @SubscribeMessage('delete_message')
+  async handleDeleteMessage(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody('other_user_id') otherUserId: string,
+    @MessageBody('message_id') messageId: string
+  ) {
+    const user = getSocketUser(socket);
+    if (!user) return;
+    await this.chatService.deleteMessage(user.user_id, messageId);
+    const roomId = this.chatService.getRoomId(user.user_id, otherUserId);
+    this.server.to(roomId).emit('delete_message', { message_id: messageId });
+  }
+
+  @SubscribeMessage('mark_as_read')
+  async handleMarkAsRead(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody('other_user_id') otherUserId: string
+  ) {
+    const user = getSocketUser(socket);
+    if (!user) return;
+    await this.chatService.markAsRead(user.user_id, otherUserId);
   }
 }
