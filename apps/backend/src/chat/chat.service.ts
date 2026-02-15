@@ -16,6 +16,7 @@ export class ChatService {
         SELECT
           MESSAGE_ID,
           MESSAGE_CONTENT,
+          MESSAGE_TYPE,
           SENT_AT,
           SENDER_ID,
           RECEIVER_ID,
@@ -33,6 +34,7 @@ export class ChatService {
           OTHER_USER_ID,
           MESSAGE_ID,
           MESSAGE_CONTENT,
+          MESSAGE_TYPE,
           SENT_AT,
           SENDER_ID
         FROM user_messages
@@ -44,6 +46,7 @@ export class ChatService {
         U.FULL_NAME,
         P.IMAGE_URL AS PROFILE_PICTURE_URL,
         LM.MESSAGE_CONTENT AS LAST_MESSAGE,
+        LM.MESSAGE_TYPE AS LAST_MESSAGE_TYPE,
         LM.SENDER_ID AS LAST_MESSAGE_SENDER_ID,
         LM.SENT_AT AS LAST_MESSAGE_SENT_AT
       FROM last_messages LM

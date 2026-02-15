@@ -28,6 +28,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useState } from "react";
 import { scheduleOnRN } from "react-native-worklets";
 import { apiFetch } from "@/services/api";
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -116,6 +117,8 @@ export default function HomeScreen() {
   const { data, error, loading } = useFetch<FeedUser[]>("feed");
   const [cards, setCards] = useState<FeedUser[]>([]);
 
+  const tabBarHeight = useBottomTabBarHeight();
+
   useEffect(() => {
     if (data) setCards([...data].reverse());
   }, [data]);
@@ -197,10 +200,9 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView
-      className="flex-1 px-5 pt-2 bg-bgPrimaryLight dark:bg-bgPrimaryDark"
-      style={{
-        paddingBottom: insets.bottom + 20,
-      }}
+      className="flex-1 px-5 pt-2 pb-1 bg-bgPrimaryLight dark:bg-bgPrimaryDark"
+      edges={["top", "left", "right"]}
+       style={{paddingBottom: tabBarHeight}}
     >
       <View className="flex-1 relative">
         {cards.map((item, index) => {

@@ -1,9 +1,10 @@
 import "@/global.css";
 import { Slot } from "expo-router";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { ThemeProvider } from "@/contexts/ThemeContext";
+import { ThemeProvider, useTheme } from "@/contexts/ThemeContext";
 import { useFonts } from "expo-font";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { View } from "react-native";
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
