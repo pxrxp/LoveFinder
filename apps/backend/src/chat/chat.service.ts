@@ -57,37 +57,51 @@ export class ChatService {
 		);
 	}
 
-	async getMessages(user_id: string, other_user_id: string, limit: number, offset: number): Promise<MessageDto[]> {
-		return Array.from(
-			await Bun.sql`
+	async getMessages(
+		userId: string,
+		otherUserId: string,
+		cursor: string | null,
+		limit: number
+	): Promise<MessageDto[]> {
 
-				SELECT
-				    MESSAGE_ID,
-				    SENDER_ID,
-				    MESSAGE_CONTENT,
-				    IS_READ,
-				    SENT_AT
-				FROM MESSAGES
-				WHERE (SENDER_ID = ${user_id} AND RECEIVER_ID = ${other_user_id})
-				   OR (SENDER_ID = ${other_user_id} AND RECEIVER_ID = ${user_id})
-				   AND IS_DELETED = FALSE
-				ORDER BY
-						SENT_AT DESC
-				OFFSET
-						${offset}
-				LIMIT
-						${limit}
-
-		`);
+		return Array.from(await Bun.sql`
+	    SELECT
+	      MESSAGE_ID,
+	      SENDER_ID,
+	      RECEIVER_ID,
+	      MESSAGE_TYPE,
+	      MESSAGE_CONTENT,
+	      IS_READ,
+	      SENT_AT
+	    FROM MESSAGES
+	    WHERE (
+	      (
+	        SENDER_ID = ${userId}
+	        AND RECEIVER_ID = ${otherUserId}
+	      )
+	      OR
+	      (
+	        SENDER_ID = ${otherUserId}
+	        AND RECEIVER_ID = ${userId}
+	      )
+	    )
+	    AND IS_DELETED = FALSE
+	    AND (
+	      ${cursor}::timestamptz IS NULL
+	      OR SENT_AT < ${cursor}
+	    )
+	    ORDER BY SENT_AT DESC
+	    LIMIT ${limit}
+	  `);
 	}
 
 	async sendMessage(
-	  senderId: string,
-	  receiverId: string,
-	  content: string,
-	  type: 'text' | 'image' = 'text'
+		senderId: string,
+		receiverId: string,
+		content: string,
+		type: 'text' | 'image' = 'text'
 	) {
-	  const [msg] = await Bun.sql`
+		const [msg] = await Bun.sql`
 	    INSERT INTO MESSAGES (
 	      SENDER_ID,
 	      RECEIVER_ID,
@@ -103,7 +117,7 @@ export class ChatService {
 	    RETURNING *
 	  `;
 
-	  return msg;
+		return msg;
 	}
 
 	async markAsRead(user_id: string, other_user_id: string): Promise<void> {
@@ -115,7 +129,7 @@ export class ChatService {
 	}
 
 	async deleteMessage(userId: string, messageId: string) {
-	  const result = await Bun.sql`
+		const result = await Bun.sql`
 	    UPDATE messages
 	    SET is_deleted = TRUE
 	    WHERE message_id = ${messageId}
@@ -123,11 +137,11 @@ export class ChatService {
 	    RETURNING message_id
 	  `;
 
-	  if (result.length === 0) {
-	    throw new Error("Message not found or unauthorized");
-	  }
+		if (result.length === 0) {
+			throw new Error("Message not found or unauthorized");
+		}
 
-	  return result[0];
+		return result[0];
 	}
 
 	getRoomId(user1: string, user2: string) {

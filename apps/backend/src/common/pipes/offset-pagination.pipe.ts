@@ -1,7 +1,7 @@
 import { PipeTransform, Injectable, BadRequestException } from '@nestjs/common';
 
 @Injectable()
-export class PaginationPipe implements PipeTransform {
+export class OffsetPaginationPipe implements PipeTransform {
   transform(value: any) {
     const limit = Number(value.limit ?? 10);
     const offset = Number(value.offset ?? 0);

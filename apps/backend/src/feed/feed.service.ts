@@ -3,7 +3,7 @@ import { FeedDto } from './dto/feed.dto';
 
 @Injectable()
 export class FeedService {
-  async getFeed(user_id: string, limit: number): Promise<FeedDto[]> {
+  async getFeed(user_id: string, limit: number, offset: number = 0): Promise<FeedDto[]> {
     return Array.from(
       await Bun.sql`
 
@@ -112,6 +112,7 @@ export class FeedService {
           DISTANCES.DISTANCE_KM ASC
 
         LIMIT ${limit}
+        OFFSET ${offset}
 
       `
     );

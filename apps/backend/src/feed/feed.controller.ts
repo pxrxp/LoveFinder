@@ -1,6 +1,6 @@
 import { Controller, Get, Param, ParseUUIDPipe, Query } from '@nestjs/common';
 import { FeedService } from './feed.service';
-import { PaginationPipe } from '../common/pipes/pagination.pipe';
+import { OffsetPaginationPipe } from '../common/pipes/offset-pagination.pipe';
 import { FeedDto } from './dto/feed.dto';
 import { GetUser } from '../auth/decorators/get-user.decorator';
 import { UserDto } from '../users/dto/user.dto';
@@ -12,8 +12,8 @@ export class FeedController {
   @Get()
   async getConversations(
     @GetUser() user: UserDto,
-    @Query(PaginationPipe) pagination: { limit: number },
+    @Query(OffsetPaginationPipe) pagination: { limit: number, offset?: number },
   ): Promise<FeedDto[]> {
-    return this.feedService.getFeed(user.user_id, pagination.limit);
+    return this.feedService.getFeed(user.user_id, pagination.limit, pagination.offset);
   }
 }
