@@ -1,10 +1,10 @@
-import { Stack } from 'expo-router';
-import {ActivityIndicator, Appearance, Text, View} from 'react-native';
-import { useContext, useEffect } from 'react';
-import { AuthContext } from '@/contexts/AuthContext';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTheme } from '@/contexts/ThemeContext';
+import { Stack } from "expo-router";
+import { useContext, useEffect } from "react";
+import { AuthContext } from "@/contexts/AuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
 import { useColorScheme } from "nativewind";
+import LoadingScreen from "@/components/LoadingScreen";
+import { colors } from "@/constants/colors";
 
 export default function AppLayout() {
   const { user, loading } = useContext(AuthContext)!;
@@ -16,17 +16,17 @@ export default function AppLayout() {
     setColorScheme(theme);
   }, [theme]);
 
-  if (loading) return (
-    <SafeAreaView className='flex-1 p-10'>
-      <ActivityIndicator size={"large"}/>
-    </SafeAreaView>
-    );
+  if (loading) return <LoadingScreen />;
 
   const authenticated = !!user;
   const onboarded = true;
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
+    <Stack
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
       <Stack.Protected guard={!authenticated}>
         <Stack.Screen name="(auth)/login" />
       </Stack.Protected>

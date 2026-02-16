@@ -18,6 +18,7 @@ export default function TabsLayout() {
     <Text
       className="text-sm font-regular"
       style={{
+        includeFontPadding: false,
         paddingTop: 3,
         fontWeight: focused ? "700" : "400",
         color: focused ? themeColors.textPrimary : themeColors.tabIconInactive,
@@ -78,12 +79,14 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="chat"
         options={{
-        tabBarLabel: ({ focused }) => renderLabel("Chat", focused),
+          tabBarLabel: ({ focused }) => renderLabel("Chat", focused),
           tabBarIcon: ({ focused }) => (
             <Ionicons
               name={focused ? "chatbubble" : "chatbubble-outline"}
               size={focused ? 27 : 24}
-              color={focused ? themeColors.textPrimary : themeColors.tabIconInactive}
+              color={
+                focused ? themeColors.textPrimary : themeColors.tabIconInactive
+              }
             />
           ),
         }}
@@ -91,12 +94,14 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-        tabBarLabel: ({ focused }) => renderLabel("Profile", focused),
+          tabBarLabel: ({ focused }) => renderLabel("Profile", focused),
           tabBarIcon: ({ focused }) => (
             <Ionicons
               name={focused ? "person" : "person-outline"}
               size={focused ? 27 : 24}
-              color={focused ? themeColors.textPrimary : themeColors.tabIconInactive}
+              color={
+                focused ? themeColors.textPrimary : themeColors.tabIconInactive
+              }
             />
           ),
         }}

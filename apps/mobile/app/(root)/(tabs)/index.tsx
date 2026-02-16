@@ -1,131 +1,37 @@
-import { useFetch } from "@/hooks/useFetch";
+import { View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import {
-  ActivityIndicator,
-  Text,
-  View,
-  Dimensions,
-  ImageBackground,
-  StyleSheet,
-} from "react-native";
-
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from "react-native-safe-area-context";
-
-import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
   withTiming,
 } from "react-native-reanimated";
-
-import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import AntDesign from "@expo/vector-icons/AntDesign";
-import Entypo from "@expo/vector-icons/Entypo";
-import MaskedView from "@react-native-masked-view/masked-view";
-import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useState } from "react";
-import { scheduleOnRN } from "react-native-worklets";
+
+import { useFetch } from "@/hooks/useFetch";
+import { FeedUser } from "@/types/FeedUser";
+import Card from "@/components/Card";
+import DataLoader from "@/components/DataLoader";
 import { apiFetch } from "@/services/api";
-import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
+import { scheduleOnRN } from "react-native-worklets";
 
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
-
+const SCREEN_WIDTH = require("react-native").Dimensions.get("window").width;
 type SwipeStatus = "dislike" | "like" | "pending";
-interface FeedUser {
-  user_id: string;
-  full_name: string;
-  age: number;
-  bio: string;
-  image_url: string;
-  allow_messages_from_strangers: boolean;
-}
-
-const Card = ({ style, showHeartStyle, showCrossStyle, item, isTop }: any) => (
-  <Animated.View
-    style={[
-      {
-        position: "absolute",
-        inset: 0,
-      },
-      isTop ? style : { zIndex: -1 },
-    ]}
-  >
-    <ImageBackground
-      source={{ uri: item.image_url }}
-      className="flex-1 justify-end p-5 rounded-3xl overflow-hidden"
-    >
-      {isTop && (
-        <>
-          <Animated.View
-            style={[
-              { position: "absolute", top: 30, left: 30 },
-              showHeartStyle,
-            ]}
-          >
-            <MaskedView
-              style={{ transform: [{ rotateZ: "-20deg" }] }}
-              maskElement={<AntDesign name="heart" size={100} color="white" />}
-            >
-              <LinearGradient
-                colors={["#2EB62C", "#C5E8B7"]}
-                start={{ x: 1, y: 0 }}
-                end={{ x: 0, y: 1 }}
-                style={{ width: 100, height: 100 }}
-              />
-            </MaskedView>
-          </Animated.View>
-
-          <Animated.View
-            style={[
-              { position: "absolute", top: 25, right: 30 },
-              showCrossStyle,
-            ]}
-          >
-            <MaskedView
-              style={{ transform: [{ rotateZ: "20deg" }] }}
-              maskElement={<Entypo name="cross" size={125} color="white" />}
-            >
-              <LinearGradient
-                colors={["#FD267D", "#FE6D58"]}
-                start={{ x: 1, y: 0 }}
-                end={{ x: 0, y: 1 }}
-                style={{ width: 125, height: 125 }}
-              />
-            </MaskedView>
-          </Animated.View>
-        </>
-      )}
-
-      <LinearGradient
-        colors={["transparent", "rgba(0,0,0,0.7)"]}
-        style={{ ...StyleSheet.absoluteFillObject }}
-      />
-
-      <View className="flex-row">
-        <Text className="text-white text-3xl font-bold">{item.full_name} </Text>
-        <Text className="text-white text-3xl font-regular"> {item.age}</Text>
-      </View>
-      <Text className="text-white text-base font-regular">{item.bio}</Text>
-    </ImageBackground>
-  </Animated.View>
-);
 
 export default function HomeScreen() {
-  const insets = useSafeAreaInsets();
-  const { data, error, loading } = useFetch<FeedUser[]>("feed");
-  const [cards, setCards] = useState<FeedUser[]>([]);
-
+  const { data, loading, error, refetch } = useFetch<FeedUser[]>("feed");
   const tabBarHeight = useBottomTabBarHeight();
-
-  useEffect(() => {
-    if (data) setCards([...data].reverse());
-  }, [data]);
 
   const x = useSharedValue(0);
   const y = useSharedValue(0);
   const status = useSharedValue<SwipeStatus>("pending");
+
+  const [cards, setCards] = useState<FeedUser[]>([]);
+  useEffect(() => {
+    if (data) setCards([...data].reverse());
+  }, [data]);
 
   const removeTopCard = () => {
     setCards((prev) => prev.slice(0, -1));
@@ -146,17 +52,14 @@ export default function HomeScreen() {
     .onUpdate((event) => {
       x.value = event.translationX;
       y.value = event.translationY;
-
       const swipePercent = Math.abs(x.value) / SCREEN_WIDTH;
-      if (swipePercent >= 0.1) {
-        status.value = x.value > 0 ? "like" : "dislike";
-      } else {
-        status.value = "pending";
-      }
+      status.value =
+        swipePercent >= 0.1 ? (x.value > 0 ? "like" : "dislike") : "pending";
     })
     .onEnd(() => {
       const swipePercent = Math.abs(x.value) / SCREEN_WIDTH;
       const topCard = cards[cards.length - 1];
+      const currentStatus = status.value;
       if (!topCard) return;
 
       if (swipePercent >= 0.1) {
@@ -165,9 +68,8 @@ export default function HomeScreen() {
           {},
           (finished) => {
             if (finished) {
-              if (status.value !== "pending") {
-                scheduleOnRN(postSwipe, topCard.user_id, status.value);
-              }
+              if (currentStatus !== "pending")
+                scheduleOnRN(postSwipe, topCard.user_id, currentStatus);
               scheduleOnRN(removeTopCard);
             }
           },
@@ -190,39 +92,42 @@ export default function HomeScreen() {
   const showHeartStyle = useAnimatedStyle(() => ({
     opacity: status.value === "like" ? 1 : 0,
   }));
-
   const showCrossStyle = useAnimatedStyle(() => ({
     opacity: status.value === "dislike" ? 1 : 0,
   }));
-
-  if (loading) return <ActivityIndicator size="large" className="flex-1" />;
-  if (error) return <Text>Error: {error}</Text>;
 
   return (
     <SafeAreaView
       className="flex-1 px-5 pt-2 pb-1 bg-bgPrimaryLight dark:bg-bgPrimaryDark"
       edges={["top", "left", "right"]}
-       style={{paddingBottom: tabBarHeight}}
+      style={{ paddingBottom: tabBarHeight }}
     >
-      <View className="flex-1 relative">
-        {cards.map((item, index) => {
-          const isTop = index === cards.length - 1;
+      <DataLoader fetchResult={{ data, loading, error, refetch }} pullToRefresh>
+        {(fetchedData: FeedUser[]) => {
+          const cardsData = [...fetchedData].reverse();
           return (
-            <GestureDetector
-              key={item.user_id}
-              gesture={isTop ? gesture : Gesture.Native()}
-            >
-              <Card
-                style={style}
-                showHeartStyle={showHeartStyle}
-                showCrossStyle={showCrossStyle}
-                item={item}
-                isTop={isTop}
-              />
-            </GestureDetector>
+            <View className="flex-1 relative">
+              {cardsData.map((item, index) => {
+                const isTop = index === cardsData.length - 1;
+                return (
+                  <GestureDetector
+                    key={item.user_id}
+                    gesture={isTop ? gesture : Gesture.Native()}
+                  >
+                    <Card
+                      style={style}
+                      showHeartStyle={showHeartStyle}
+                      showCrossStyle={showCrossStyle}
+                      item={item}
+                      isTop={isTop}
+                    />
+                  </GestureDetector>
+                );
+              })}
+            </View>
           );
-        })}
-      </View>
+        }}
+      </DataLoader>
     </SafeAreaView>
   );
 }

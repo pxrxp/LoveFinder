@@ -4,7 +4,36 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider, useTheme } from "@/contexts/ThemeContext";
 import { useFonts } from "expo-font";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { View } from "react-native";
+import { StatusBar } from "expo-status-bar";
+import { colors } from "@/constants/colors";
+import * as SystemUI from "expo-system-ui";
+
+import * as SplashScreen from "expo-splash-screen";
+import { useEffect } from "react";
+
+function ThemedRoot({ children }: { children: React.ReactNode }) {
+  const { theme } = useTheme();
+  const bgColor =
+    theme === "light" ? colors.light.bgPrimary : colors.dark.bgPrimary;
+
+  useEffect(() => {
+    SystemUI.setBackgroundColorAsync(bgColor);
+  }, [bgColor]);
+
+  return (
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: bgColor }}>
+      <StatusBar style={theme === "light" ? "dark" : "light"} />
+      {children}
+    </GestureHandlerRootView>
+  );
+}
+
+SplashScreen.setOptions({
+  duration: 1000,
+  fade: true,
+});
+
+SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
@@ -20,15 +49,19 @@ export default function RootLayout() {
     "OpenSans-SemiCondensed-Bold": require("../assets/fonts/OpenSans_SemiCondensed-Bold.ttf"),
   });
 
-  if (!fontsLoaded) return null;
+  useEffect(() => {
+    if (fontsLoaded) {
+      SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded]);
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <ThemeProvider>
       <AuthProvider>
-        <ThemeProvider>
+        <ThemedRoot>
           <Slot />
-        </ThemeProvider>
+        </ThemedRoot>
       </AuthProvider>
-    </GestureHandlerRootView>
+    </ThemeProvider>
   );
 }
