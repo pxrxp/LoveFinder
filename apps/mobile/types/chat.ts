@@ -17,4 +17,3 @@ export interface User {
   allow_messages_from_strangers: boolean;
   swipe_category: "you" | "them" | "both" | "none";
 }
-

@@ -6,4 +6,5 @@ export interface Conversation {
   last_message_type: "text" | "image";
   last_message_sender_id: string;
   last_message_sent_at: Date;
+  swipe_category: "you" | "they" | "both" | "none";
 }
