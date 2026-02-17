@@ -214,27 +214,39 @@ CREATE TABLE IF NOT EXISTS SWIPES (
 	CHECK (SWIPER_ID <> RECEIVER_ID)
 );
 
-CREATE OR REPLACE FUNCTION CHECK_ALLOW_MESSAGES_FROM_STRANGERS () RETURNS TRIGGER AS $$
+CREATE OR REPLACE FUNCTION CHECK_ALLOW_MESSAGES_FROM_STRANGERS() 
+RETURNS TRIGGER AS $$
+DECLARE
+    recipient_allow BOOLEAN;
 BEGIN
+    SELECT allow_messages_from_strangers
+    INTO recipient_allow
+    FROM users
+    WHERE user_id = NEW.receiver_id;
+    IF recipient_allow THEN
+        RETURN NEW;
+    END IF;
     IF NOT EXISTS (
         SELECT 1
         FROM swipes s1
-        JOIN swipes s2
+        LEFT JOIN swipes s2
           ON s1.swiper_id = s2.receiver_id
          AND s1.receiver_id = s2.swiper_id
+         AND s2.swipe_type = 'like'
         WHERE s1.swiper_id = NEW.sender_id
           AND s1.receiver_id = NEW.receiver_id
           AND s1.swipe_type = 'like'
-          AND s2.swipe_type = 'like'
     ) THEN
-        RAISE EXCEPTION 'Cannot message: users have not mutually liked each other';
+        RAISE EXCEPTION 'Cannot message: recipient does not allow strangers and no valid swipe exists';
     END IF;
     RETURN NEW;
 END;
-$$ LANGUAGE PLPGSQL;
+$$ LANGUAGE plpgsql;
 
-CREATE TRIGGER TRG_CHECK_ALLOW_MESSAGES_FROM_STRANGERS BEFORE INSERT ON MESSAGES FOR EACH ROW
-EXECUTE FUNCTION CHECK_ALLOW_MESSAGES_FROM_STRANGERS ();
+CREATE TRIGGER TRG_CHECK_ALLOW_MESSAGES_FROM_STRANGERS
+BEFORE INSERT ON MESSAGES
+FOR EACH ROW
+EXECUTE FUNCTION CHECK_ALLOW_MESSAGES_FROM_STRANGERS();
 
 CREATE TABLE IF NOT EXISTS PHOTOS (
 	PHOTO_ID UUID PRIMARY KEY DEFAULT GEN_RANDOM_UUID(),

@@ -2,6 +2,8 @@ import { FlatList, Text, View } from "react-native";
 import { Link } from "expo-router";
 import Entypo from "@expo/vector-icons/Entypo";
 import dayjs from "dayjs";
+var relativeTime = require("dayjs/plugin/relativeTime");
+dayjs.extend(relativeTime);
 import { colors } from "@/constants/colors";
 import { useTheme } from "@/contexts/ThemeContext";
 import ProfilePicture from "@/components/ProfilePicture";

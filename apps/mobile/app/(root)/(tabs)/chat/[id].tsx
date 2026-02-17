@@ -98,7 +98,7 @@ export default function OtherUserScreen() {
         options={{
           title: "",
           headerTitle: () => (
-            <DataLoader fetchResult={otherUserFetch}>
+            <DataLoader fetchResult={otherUserFetch} displayErrorScreen={false} displayLoadingScreen={false}>
               {(otherUser) => (
                 <View className="flex-row items-center">
                   <ProfilePicture
@@ -143,21 +143,24 @@ export default function OtherUserScreen() {
                 >
                   <DataLoader fetchResult={chat} pullToRefresh>
                     {(_, refreshing, onRefresh) => (
-                      <FlatList
-                        data={messages || []}
-                        keyExtractor={(item) => item.message_id}
-                        inverted
-                        refreshing={refreshing ?? false}
-                        onRefresh={onRefresh}
-                        className="px-4"
-                        renderItem={({ item }) => (
-                          <MessageItem
-                            other_user={otherUser || null}
-                            item={item}
-                            theme={theme}
-                          />
-                        )}
-                      />
+                      <>
+                        {!connected && <Text className="text-textPrimaryLight dark:text-textPrimaryDark text-center font-bold text-lg p-9">Connecting...</Text>}
+                        <FlatList
+                          data={messages || []}
+                          keyExtractor={(item) => item.message_id}
+                          inverted
+                          refreshing={refreshing ?? false}
+                          onRefresh={onRefresh}
+                          className="px-4"
+                          renderItem={({ item }) => (
+                            <MessageItem
+                              other_user={otherUser || null}
+                              item={item}
+                              theme={theme}
+                            />
+                          )}
+                        />
+                      </>
                     )}
                   </DataLoader>
 
