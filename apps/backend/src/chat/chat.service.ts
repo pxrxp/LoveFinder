@@ -74,29 +74,15 @@ export class ChatService {
         LM.SENDER_ID AS LAST_MESSAGE_SENDER_ID,
 
         CASE
-          WHEN S1.SWIPE_TYPE = 'like'
-           AND S2.SWIPE_TYPE = 'like'
-            THEN 'both'
-          WHEN S1.SWIPE_TYPE = 'like'
-            THEN 'you'
-          WHEN S2.SWIPE_TYPE = 'like'
-            THEN 'they'
+          WHEN S1.SWIPE_TYPE = 'like' AND S2.SWIPE_TYPE = 'like' THEN 'both'
+          WHEN S1.SWIPE_TYPE = 'like' THEN 'you'
+          WHEN S2.SWIPE_TYPE = 'like' THEN 'they'
           ELSE 'none'
         END AS swipe_category,
 
-        GREATEST(
-          COALESCE(S1.SWIPED_AT, '1970-01-01'),
-          COALESCE(S2.SWIPED_AT, '1970-01-01')
-        ) AS LAST_MESSAGE_SENT_AT
+        COALESCE(S1.SWIPED_AT, S2.SWIPED_AT) AS LAST_MESSAGE_SENT_AT
 
       FROM conversation_users CU
-
-      JOIN USERS U
-        ON U.USER_ID = CU.OTHER_USER_ID
-
-      JOIN PHOTOS P
-        ON P.UPLOADER_ID = CU.OTHER_USER_ID
-       AND P.IS_PRIMARY = TRUE
 
       LEFT JOIN last_messages LM
         ON LM.OTHER_USER_ID = CU.OTHER_USER_ID
@@ -109,7 +95,17 @@ export class ChatService {
         ON S2.SWIPER_ID = CU.OTHER_USER_ID
        AND S2.RECEIVER_ID = ${user_id}
 
-      ORDER BY LAST_MESSAGE_SENT_AT DESC
+      JOIN USERS U
+        ON U.USER_ID = CU.OTHER_USER_ID
+
+      JOIN PHOTOS P
+        ON P.UPLOADER_ID = CU.OTHER_USER_ID
+       AND P.IS_PRIMARY = TRUE
+
+      WHERE
+        NOT (S1.SWIPE_TYPE = 'like' AND S2.SWIPE_TYPE IS NULL AND U.ALLOW_MESSAGES_FROM_STRANGERS = FALSE)
+
+      ORDER BY COALESCE(LM.SENT_AT, S1.SWIPED_AT, S2.SWIPED_AT) DESC
 
       OFFSET ${offset}
       LIMIT ${limit}
