@@ -33,6 +33,21 @@ export default function HomeScreen() {
     if (data) setCards([...data].reverse());
   }, [data]);
 
+  const swapTopCard = () => {
+    setCards((prev) => {
+      if (prev.length < 2) return prev;
+      const newCards = [...prev];
+      const lastIndex = newCards.length - 1;
+
+      newCards[lastIndex] = {
+        ...newCards[lastIndex - 1],
+        user_id: `${newCards[lastIndex - 1].user_id}-copy`,
+      };
+
+      return newCards;
+    });
+  };
+
   const removeTopCard = () => {
     setCards((prev) => prev.slice(0, -1));
     x.value = 0;
@@ -59,17 +74,20 @@ export default function HomeScreen() {
     .onEnd(() => {
       const swipePercent = Math.abs(x.value) / SCREEN_WIDTH;
       const topCard = cards[cards.length - 1];
+      const topCardUserID = topCard.user_id;
       const currentStatus = status.value;
       if (!topCard) return;
 
       if (swipePercent >= 0.1) {
+        scheduleOnRN(swapTopCard);
+
         x.value = withTiming(
           Math.sign(x.value) * SCREEN_WIDTH * 1.5,
           {},
           (finished) => {
             if (finished) {
               if (currentStatus !== "pending")
-                scheduleOnRN(postSwipe, topCard.user_id, currentStatus);
+                scheduleOnRN(postSwipe, topCardUserID, currentStatus);
               scheduleOnRN(removeTopCard);
             }
           },
@@ -103,12 +121,11 @@ export default function HomeScreen() {
       style={{ paddingBottom: tabBarHeight }}
     >
       <DataLoader fetchResult={{ data, loading, error, refetch }} pullToRefresh>
-        {(fetchedData: FeedUser[]) => {
-          const cardsData = [...fetchedData].reverse();
+        {() => {
           return (
             <View className="flex-1 relative">
-              {cardsData.map((item, index) => {
-                const isTop = index === cardsData.length - 1;
+              {cards.map((item, index) => {
+                const isTop = index === cards.length - 1;
                 return (
                   <GestureDetector
                     key={item.user_id}

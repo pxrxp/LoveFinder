@@ -6,7 +6,6 @@ import {
   TextInput,
   KeyboardAvoidingView,
   TouchableOpacity,
-  Platform,
 } from "react-native";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
@@ -120,60 +119,77 @@ export default function OtherUserScreen() {
         }}
       />
 
-      <ImageBackground
-        source={backgroundImage}
-        resizeMode="cover"
-        className="flex-1"
-        style={{
-          paddingBottom: tabBarHeight + 15,
-          backgroundColor: themeColors.chatBg,
-        }}
-      >
-        <KeyboardAvoidingView
-          style={{ flex: 1 }}
-          behavior="padding"
-          keyboardVerticalOffset={100}
-        >
-          <DataLoader fetchResult={chat} pullToRefresh>
-            {(fetchedMessages, refreshing, onRefresh) => (
-              <FlatList
-                data={fetchedMessages || []}
-                keyExtractor={(item) => item.message_id}
-                inverted
-                refreshing={refreshing ?? false}
-                onRefresh={onRefresh}
-                className="px-4"
-                renderItem={({ item }) => (
-                  <MessageItem
-                    other_user={otherUserFetch.data ?? null}
-                    item={item}
-                    theme={theme}
-                  />
-                )}
-              />
-            )}
-          </DataLoader>
-
-          <View className="flex-row w-11/12 rounded-3xl self-center bg-chatBgDark border-gray-500 border-2 mt-3 overflow-hidden">
-            <TextInput
-              className="flex-1 px-3 text-white"
-              placeholderTextColor="white"
-              placeholder="Type a message"
-              value={messageToSend}
-              onChangeText={setMessageToSend}
-              multiline
-            />
-            {messageToSend.trim().length > 0 && (
-              <TouchableOpacity
-                onPress={handleSend}
-                className="rounded-l-full bg-accent pl-6 pr-7 justify-center"
+      <DataLoader fetchResult={otherUserFetch}>
+        {(otherUser) => {
+          const messagable: boolean =
+            otherUser.allow_messages_from_strangers ||
+            otherUser.swipe_category === "them" ||
+            otherUser.swipe_category === "both";
+          return (
+            <>
+              <ImageBackground
+                source={backgroundImage}
+                resizeMode="cover"
+                className="flex-1"
+                style={{
+                  paddingBottom: tabBarHeight + 15,
+                  backgroundColor: themeColors.chatBg,
+                }}
               >
-                <MaterialIcons name="send" size={20} color="white" />
-              </TouchableOpacity>
-            )}
-          </View>
-        </KeyboardAvoidingView>
-      </ImageBackground>
+                <KeyboardAvoidingView
+                  style={{ flex: 1 }}
+                  behavior="padding"
+                  keyboardVerticalOffset={100}
+                >
+                  <DataLoader fetchResult={chat} pullToRefresh>
+                    {(_, refreshing, onRefresh) => (
+                      <FlatList
+                        data={messages || []}
+                        keyExtractor={(item) => item.message_id}
+                        inverted
+                        refreshing={refreshing ?? false}
+                        onRefresh={onRefresh}
+                        className="px-4"
+                        renderItem={({ item }) => (
+                          <MessageItem
+                            other_user={otherUser || null}
+                            item={item}
+                            theme={theme}
+                          />
+                        )}
+                      />
+                    )}
+                  </DataLoader>
+
+                  <View className="flex-row w-11/12 rounded-3xl self-center bg-chatBgDark border-gray-500 border-2 mt-3 overflow-hidden">
+                    <TextInput
+                      className="flex-1 px-3 text-white"
+                      placeholderTextColor="white"
+                      placeholder={
+                        messagable
+                          ? "Type a message"
+                          : "You can't message this user"
+                      }
+                      editable={messagable}
+                      value={messageToSend}
+                      onChangeText={setMessageToSend}
+                      multiline
+                    />
+                    {messageToSend.trim().length > 0 && (
+                      <TouchableOpacity
+                        onPress={handleSend}
+                        className="rounded-l-full bg-accent pl-6 pr-7 justify-center"
+                      >
+                        <MaterialIcons name="send" size={20} color="white" />
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                </KeyboardAvoidingView>
+              </ImageBackground>
+            </>
+          );
+        }}
+      </DataLoader>
     </>
   );
 }

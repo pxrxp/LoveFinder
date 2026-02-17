@@ -19,7 +19,6 @@ export default function TabsLayout() {
       className="text-sm font-regular"
       style={{
         includeFontPadding: false,
-        paddingTop: 3,
         fontWeight: focused ? "700" : "400",
         color: focused ? themeColors.textPrimary : themeColors.tabIconInactive,
       }}

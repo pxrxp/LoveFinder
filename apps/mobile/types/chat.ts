@@ -14,5 +14,7 @@ export interface User {
   sexual_orientation: string;
   bio: string;
   profile_picture_url: string | null;
+  allow_messages_from_strangers: boolean;
+  swipe_category: "you" | "them" | "both" | "none";
 }
 

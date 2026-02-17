@@ -25,8 +25,7 @@ export class ChatService {
             ELSE SENDER_ID
           END AS OTHER_USER_ID
         FROM MESSAGES
-        WHERE SENDER_ID = ${user_id}
-           OR RECEIVER_ID = ${user_id}
+        WHERE SENDER_ID = ${user_id} OR RECEIVER_ID = ${user_id}
       ),
 
       last_messages AS (
@@ -48,10 +47,18 @@ export class ChatService {
         LM.MESSAGE_CONTENT AS LAST_MESSAGE,
         LM.MESSAGE_TYPE AS LAST_MESSAGE_TYPE,
         LM.SENDER_ID AS LAST_MESSAGE_SENDER_ID,
-        LM.SENT_AT AS LAST_MESSAGE_SENT_AT
+        LM.SENT_AT AS LAST_MESSAGE_SENT_AT,
+        CASE
+          WHEN S1.SWIPE_TYPE IS NOT NULL AND S2.SWIPE_TYPE IS NOT NULL THEN 'both'
+          WHEN S1.SWIPE_TYPE IS NOT NULL AND S2.SWIPE_TYPE IS NULL THEN 'you'
+          WHEN S1.SWIPE_TYPE IS NULL AND S2.SWIPE_TYPE IS NOT NULL THEN 'they'
+          ELSE 'none'
+        END AS swipe_category
       FROM last_messages LM
       JOIN USERS U ON U.USER_ID = LM.OTHER_USER_ID
       JOIN PHOTOS P ON P.UPLOADER_ID = LM.OTHER_USER_ID AND P.IS_PRIMARY = TRUE
+      LEFT JOIN SWIPES S1 ON S1.SWIPER_ID = ${user_id} AND S1.RECEIVER_ID = LM.OTHER_USER_ID
+      LEFT JOIN SWIPES S2 ON S2.SWIPER_ID = LM.OTHER_USER_ID AND S2.RECEIVER_ID = ${user_id}
       ORDER BY LM.SENT_AT DESC
       OFFSET ${offset}
       LIMIT ${limit}

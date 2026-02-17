@@ -30,4 +30,30 @@ export class SwipesService {
       WHERE SWIPER_ID = ${user_id}
     `;
   }
+
+  async getSwipeStatus(userId: string, otherUserId: string) {
+    const [result] = await Bun.sql`
+      SELECT
+        EXISTS(
+          SELECT 1 FROM SWIPES
+          WHERE SWIPER_ID = ${userId} AND RECEIVER_ID = ${otherUserId}
+        ) AS you_swiped,
+        EXISTS(
+          SELECT 1 FROM SWIPES
+          WHERE SWIPER_ID = ${otherUserId} AND RECEIVER_ID = ${userId}
+        ) AS they_swiped
+    `;
+
+    if (!result) return { status: 'none' };
+
+    const { you_swiped, they_swiped } = result as {
+      you_swiped: boolean;
+      they_swiped: boolean;
+    };
+
+    if (you_swiped && they_swiped) return { status: 'both' };
+    if (you_swiped && !they_swiped) return { status: 'you' };
+    if (!you_swiped && they_swiped) return { status: 'they' };
+    return { status: 'none' };
+  }
 }
