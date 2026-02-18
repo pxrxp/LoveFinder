@@ -77,7 +77,7 @@ export default function ModalMenu({
   if (!rendered) return null;
 
   return (
-    <Modal transparent visible animationType="none">
+    <Modal transparent visible animationType="none" >
       <Pressable
         onPress={onDismiss}
         className="flex-1 justify-center items-center bg-black/30"

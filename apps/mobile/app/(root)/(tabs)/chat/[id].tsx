@@ -80,6 +80,8 @@ export default function OtherUserScreen() {
     fetchThumbnail();
   }, [mediaPreview]);
 
+
+  const [selectedMessage, setSelectedMessage] = useState<string | null>(null);
   const [deleteMenuVisible, setDeleteMenuVisible] = useState(false);
   const [mediaMenuVisible, setMediaMenuVisible] = useState(false);
   const [videoPlayerVisible, setVideoPlayerVisible] = useState(false);
@@ -315,24 +317,6 @@ export default function OtherUserScreen() {
                         ListFooterComponent={<View className="h-12 w-full" />}
                         renderItem={({ item }) => (
                           <>
-                            <ModalMenu
-                              visible={deleteMenuVisible}
-                              onDismiss={closeDeleteMenu}
-                              actions={[
-                                {
-                                  label: "Delete",
-                                  color: "red",
-                                  icon: (
-                                    <MaterialCommunityIcons
-                                      name="delete-outline"
-                                      size={24}
-                                      color="red"
-                                    />
-                                  ),
-                                  onPress: () => handleDelete(item.message_id),
-                                },
-                              ]}
-                            />
                             {pressedMessage === item.message_id && (
                               <Text
                                 className={`text-sm font-light pb-5 ${item.sender_id === otherUser.user_id ? "text-left pl-3 text-gray-200" : "text-right pr-3 text-gray-200"}`}
@@ -352,10 +336,12 @@ export default function OtherUserScreen() {
                                     : item.message_id,
                                 );
                               }}
-                              onLongPress={() =>
-                                item.sender_id !== otherUser.user_id &&
-                                openDeleteMenu()
-                              }
+                              onLongPress={() => {
+                                if (item.sender_id !== otherUser.user_id) {
+                                  openDeleteMenu();
+                                  setSelectedMessage(item.message_id);
+                                }
+                              }}
                             />
                           </>
                         )}
@@ -458,51 +444,67 @@ export default function OtherUserScreen() {
                     </TouchableOpacity>
                   )}
                 </View>
-
-                <ModalMenu
-                  visible={mediaMenuVisible}
-                  onDismiss={closeMediaMenu}
-                  actions={[
-                    {
-                      label: "Take photo",
-                      icon: (
-                        <Entypo
-                          name="camera"
-                          size={20}
-                          color={themeColors.textPrimary}
-                        />
-                      ),
-                      onPress: launchCamera,
-                    },
-                    {
-                      label: "Choose a photo/video",
-                      icon: (
-                        <FontAwesome6
-                          name="photo-film"
-                          size={17}
-                          color={themeColors.textPrimary}
-                        />
-                      ),
-                      onPress: pickPhoto,
-                    },
-                    {
-                      label: "Record audio",
-                      icon: (
-                        <FontAwesome5
-                          name="microphone"
-                          size={22}
-                          color={themeColors.textPrimary}
-                        />
-                      ),
-                      onPress: openAudioRecorder,
-                    },
-                  ]}
-                />
               </KeyboardAvoidingView>
             </ImageBackground>
           );
         }}
       </DataLoader>
+      <ModalMenu
+        visible={mediaMenuVisible}
+        onDismiss={closeMediaMenu}
+        actions={[
+          {
+            label: "Take photo",
+            icon: (
+              <Entypo name="camera" size={20} color={themeColors.textPrimary} />
+            ),
+            onPress: launchCamera,
+          },
+          {
+            label: "Choose a photo/video",
+            icon: (
+              <FontAwesome6
+                name="photo-film"
+                size={17}
+                color={themeColors.textPrimary}
+              />
+            ),
+            onPress: pickPhoto,
+          },
+          {
+            label: "Record audio",
+            icon: (
+              <FontAwesome5
+                name="microphone"
+                size={22}
+                color={themeColors.textPrimary}
+              />
+            ),
+            onPress: openAudioRecorder,
+          },
+        ]}
+      />
+      <ModalMenu
+        visible={deleteMenuVisible}
+        onDismiss={() => setDeleteMenuVisible(false)}
+        actions={[
+          {
+            label: "Delete",
+            color: "red",
+            icon: (
+              <MaterialCommunityIcons
+                name="delete-outline"
+                size={24}
+                color="red"
+              />
+            ),
+            onPress: () => {
+              if (selectedMessage) handleDelete(selectedMessage);
+              setDeleteMenuVisible(false);
+            },
+          },
+        ]}
+      />
       <ImageViewing
         presentationStyle="pageSheet"
         images={viewerImage ? [{ uri: viewerImage }] : []}
@@ -512,7 +514,12 @@ export default function OtherUserScreen() {
         visible={viewerVisible}
         onRequestClose={closeViewer}
       />
-      <FullScreenVideo player={player} onClose={closeVideoPlayer} videoThumbnail={videoThumbnail} visible={videoPlayerVisible}/>
+      <FullScreenVideo
+        player={player}
+        onClose={closeVideoPlayer}
+        videoThumbnail={videoThumbnail}
+        visible={videoPlayerVisible}
+      />
     </>
   );
 }
