@@ -40,6 +40,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import ImageViewing from "react-native-image-viewing";
 import AudioRecorder from "@/components/AudioRecorder";
 import FullScreenVideo from "@/components/FullScreenVideo";
+import { apiFetch } from "@/services/api";
 
 export default function OtherUserScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -80,7 +81,6 @@ export default function OtherUserScreen() {
     fetchThumbnail();
   }, [mediaPreview]);
 
-
   const [selectedMessage, setSelectedMessage] = useState<string | null>(null);
   const [deleteMenuVisible, setDeleteMenuVisible] = useState(false);
   const [mediaMenuVisible, setMediaMenuVisible] = useState(false);
@@ -114,7 +114,6 @@ export default function OtherUserScreen() {
   const closeMediaMenu = () => setMediaMenuVisible(false);
 
   const openDeleteMenu = () => setDeleteMenuVisible(true);
-  const closeDeleteMenu = () => setDeleteMenuVisible(false);
 
   const openAudioRecorder = () => setAudioRecorderVisible(true);
   const closeAudioRecorder = () => setAudioRecorderVisible(false);
@@ -158,6 +157,7 @@ export default function OtherUserScreen() {
   const uploadAndSend = async (media: { uri: string; type: string }) => {
     const uriParts = media.uri.split(".");
     const fileType = uriParts[uriParts.length - 1];
+
     const formData = new FormData();
     formData.append("file", {
       uri: media.uri,
@@ -166,20 +166,23 @@ export default function OtherUserScreen() {
     } as any);
 
     try {
-      const res = await fetch(`${process.env.BACKEND_URL}/upload`, {
+      const res = await apiFetch("chat-media/upload", {
         method: "POST",
         body: formData,
-        headers: { "Content-Type": "multipart/form-data" },
       });
+
       const data = await res.json();
+      console.log(data);
+
       socket.emit("send_message", {
         other_user_id: id,
         message: data.url,
         message_type: media.type,
       });
+
       setMediaPreview(null);
-    } catch {
-      showThemedError("Upload failed", themeColors);
+    } catch (err: any) {
+      showThemedError(err.message, themeColors);
     }
   };
 
@@ -506,7 +509,7 @@ export default function OtherUserScreen() {
         ]}
       />
       <ImageViewing
-        presentationStyle="pageSheet"
+        presentationStyle="overFullScreen"
         images={viewerImage ? [{ uri: viewerImage }] : []}
         animationType="slide"
         swipeToCloseEnabled={true}

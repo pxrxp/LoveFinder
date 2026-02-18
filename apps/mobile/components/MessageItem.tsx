@@ -64,6 +64,7 @@ export default function MessageItem({
             <TouchableOpacity
               activeOpacity={0.9}
               onPress={() => !failed && openViewer(item.message_content)}
+              onLongPress={onLongPress}
             >
               <Image
                 source={{ uri: item.message_content }}

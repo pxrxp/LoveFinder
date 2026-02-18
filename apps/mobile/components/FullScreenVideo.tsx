@@ -70,13 +70,14 @@ export default function FullScreenVideo({
           style={{
             position: "absolute",
             top: 10,
-            left: 10,
+            right: 10,
             backgroundColor: "rgba(0,0,0,0.4)",
             padding: 8,
             borderRadius: 999,
+            opacity: 0.5
           }}
         >
-          <MaterialIcons name="close" size={20} color="white" />
+          <MaterialIcons name="close" size={30} color="white" />
         </TouchableOpacity>
       </View>
     </Portal>

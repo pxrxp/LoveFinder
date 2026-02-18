@@ -16,16 +16,14 @@ export class PhotosController {
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
-        destination: './uploads',
+        destination: './uploads/profile',
         filename: (req, file, cb) => {
           cb(null, randomUUID() + extname(file.originalname));
         },
       }),
       fileFilter: (req, file, cb) => {
         if (
-          !file.mimetype.startsWith('image/') &&
-          !file.mimetype.startsWith('video/') &&
-          !file.mimetype.startsWith('audio/')
+          !file.mimetype.startsWith('image/')
         ) {
           cb(new Error('Invalid file type'), false);
           return;
@@ -43,7 +41,7 @@ export class PhotosController {
     if (!file) {
       throw new BadRequestException('No file provided or file type invalid');
     }
-    const url = `${process.env.BACKEND_URL}/static/${file.filename}`;
+    const url = `${process.env.BACKEND_URL}/static/profile/${file.filename}`;
     return this.photosService.create(user.user_id, url, is_primary ?? false);
   }
 
