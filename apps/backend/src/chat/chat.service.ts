@@ -167,20 +167,24 @@ export class ChatService {
 		type: 'text' | 'image' = 'text'
 	) {
 		const [msg] = await Bun.sql`
-	    INSERT INTO MESSAGES (
-	      SENDER_ID,
-	      RECEIVER_ID,
-	      MESSAGE_TYPE,
-	      MESSAGE_CONTENT
-	    )
-	    VALUES (
-	      ${senderId},
-	      ${receiverId},
-	      ${type},
-	      ${content}
-	    )
-	    RETURNING *
-	  `;
+    WITH inserted AS (
+      INSERT INTO messages (
+        sender_id,
+        receiver_id,
+        message_type,
+        message_content
+      ) VALUES (
+        ${senderId},
+        ${receiverId},
+        ${type},
+        ${content}
+      )
+      RETURNING *
+    )
+    SELECT i.*, u.full_name AS sender_name
+    FROM inserted i
+    JOIN users u ON u.user_id = i.sender_id
+  `;
 
 		return msg;
 	}

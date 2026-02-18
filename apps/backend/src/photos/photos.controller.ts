@@ -22,13 +22,17 @@ export class PhotosController {
         },
       }),
       fileFilter: (req, file, cb) => {
-        if (!file.mimetype.startsWith('image/')) {
+        if (
+          !file.mimetype.startsWith('image/') &&
+          !file.mimetype.startsWith('video/') &&
+          !file.mimetype.startsWith('audio/')
+        ) {
           cb(new Error('Invalid file type'), false);
           return;
         }
         cb(null, true);
       },
-      limits: { fileSize: 5 * 1024 * 1024 },
+      limits: { fileSize: 50 * 1024 * 1024 },
     }),
   )
   upload(
@@ -40,11 +44,7 @@ export class PhotosController {
       throw new BadRequestException('No file provided or file type invalid');
     }
     const url = `${process.env.BACKEND_URL}/static/${file.filename}`;
-    return this.photosService.create(
-      user.user_id,
-      url,
-      is_primary ?? false,
-    );
+    return this.photosService.create(user.user_id, url, is_primary ?? false);
   }
 
   @Post(':photo_id/primary')

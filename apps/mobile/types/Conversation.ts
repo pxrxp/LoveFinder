@@ -3,7 +3,7 @@ export interface Conversation {
   full_name: string;
   profile_picture_url: string;
   last_message: string;
-  last_message_type: "text" | "image";
+  last_message_type: "text" | "image" | "audio" | "video";
   last_message_sender_id: string;
   last_message_sent_at: Date;
   swipe_category: "you" | "they" | "both" | "none";

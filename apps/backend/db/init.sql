@@ -46,7 +46,7 @@ CREATE TYPE T_REPORT_STATUS AS ENUM('under_review', 'dismissed', 'action_taken')
 
 CREATE TYPE T_SWIPE_TYPE AS ENUM('like', 'dislike');
 
-CREATE TYPE T_MESSAGE_TYPE AS ENUM ('text', 'image');
+CREATE TYPE T_MESSAGE_TYPE AS ENUM ('text', 'image', 'audio', 'video');
 
 DROP FUNCTION IF EXISTS CHECK_AGE;
 DROP FUNCTION IF EXISTS TRIM_USER_STRING;
@@ -94,8 +94,8 @@ CREATE TABLE IF NOT EXISTS USERS (
 	PREF_MIN_AGE SMALLINT NOT NULL DEFAULT 18 CHECK (PREF_MIN_AGE BETWEEN 18 AND 200),
 	PREF_MAX_AGE SMALLINT NOT NULL DEFAULT 200 CHECK (PREF_MAX_AGE BETWEEN 18 AND 200),
 	PREF_DISTANCE_RADIUS_KM SMALLINT NOT NULL DEFAULT 10 CHECK (PREF_DISTANCE_RADIUS_KM BETWEEN 0 AND 20000),
-	IS_ACTIVE BOOL NOT NULL DEFAULT TRUE,
-	ALLOW_MESSAGES_FROM_STRANGERS BOOL NOT NULL DEFAULT FALSE,
+	IS_ACTIVE BOOLEAN NOT NULL DEFAULT TRUE,
+	ALLOW_MESSAGES_FROM_STRANGERS BOOLEAN NOT NULL DEFAULT FALSE,
 	CHECK (PREF_MIN_AGE <= PREF_MAX_AGE)
 );
 
@@ -169,7 +169,8 @@ CREATE TABLE IF NOT EXISTS MESSAGES (
 	RECEIVER_ID UUID NOT NULL REFERENCES USERS (USER_ID),
     MESSAGE_TYPE T_MESSAGE_TYPE NOT NULL DEFAULT 'text',
 	MESSAGE_CONTENT VARCHAR(1024) NOT NULL DEFAULT '',
-	IS_READ BOOL NOT NULL DEFAULT FALSE,
+	IS_READ BOOLEAN NOT NULL DEFAULT FALSE,
+	IS_DELETED BOOLEAN NOT NULL DEFAULT FALSE,
 	SENT_AT TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	CHECK (SENDER_ID <> RECEIVER_ID)
 );
@@ -216,30 +217,21 @@ CREATE TABLE IF NOT EXISTS SWIPES (
 
 CREATE OR REPLACE FUNCTION CHECK_ALLOW_MESSAGES_FROM_STRANGERS() 
 RETURNS TRIGGER AS $$
-DECLARE
-    recipient_allow BOOLEAN;
 BEGIN
-    SELECT allow_messages_from_strangers
-    INTO recipient_allow
-    FROM users
-    WHERE user_id = NEW.receiver_id;
-    IF recipient_allow THEN
+    IF (SELECT allow_messages_from_strangers FROM users WHERE user_id = NEW.receiver_id) THEN
         RETURN NEW;
     END IF;
-    IF NOT EXISTS (
+    IF EXISTS(
         SELECT 1
-        FROM swipes s1
-        LEFT JOIN swipes s2
-          ON s1.swiper_id = s2.receiver_id
-         AND s1.receiver_id = s2.swiper_id
-         AND s2.swipe_type = 'like'
-        WHERE s1.swiper_id = NEW.sender_id
-          AND s1.receiver_id = NEW.receiver_id
-          AND s1.swipe_type = 'like'
+        FROM swipes
+        WHERE swiper_id = NEW.receiver_id
+          AND receiver_id = NEW.sender_id
+          AND swipe_type = 'like'
     ) THEN
-        RAISE EXCEPTION 'Cannot message: recipient does not allow strangers and no valid swipe exists';
+        RETURN NEW;
     END IF;
-    RETURN NEW;
+
+    RAISE EXCEPTION 'Cannot message: recipient does not allow strangers and no swipe exists';
 END;
 $$ LANGUAGE plpgsql;
 
@@ -252,7 +244,7 @@ CREATE TABLE IF NOT EXISTS PHOTOS (
 	PHOTO_ID UUID PRIMARY KEY DEFAULT GEN_RANDOM_UUID(),
 	UPLOADER_ID UUID NOT NULL REFERENCES USERS (USER_ID),
 	IMAGE_URL VARCHAR(2083) NOT NULL UNIQUE CHECK (IMAGE_URL ~* '^https?://[^\s/$.?#].[^\s]*$'),
-	IS_PRIMARY BOOL NOT NULL DEFAULT FALSE
+	IS_PRIMARY BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 CREATE INDEX idx_users_demographics ON users (gender, birth_date) WHERE is_active = true;

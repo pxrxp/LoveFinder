@@ -1,5 +1,5 @@
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
-import { Image } from "react-native";
+import { Image } from "expo-image";
 
 export default function ProfilePicture({
   url,

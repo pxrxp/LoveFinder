@@ -94,9 +94,9 @@ export default function ModalMenu({
                     action.onPress();
                     onDismiss();
                   }}
-                  className="flex-row items-center px-4 py-3.5 active:opacity-60"
+                  className="flex-row px-4 py-3.5 active:opacity-60"
                 >
-                  {action.icon && <View className="mr-3">{action.icon}</View>}
+                  {action.icon && <View className="mr-3 w-6 items-center">{action.icon}</View>}
 
                   <Text
                     className="text-base font-semiBold px-7 text-textPrimaryLight dark:text-textPrimaryDark"

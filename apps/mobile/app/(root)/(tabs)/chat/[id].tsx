@@ -2,29 +2,38 @@ import {
   View,
   Text,
   FlatList,
-  ImageBackground,
   TextInput,
   KeyboardAvoidingView,
   TouchableOpacity,
   Pressable,
-  StyleSheet,
 } from "react-native";
+import { ImageBackground, Image } from "expo-image";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { useState, useEffect } from "react";
+import * as ImagePicker from "expo-image-picker";
 
 import { useFetch } from "@/hooks/useFetch";
 import DataLoader from "@/components/DataLoader";
 import MessageItem from "@/components/MessageItem";
 import { Message, User } from "@/types/chat";
 import ProfilePicture from "@/components/ProfilePicture";
-import { useTheme } from "@/contexts/ThemeContext";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import ModalMenu from "@/components/ModalMenu";
 import { formatFriendlyDate } from "@/services/date";
 import { showThemedError } from "@/services/themed-error";
-import { useSocket } from "@/contexts/SocketContext";
+import { getSocket } from "@/services/socket";
+import { useTheme } from "@/contexts/ThemeContext";
+import { useMessageTracker } from "@/contexts/MessageTrackerContext";
+import { useSettings } from "@/contexts/SettingsContext";
+
+import Entypo from "@expo/vector-icons/Entypo";
+import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
+import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import ImageViewing from "react-native-image-viewing";
+import AudioRecorder from "@/components/AudioRecorder";
 
 export default function OtherUserScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -33,64 +42,157 @@ export default function OtherUserScreen() {
 
   const chat = useFetch<Message[]>(`chat/${id}`);
   const otherUserFetch = useFetch<User>(`users/${id}`);
+  const { setActiveChatUserId, markAsRead } = useMessageTracker();
+  const { settings } = useSettings();
+  const socket = getSocket();
 
-  const [messageToSend, setMessageToSend] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
+  const [messageToSend, setMessageToSend] = useState("");
   const [pressedMessage, setPressedMessage] = useState<string | null>(null);
-  const [menuVisible, setMenuVisible] = useState(false);
+  const [viewerVisible, setViewerVisible] = useState(false);
+  const [viewerImage, setViewerImage] = useState<string | null>(null);
+  const [mediaPreview, setMediaPreview] = useState<{
+    uri: string;
+    type: "image" | "audio" | "video";
+  } | null>(null);
 
-  const socket = useSocket();
+  const [deleteMenuVisible, setDeleteMenuVisible] = useState(false);
+  const [mediaMenuVisible, setMediaMenuVisible] = useState(false);
 
-  const handleSend = () => {
-    const text = messageToSend.trim();
-    if (!text || !socket) return;
-    socket.emit("send_message", { other_user_id: id, message: text, message_type: "text" });
-    setMessageToSend("");
+  const openViewer = (image: string) => {
+    setViewerImage(image);
+    setViewerVisible(true);
+  };
+  const closeViewer = () => setViewerVisible(false);
+  const openMediaMenu = () => setMediaMenuVisible(true);
+  const closeMediaMenu = () => setMediaMenuVisible(false);
+
+  const openDeleteMenu = () => setDeleteMenuVisible(true);
+  const closeDeleteMenu = () => setDeleteMenuVisible(false);
+
+  const launchCamera = async () => {
+    closeMediaMenu();
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ["images"],
+      quality: 0.7,
+    });
+    if (!result.canceled && result.assets[0].type === "image") {
+      setMediaPreview({
+        uri: result.assets[0].uri,
+        type: result.assets[0].type,
+      });
+    }
   };
 
-  const handleDelete = (message_id: string) => {
+  const pickPhoto = async () => {
+    closeMediaMenu();
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images", "videos"],
+      quality: 0.7,
+    });
+
+    if (
+      !result.canceled &&
+      (result.assets[0].type === "image" || result.assets[0].type === "video")
+    ) {
+      setMediaPreview({
+        uri: result.assets[0].uri,
+        type: result.assets[0].type,
+      });
+    }
+  };
+
+  const uploadAndSend = async (media: { uri: string; type: string }) => {
+    const uriParts = media.uri.split(".");
+    const fileType = uriParts[uriParts.length - 1];
+    const formData = new FormData();
+    formData.append("file", {
+      uri: media.uri,
+      name: `file.${fileType}`,
+      type: `${media.type}/${fileType}`,
+    } as any);
+
+    try {
+      const res = await fetch(`${process.env.BACKEND_URL}/upload`, {
+        method: "POST",
+        body: formData,
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      const data = await res.json();
+      socket.emit("send_message", {
+        other_user_id: id,
+        message: data.url,
+        message_type: media.type,
+      });
+      setMediaPreview(null);
+    } catch {
+      showThemedError("Upload failed", themeColors);
+    }
+  };
+
+  const handleSend = async () => {
+    if (!socket) return;
+    if (messageToSend.trim()) {
+      socket.emit("send_message", {
+        other_user_id: id,
+        message: messageToSend.trim(),
+        message_type: "text",
+      });
+      setMessageToSend("");
+    }
+    if (mediaPreview) await uploadAndSend(mediaPreview);
+  };
+
+  const handleDelete = (message_id: string) =>
     socket.emit("delete_message", { other_user_id: id, message_id });
+  const handleMarkRead = () => {
+    if (socket && settings.sendReceipts)
+      socket.emit("mark_as_read", { other_user_id: id });
   };
-
-  const backgroundImage =
-    theme === "light"
-      ? require("@/assets/images/chat-theme-light.jpg")
-      : require("@/assets/images/chat-theme-dark.jpg");
 
   useEffect(() => {
     if (chat.data) setMessages(chat.data);
   }, [chat.data]);
+  useEffect(() => {
+    setActiveChatUserId(id);
+    markAsRead(id);
+    return () => setActiveChatUserId(null);
+  }, [id]);
 
   useEffect(() => {
-    if (!socket) return;
+    socket.emit("join_room", { other_user_id: id });
+    if (settings.sendReceipts)
+      socket.emit("mark_as_read", { other_user_id: id });
+    handleMarkRead();
 
     const handleNewMessage = (msg: Message) =>
-      setMessages(prev => (prev.find(m => m.message_id === msg.message_id) ? prev : [msg, ...prev]));
-
+      setMessages((prev) =>
+        prev.find((m) => m.message_id === msg.message_id)
+          ? prev
+          : [msg, ...prev],
+      );
     const handleDeleteMessage = ({ message_id }: { message_id: string }) =>
-      setMessages(prev => prev.filter(m => m.message_id !== message_id));
-
-    const handleWsError = (data: { action: string; error: string }) => {
+      setMessages((prev) => prev.filter((m) => m.message_id !== message_id));
+    const handleWsError = (data: { action: string; error: string }) =>
       showThemedError(`${data.action}\n${data.error}`, themeColors);
-    };
 
-    const handleConnect = () => {
-      socket.emit("join_room", { other_user_id: id });
-    };
-
-    socket.on("connect", handleConnect);
     socket.on("new_message", handleNewMessage);
     socket.on("delete_message", handleDeleteMessage);
     socket.on("ws_error", handleWsError);
 
     return () => {
       socket.emit("leave_room", { other_user_id: id });
-      socket.off("connect", handleConnect);
       socket.off("new_message", handleNewMessage);
       socket.off("delete_message", handleDeleteMessage);
       socket.off("ws_error", handleWsError);
     };
-  }, [socket, id, themeColors]);
+  }, [id, themeColors, settings.sendReceipts]);
+
+  const backgroundImage =
+    theme === "light"
+      ? require("@/assets/images/chat-theme-light.jpg")
+      : require("@/assets/images/chat-theme-dark.jpg");
 
   return (
     <>
@@ -98,10 +200,14 @@ export default function OtherUserScreen() {
         options={{
           title: "",
           headerTitle: () => (
-            <DataLoader fetchResult={otherUserFetch} displayErrorScreen={false} displayLoadingScreen={false}>
+            <DataLoader fetchResult={otherUserFetch}>
               {(otherUser) => (
                 <View className="flex-row items-center">
-                  <ProfilePicture url={otherUser.profile_picture_url} size={40} color={themeColors.textPrimary} />
+                  <ProfilePicture
+                    url={otherUser.profile_picture_url}
+                    size={40}
+                    color={themeColors.textPrimary}
+                  />
                   <Text className="text-xl font-bold pt-2 pl-5 text-textPrimaryLight dark:text-textPrimaryDark">
                     {otherUser.full_name}
                   </Text>
@@ -121,72 +227,86 @@ export default function OtherUserScreen() {
             otherUser.allow_messages_from_strangers ||
             otherUser.swipe_category === "them" ||
             otherUser.swipe_category === "both";
-
           return (
             <ImageBackground
               source={backgroundImage}
-              resizeMode="cover"
-              className="flex-1"
-              style={{ paddingBottom: tabBarHeight + 15, backgroundColor: themeColors.chatBg }}
+              contentFit="cover"
+              style={{
+                paddingBottom: tabBarHeight + 15,
+                backgroundColor: themeColors.chatBg,
+                flex: 1,
+              }}
             >
-              <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding" keyboardVerticalOffset={100}>
+              <KeyboardAvoidingView
+                behavior="padding"
+                keyboardVerticalOffset={100}
+                className="flex-1"
+              >
                 <DataLoader fetchResult={chat} pullToRefresh>
                   {(_, refreshing, onRefresh) => (
                     <>
                       {!socket?.connected && (
-                        <Text className="text-textPrimaryLight dark:text-textPrimaryDark text-center font-bold text-lg p-9">
+                        <Text className="text-center text-lg font-bold p-9 text-textPrimaryLight dark:text-textPrimaryDark">
                           Connecting...
                         </Text>
                       )}
-
                       {pressedMessage && (
                         <Pressable
-                          style={{ ...StyleSheet.absoluteFillObject, zIndex: 1 }}
+                          className="absolute inset-0 z-10"
                           onPress={() => setPressedMessage(null)}
                         />
                       )}
-
                       <FlatList
-                        data={messages || []}
-                        keyExtractor={(item) => item.message_id}
+                        data={messages}
                         inverted
+                        keyExtractor={(item) => item.message_id}
+                        className="px-4"
                         refreshing={refreshing ?? false}
                         onRefresh={onRefresh}
-                        className="px-4"
-                        ListFooterComponent={<View className="w-full h-12" />}
+                        ListFooterComponent={<View className="h-12 w-full" />}
                         renderItem={({ item }) => (
                           <>
                             <ModalMenu
-                              visible={menuVisible}
-                              onDismiss={() => setMenuVisible(false)}
+                              visible={deleteMenuVisible}
+                              onDismiss={closeDeleteMenu}
                               actions={[
                                 {
                                   label: "Delete",
                                   color: "red",
-                                  icon: <MaterialCommunityIcons name="delete-outline" size={24} color="red" />,
+                                  icon: (
+                                    <MaterialCommunityIcons
+                                      name="delete-outline"
+                                      size={24}
+                                      color="red"
+                                    />
+                                  ),
                                   onPress: () => handleDelete(item.message_id),
                                 },
                               ]}
                             />
-
                             {pressedMessage === item.message_id && (
                               <Text
-                                className={`text-sm font-light text-gray-200 pb-5 ${
-                                  item.sender_id === otherUser.user_id ? "text-left pl-3" : "text-right pr-3"
-                                }`}
+                                className={`text-sm font-light pb-5 ${item.sender_id === otherUser.user_id ? "text-left pl-3 text-gray-200" : "text-right pr-3 text-gray-200"}`}
                               >
-                                {formatFriendlyDate(item.sent_at)}
+                                Sent at {formatFriendlyDate(item.sent_at)}
                               </Text>
                             )}
-
                             <MessageItem
                               other_user={otherUser || null}
                               item={item}
+                              openViewer={openViewer}
                               onPress={(e) => {
                                 e.stopPropagation();
-                                setPressedMessage(prev => (prev === item.message_id ? null : item.message_id));
+                                setPressedMessage((prev) =>
+                                  prev === item.message_id
+                                    ? null
+                                    : item.message_id,
+                                );
                               }}
-                              onLongPress={() => item.sender_id !== otherUser.user_id && setMenuVisible(true)}
+                              onLongPress={() =>
+                                item.sender_id !== otherUser.user_id &&
+                                openDeleteMenu()
+                              }
                             />
                           </>
                         )}
@@ -195,25 +315,114 @@ export default function OtherUserScreen() {
                   )}
                 </DataLoader>
 
-                <View className="flex-row w-11/12 rounded-3xl self-center bg-chatBgDark border-gray-500 border-2 mt-3 overflow-hidden">
+                <AudioRecorder />
+
+                {mediaPreview && (
+                  <View className="mx-5 my-2 relative">
+                    {mediaPreview.type === "image" && (
+                      <Pressable onPress={() => openViewer(mediaPreview.uri)}>
+                        <Image
+                          source={{ uri: mediaPreview.uri }}
+                          style={{ width: 96, height: 96, borderRadius: 8 }}
+                        />
+                      </Pressable>
+                    )}
+                    {mediaPreview.type === "audio" && (
+                      <TouchableOpacity
+                        onPress={() => {}}
+                        className="p-2 bg-gray-700 rounded-md"
+                      >
+                        <Text className="text-white">Play Audio</Text>
+                      </TouchableOpacity>
+                    )}
+                    <TouchableOpacity
+                      onPress={() => setMediaPreview(null)}
+                      className="absolute -top-1 -left-1 bg-black/40 p-1 rounded-full m-2"
+                    >
+                      <MaterialIcons name="close" size={20} color="white" />
+                    </TouchableOpacity>
+                  </View>
+                )}
+
+                <View className="flex-row w-11/12 self-center mt-3 overflow-hidden rounded-3xl border-2 border-gray-500 bg-chatBgDark">
+                  <TouchableOpacity onPress={openMediaMenu} className="p-2">
+                    <Ionicons
+                      name="add-circle-outline"
+                      size={26}
+                      color={themeColors.textPrimary}
+                    />
+                  </TouchableOpacity>
                   <TextInput
-                    className="flex-1 px-3 text-white"
+                    className="flex-1 text-white pr-4"
+                    placeholder={
+                      messagable
+                        ? "Type a message"
+                        : "You can't message this user"
+                    }
                     placeholderTextColor="white"
-                    placeholder={messagable ? "Type a message" : "You can't message this user"}
                     editable={messagable}
                     value={messageToSend}
                     onChangeText={setMessageToSend}
                     multiline
                   />
-                  {messageToSend.trim().length > 0 && (
+                  {(messageToSend.trim() || mediaPreview) && (
                     <TouchableOpacity
                       onPress={handleSend}
-                      className="rounded-l-full bg-accent pl-6 pr-7 justify-center"
+                      className="bg-accent py-3 px-4 rounded-l-full"
                     >
                       <MaterialIcons name="send" size={20} color="white" />
                     </TouchableOpacity>
                   )}
                 </View>
+
+                <ModalMenu
+                  visible={mediaMenuVisible}
+                  onDismiss={closeMediaMenu}
+                  actions={[
+                    {
+                      label: "Take photo",
+                      icon: (
+                        <Entypo
+                          name="camera"
+                          size={20}
+                          color={themeColors.textPrimary}
+                        />
+                      ),
+                      onPress: launchCamera,
+                    },
+                    {
+                      label: "Choose a photo/video",
+                      icon: (
+                        <FontAwesome6
+                          name="photo-film"
+                          size={17}
+                          color={themeColors.textPrimary}
+                        />
+                      ),
+                      onPress: pickPhoto,
+                    },
+                    {
+                      label: "Record audio",
+                      icon: (
+                        <FontAwesome5
+                          name="microphone"
+                          size={22}
+                          color={themeColors.textPrimary}
+                        />
+                      ),
+                      onPress: () => console.log("audio"),
+                    },
+                  ]}
+                />
+                <ImageViewing
+                  presentationStyle="pageSheet"
+                  images={viewerImage ? [{ uri: viewerImage }] : []}
+                  animationType="slide"
+                  swipeToCloseEnabled={true}
+                  imageIndex={0}
+                  visible={viewerVisible}
+                  onRequestClose={closeViewer}
+                />
               </KeyboardAvoidingView>
             </ImageBackground>
           );

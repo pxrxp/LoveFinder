@@ -11,8 +11,8 @@ import * as SystemUI from "expo-system-ui";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import FlashMessage from "react-native-flash-message";
-import { SocketProvider } from "@/contexts/SocketContext";
 import { SettingsProvider } from "@/contexts/SettingsContext";
+import { MessageTrackerProvider } from "@/contexts/MessageTrackerContext";
 
 function ThemedRoot({ children }: { children: React.ReactNode }) {
   const { theme } = useTheme();
@@ -61,8 +61,8 @@ export default function RootLayout() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <SocketProvider>
-          <SettingsProvider>
+        <SettingsProvider>
+          <MessageTrackerProvider>
             <ThemedRoot>
               <>
                 <Slot />
@@ -73,8 +73,8 @@ export default function RootLayout() {
                 />
               </>
             </ThemedRoot>
-          </SettingsProvider>
-        </SocketProvider>
+          </MessageTrackerProvider>
+        </SettingsProvider>
       </AuthProvider>
     </ThemeProvider>
   );

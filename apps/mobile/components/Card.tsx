@@ -1,4 +1,5 @@
-import { View, Text, ImageBackground, StyleSheet } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
+import { ImageBackground } from "expo-image";
 import Animated from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
 import MaskedView from "@react-native-masked-view/masked-view";
@@ -33,8 +34,14 @@ export default function Card({
     >
       <ImageBackground
         source={{ uri: item.image_url }}
-        style={{ backgroundColor: themeColors.chatBg }}
-        className="flex-1 justify-end p-5 rounded-3xl overflow-hidden"
+        style={{
+          backgroundColor: themeColors.chatBg,
+          flex: 1,
+          justifyContent: "flex-end",
+          padding: 20,
+          borderRadius: 24,
+          overflow: "hidden",
+        }}
       >
         {isTop && (
           <>
