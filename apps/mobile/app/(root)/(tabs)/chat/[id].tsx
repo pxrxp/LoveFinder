@@ -11,8 +11,13 @@ import { ImageBackground, Image } from "expo-image";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { useState, useEffect } from "react";
-import * as ImagePicker from "expo-image-picker";
-
+import { useVideoPlayer, VideoThumbnail } from "expo-video";
+import { launchCameraAsync, launchImageLibraryAsync } from "expo-image-picker";
+import { lockAsync, OrientationLock } from "expo-screen-orientation";
+import {
+  getThumbnailAsync,
+  VideoThumbnailsResult,
+} from "expo-video-thumbnails";
 import { useFetch } from "@/hooks/useFetch";
 import DataLoader from "@/components/DataLoader";
 import MessageItem from "@/components/MessageItem";
@@ -34,6 +39,7 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import ImageViewing from "react-native-image-viewing";
 import AudioRecorder from "@/components/AudioRecorder";
+import FullScreenVideo from "@/components/FullScreenVideo";
 
 export default function OtherUserScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -56,23 +62,67 @@ export default function OtherUserScreen() {
     type: "image" | "audio" | "video";
   } | null>(null);
 
+  const [audioRecorderVisible, setAudioRecorderVisible] = useState(false);
+
+  const [videoThumbnail, setVideoThumbnail] =
+    useState<VideoThumbnailsResult | null>(null);
+  const player = useVideoPlayer(videoThumbnail, (player) => {
+    player.play();
+  });
+
+  useEffect(() => {
+    if (!mediaPreview || mediaPreview.type !== "video") return;
+
+    const fetchThumbnail = async () => {
+      setVideoThumbnail(await getThumbnailAsync(mediaPreview.uri));
+    };
+
+    fetchThumbnail();
+  }, [mediaPreview]);
+
   const [deleteMenuVisible, setDeleteMenuVisible] = useState(false);
   const [mediaMenuVisible, setMediaMenuVisible] = useState(false);
+  const [videoPlayerVisible, setVideoPlayerVisible] = useState(false);
+
+  useEffect(() => {
+    if (!videoPlayerVisible || !player) return;
+
+    const fetchVideoDims = async () => {
+      if (!videoThumbnail?.width || !videoThumbnail?.height) return;
+
+      if (videoThumbnail?.width > videoThumbnail?.height) {
+        await lockAsync(OrientationLock.LANDSCAPE);
+      } else {
+        await lockAsync(OrientationLock.PORTRAIT);
+      }
+    };
+    fetchVideoDims();
+    return () => {
+      lockAsync(OrientationLock.DEFAULT);
+    };
+  }, [videoPlayerVisible, player]);
 
   const openViewer = (image: string) => {
     setViewerImage(image);
     setViewerVisible(true);
   };
   const closeViewer = () => setViewerVisible(false);
+
   const openMediaMenu = () => setMediaMenuVisible(true);
   const closeMediaMenu = () => setMediaMenuVisible(false);
 
   const openDeleteMenu = () => setDeleteMenuVisible(true);
   const closeDeleteMenu = () => setDeleteMenuVisible(false);
 
+  const openAudioRecorder = () => setAudioRecorderVisible(true);
+  const closeAudioRecorder = () => setAudioRecorderVisible(false);
+
+  const openVideoPlayer = () => setVideoPlayerVisible(true);
+  const closeVideoPlayer = () => setVideoPlayerVisible(false);
+
   const launchCamera = async () => {
     closeMediaMenu();
-    const result = await ImagePicker.launchCameraAsync({
+    const result = await launchCameraAsync({
       mediaTypes: ["images"],
       quality: 0.7,
     });
@@ -87,7 +137,7 @@ export default function OtherUserScreen() {
   const pickPhoto = async () => {
     closeMediaMenu();
 
-    const result = await ImagePicker.launchImageLibraryAsync({
+    const result = await launchImageLibraryAsync({
       mediaTypes: ["images", "videos"],
       quality: 0.7,
     });
@@ -220,7 +270,6 @@ export default function OtherUserScreen() {
           headerBackButtonDisplayMode: "minimal",
         }}
       />
-
       <DataLoader fetchResult={otherUserFetch}>
         {(otherUser) => {
           const messagable =
@@ -315,24 +364,59 @@ export default function OtherUserScreen() {
                   )}
                 </DataLoader>
 
-                <AudioRecorder />
+                {audioRecorderVisible && (
+                  <AudioRecorder
+                    onRecordComplete={(uri) => {
+                      setMediaPreview({ uri: uri || "", type: "audio" });
+                      closeAudioRecorder();
+                    }}
+                  />
+                )}
 
                 {mediaPreview && (
                   <View className="mx-5 my-2 relative">
                     {mediaPreview.type === "image" && (
-                      <Pressable onPress={() => openViewer(mediaPreview.uri)}>
+                      <TouchableOpacity
+                        activeOpacity={0.9}
+                        onPress={() => openViewer(mediaPreview.uri)}
+                      >
                         <Image
                           source={{ uri: mediaPreview.uri }}
                           style={{ width: 96, height: 96, borderRadius: 8 }}
                         />
-                      </Pressable>
+                      </TouchableOpacity>
                     )}
                     {mediaPreview.type === "audio" && (
                       <TouchableOpacity
-                        onPress={() => {}}
+                        onPress={openAudioRecorder}
                         className="p-2 bg-gray-700 rounded-md"
                       >
                         <Text className="text-white">Play Audio</Text>
+                      </TouchableOpacity>
+                    )}
+                    {mediaPreview.type === "video" && (
+                      <TouchableOpacity
+                        activeOpacity={0.9}
+                        onPress={openVideoPlayer}
+                      >
+                        <ImageBackground
+                          source={{ uri: videoThumbnail?.uri || "" }}
+                          style={{
+                            width: 96,
+                            height: 96,
+                            borderRadius: 8,
+                            alignItems: "center",
+                            justifyContent: "center",
+                            overflow: "hidden",
+                          }}
+                        >
+                          <FontAwesome5
+                            name="play-circle"
+                            size={42}
+                            color="black"
+                            className="opacity-70"
+                          />
+                        </ImageBackground>
                       </TouchableOpacity>
                     )}
                     <TouchableOpacity
@@ -410,24 +494,25 @@ export default function OtherUserScreen() {
                           color={themeColors.textPrimary}
                         />
                       ),
-                      onPress: () => console.log("audio"),
+                      onPress: openAudioRecorder,
                     },
                   ]}
-                />
-                <ImageViewing
-                  presentationStyle="pageSheet"
-                  images={viewerImage ? [{ uri: viewerImage }] : []}
-                  animationType="slide"
-                  swipeToCloseEnabled={true}
-                  imageIndex={0}
-                  visible={viewerVisible}
-                  onRequestClose={closeViewer}
                 />
               </KeyboardAvoidingView>
             </ImageBackground>
           );
         }}
       </DataLoader>
+      <ImageViewing
+        presentationStyle="pageSheet"
+        images={viewerImage ? [{ uri: viewerImage }] : []}
+        animationType="slide"
+        swipeToCloseEnabled={true}
+        imageIndex={0}
+        visible={viewerVisible}
+        onRequestClose={closeViewer}
+      />
+      <FullScreenVideo player={player} onClose={closeVideoPlayer} videoThumbnail={videoThumbnail} visible={videoPlayerVisible}/>
     </>
   );
 }

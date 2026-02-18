@@ -4,6 +4,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider, useTheme } from "@/contexts/ThemeContext";
 import { useFonts } from "expo-font";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { PortalProvider } from "@gorhom/portal";
 import { StatusBar } from "expo-status-bar";
 import { colors } from "@/constants/colors";
 import * as SystemUI from "expo-system-ui";
@@ -64,14 +65,14 @@ export default function RootLayout() {
         <SettingsProvider>
           <MessageTrackerProvider>
             <ThemedRoot>
-              <>
+              <PortalProvider>
                 <Slot />
                 <FlashMessage
                   floating={true}
                   style={{ paddingTop: 40 }}
                   position="top"
                 />
-              </>
+              </PortalProvider>
             </ThemedRoot>
           </MessageTrackerProvider>
         </SettingsProvider>

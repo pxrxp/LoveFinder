@@ -1,4 +1,4 @@
-import { View, Text, Pressable, GestureResponderEvent } from "react-native";
+import { View, Text, TouchableOpacity, GestureResponderEvent } from "react-native";
 import { Image } from "expo-image";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Ionicons from "@expo/vector-icons/Ionicons";
@@ -31,7 +31,7 @@ export default function MessageItem({
 
   return (
     <View className={`my-2 px-1 ${isMine ? "self-end" : "self-start"}`}>
-      <Pressable onPress={onPress} onLongPress={onLongPress}>
+      <TouchableOpacity onPress={onPress} onLongPress={onLongPress} activeOpacity={0.9}>
         {item.message_type === "text" ? (
           <View
             className={`max-w-52 px-2 items-end flex-row-reverse rounded-2xl ${isMine ? "bg-accent shadow-md" : "bg-bgPrimaryDark dark:bg-bgPrimaryLight"}`}
@@ -61,7 +61,8 @@ export default function MessageItem({
           </View>
         ) : (
           <View>
-            <Pressable
+            <TouchableOpacity
+              activeOpacity={0.9}
               onPress={() => !failed && openViewer(item.message_content)}
             >
               <Image
@@ -82,10 +83,10 @@ export default function MessageItem({
                   style={{ position: "absolute" }}
                 />
               )}
-            </Pressable>
+            </TouchableOpacity>
           </View>
         )}
-      </Pressable>
+      </TouchableOpacity>
     </View>
   );
 }
