@@ -1,8 +1,10 @@
 import { createContext, ReactNode, useContext, useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { colors } from "@/constants/colors";
 
 interface ThemeContextValue {
   theme: Theme;
+  themeColors: typeof colors.light;
   toggleTheme: () => void;
 };
 
@@ -31,7 +33,7 @@ export function ThemeProvider({ children }: {children : ReactNode}) {
   };
 
   return (
-    <ThemeContext.Provider value={{theme, toggleTheme}}>
+    <ThemeContext.Provider value={{theme, themeColors: colors[theme], toggleTheme}}>
       {children}
     </ThemeContext.Provider>
   );

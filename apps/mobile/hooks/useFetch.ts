@@ -1,5 +1,5 @@
-import { apiFetch } from '@/services/api';
-import { useState, useEffect, useCallback } from 'react';
+import { apiFetch } from "@/services/api";
+import { useState, useEffect, useCallback } from "react";
 
 interface FetchState<T> {
   data: T | null;
@@ -17,6 +17,10 @@ export function useFetch<T = any>(endpoint: string, options?: RequestInit): Fetc
     setLoading(true);
     try {
       const response = await apiFetch(endpoint, options);
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`HTTP ${response.status}: ${text || response.statusText}`);
+      }
       const json: T = await response.json();
       setData(json);
       setError(null);
@@ -26,7 +30,7 @@ export function useFetch<T = any>(endpoint: string, options?: RequestInit): Fetc
     } finally {
       setLoading(false);
     }
-  }, [endpoint]);
+  }, [endpoint, options]);
 
   useEffect(() => {
     loadData();
@@ -34,4 +38,3 @@ export function useFetch<T = any>(endpoint: string, options?: RequestInit): Fetc
 
   return { data, loading, error, refetch: loadData };
 }
-

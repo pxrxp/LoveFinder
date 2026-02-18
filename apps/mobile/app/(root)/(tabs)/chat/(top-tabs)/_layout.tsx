@@ -2,18 +2,25 @@ import { Stack } from "expo-router";
 import { MaterialTopTabs } from "@/components/MaterialTopTabs";
 import { ChatProvider } from "@/contexts/ChatContext";
 import { useTheme } from "@/contexts/ThemeContext";
-import { colors } from "@/constants/colors";
 
 export default function TabLayout() {
-  const { theme } = useTheme();
-  const themeColors = colors[theme];
+  const { themeColors } = useTheme();
 
   return (
     <ChatProvider>
       <Stack.Screen options={{ headerTitle: "Chats" }} />
 
       <MaterialTopTabs
-        screenOptions={{ tabBarStyle: { backgroundColor: themeColors.bgPrimary }, tabBarLabelStyle: {color: themeColors.textPrimary, fontWeight: "bold"} }}
+        screenOptions={{
+          tabBarStyle: { backgroundColor: themeColors.bgPrimary },
+          tabBarLabelStyle: {
+            color: themeColors.textPrimary,
+            fontWeight: "bold",
+          },
+          tabBarIndicatorStyle: {
+            backgroundColor: themeColors.tabIconInactive,
+          },
+        }}
       >
         <MaterialTopTabs.Screen
           name="you-liked"

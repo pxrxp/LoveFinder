@@ -1,10 +1,8 @@
-import { colors } from "@/constants/colors";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Stack } from "expo-router";
 
 export default function ChatLayout() {
-  const { theme } = useTheme();
-  const themeColors = colors[theme];
+  const { themeColors } = useTheme();
 
   return (
     <Stack

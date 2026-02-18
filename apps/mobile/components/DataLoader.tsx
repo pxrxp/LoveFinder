@@ -1,5 +1,4 @@
 import React, { useState, useCallback, ReactNode } from "react";
-import { FlatList, Text, View } from "react-native";
 import LoadingScreen from "@/components/LoadingScreen";
 import ErrorScreen from "@/components/ErrorScreen";
 

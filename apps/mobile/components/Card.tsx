@@ -6,7 +6,6 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import Entypo from "@expo/vector-icons/Entypo";
 import { FeedUser } from "@/types/FeedUser";
 import { useTheme } from "@/contexts/ThemeContext";
-import { colors } from "@/constants/colors";
 
 interface CardProps {
   style: any;
@@ -23,8 +22,7 @@ export default function Card({
   item,
   isTop,
 }: CardProps) {
-  const { theme } = useTheme();
-  const themeColors = colors[theme];
+  const { themeColors } = useTheme();
 
   return (
     <Animated.View

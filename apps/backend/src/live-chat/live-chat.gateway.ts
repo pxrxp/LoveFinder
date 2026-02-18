@@ -27,8 +27,9 @@ function getSocketUser(socket: Socket): UserDto | null {
 })
 export class LiveChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(
-    private readonly chatService: ChatService, private readonly usersService: UsersService
-  ) { }
+    private readonly chatService: ChatService,
+    private readonly usersService: UsersService
+  ) {}
 
   @WebSocketServer()
   server!: Server;
@@ -68,9 +69,13 @@ export class LiveChatGateway implements OnGatewayConnection, OnGatewayDisconnect
     const user = getSocketUser(socket);
     if (!user) return;
 
-    const roomId = this.chatService.getRoomId(user.user_id, otherUserId);
-    socket.join(roomId);
-    socket.emit('join_room', { room_id: roomId });
+    try {
+      const roomId = this.chatService.getRoomId(user.user_id, otherUserId);
+      socket.join(roomId);
+      socket.emit('join_room', { room_id: roomId });
+    } catch (err: any) {
+      socket.emit('ws_error', { action: 'join_room', error: err.message });
+    }
   }
 
   @SubscribeMessage('leave_room')
@@ -81,9 +86,13 @@ export class LiveChatGateway implements OnGatewayConnection, OnGatewayDisconnect
     const user = getSocketUser(socket);
     if (!user) return;
 
-    const roomId = this.chatService.getRoomId(user.user_id, otherUserId);
-    socket.leave(roomId);
-    socket.emit('leave_room', { room_id: roomId });
+    try {
+      const roomId = this.chatService.getRoomId(user.user_id, otherUserId);
+      socket.leave(roomId);
+      socket.emit('leave_room', { room_id: roomId });
+    } catch (err: any) {
+      socket.emit('ws_error', { action: 'leave_room', error: err.message });
+    }
   }
 
   @SubscribeMessage('send_message')
@@ -96,22 +105,17 @@ export class LiveChatGateway implements OnGatewayConnection, OnGatewayDisconnect
     const user = getSocketUser(socket);
     if (!user) return;
 
-    const roomId = this.chatService.getRoomId(user.user_id, otherUserId);
-
     try {
+      const roomId = this.chatService.getRoomId(user.user_id, otherUserId);
       const msg = await this.chatService.sendMessage(
         user.user_id,
         otherUserId,
         message,
         messageType
       );
-
       this.server.to(roomId).emit('new_message', msg);
-
     } catch (err: any) {
-      socket.emit('send_message_error', {
-        error: err.message
-      });
+      socket.emit('ws_error', { action: 'send_message', error: err.message });
     }
   }
 
@@ -123,9 +127,14 @@ export class LiveChatGateway implements OnGatewayConnection, OnGatewayDisconnect
   ) {
     const user = getSocketUser(socket);
     if (!user) return;
-    await this.chatService.deleteMessage(user.user_id, messageId);
-    const roomId = this.chatService.getRoomId(user.user_id, otherUserId);
-    this.server.to(roomId).emit('delete_message', { message_id: messageId });
+
+    try {
+      await this.chatService.deleteMessage(user.user_id, messageId);
+      const roomId = this.chatService.getRoomId(user.user_id, otherUserId);
+      this.server.to(roomId).emit('delete_message', { message_id: messageId });
+    } catch (err: any) {
+      socket.emit('ws_error', { action: 'delete_message', message_id: messageId, error: err.message });
+    }
   }
 
   @SubscribeMessage('mark_as_read')
@@ -135,6 +144,11 @@ export class LiveChatGateway implements OnGatewayConnection, OnGatewayDisconnect
   ) {
     const user = getSocketUser(socket);
     if (!user) return;
-    await this.chatService.markAsRead(user.user_id, otherUserId);
+
+    try {
+      await this.chatService.markAsRead(user.user_id, otherUserId);
+    } catch (err: any) {
+      socket.emit('ws_error', { action: 'mark_as_read', error: err.message });
+    }
   }
 }

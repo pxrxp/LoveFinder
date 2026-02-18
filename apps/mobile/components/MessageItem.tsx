@@ -1,4 +1,4 @@
-import { View, Text, Image } from "react-native";
+import { View, Text, Image, Pressable, GestureResponderEvent } from "react-native";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useEffect, useState } from "react";
 import { Message, User } from "@/types/chat";
@@ -6,10 +6,11 @@ import { Message, User } from "@/types/chat";
 interface Props {
   other_user: User | null;
   item: Message;
-  theme: "light" | "dark";
+  onPress: (event: GestureResponderEvent) => void,
+  onLongPress: (event: GestureResponderEvent) => void
 }
 
-export default function MessageItem({ other_user, item, theme }: Props) {
+export default function MessageItem({ other_user, item, onPress, onLongPress }: Props) {
   const isMine = item.sender_id !== other_user?.user_id;
   const [failed, setFailed] = useState(false);
 
@@ -17,6 +18,7 @@ export default function MessageItem({ other_user, item, theme }: Props) {
 
   return (
     <View className={`my-2 px-1 ${isMine ? "self-end" : "self-start"}`}>
+      <Pressable onPress={onPress} onLongPress={onLongPress}>
       {item.message_type === "text" ? (
         <Text
           className={`px-4 py-2 rounded-2xl text-base ${
@@ -44,6 +46,7 @@ export default function MessageItem({ other_user, item, theme }: Props) {
           )}
         </View>
       )}
+      </Pressable>
     </View>
   );
 }

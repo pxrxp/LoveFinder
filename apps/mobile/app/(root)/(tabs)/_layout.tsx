@@ -11,8 +11,7 @@ import { colors } from "@/constants/colors";
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
   const isAndroid = Platform.OS === "android";
-  const { theme } = useTheme();
-  const themeColors = colors[theme];
+  const { themeColors } = useTheme();
 
   const renderLabel = (label: string, focused: boolean) => (
     <Text

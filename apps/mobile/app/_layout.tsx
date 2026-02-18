@@ -10,6 +10,9 @@ import * as SystemUI from "expo-system-ui";
 
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
+import FlashMessage from "react-native-flash-message";
+import { SocketProvider } from "@/contexts/SocketContext";
+import { SettingsProvider } from "@/contexts/SettingsContext";
 
 function ThemedRoot({ children }: { children: React.ReactNode }) {
   const { theme } = useTheme();
@@ -21,7 +24,7 @@ function ThemedRoot({ children }: { children: React.ReactNode }) {
   }, [bgColor]);
 
   return (
-    <GestureHandlerRootView style={{ flex: 1, backgroundColor: bgColor }}>
+    <GestureHandlerRootView>
       <StatusBar style={theme === "light" ? "dark" : "light"} />
       {children}
     </GestureHandlerRootView>
@@ -58,9 +61,20 @@ export default function RootLayout() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <ThemedRoot>
-          <Slot />
-        </ThemedRoot>
+        <SocketProvider>
+          <SettingsProvider>
+            <ThemedRoot>
+              <>
+                <Slot />
+                <FlashMessage
+                  floating={true}
+                  style={{ paddingTop: 40 }}
+                  position="top"
+                />
+              </>
+            </ThemedRoot>
+          </SettingsProvider>
+        </SocketProvider>
       </AuthProvider>
     </ThemeProvider>
   );
