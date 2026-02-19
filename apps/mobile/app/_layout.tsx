@@ -14,6 +14,9 @@ import { useEffect } from "react";
 import FlashMessage from "react-native-flash-message";
 import { SettingsProvider } from "@/contexts/SettingsContext";
 import { MessageTrackerProvider } from "@/contexts/MessageTrackerContext";
+import { ImageViewerProvider } from "@/contexts/ImageViewerContext";
+import { VideoPlayerProvider } from "@/contexts/VideoPlayerContext";
+import { AudioRecorderProvider } from "@/contexts/AudioRecorderContext";
 
 function ThemedRoot({ children }: { children: React.ReactNode }) {
   const { theme } = useTheme();
@@ -65,14 +68,20 @@ export default function RootLayout() {
         <SettingsProvider>
           <MessageTrackerProvider>
             <ThemedRoot>
-              <PortalProvider>
-                <Slot />
-                <FlashMessage
-                  floating={true}
-                  style={{ paddingTop: 40 }}
-                  position="top"
-                />
-              </PortalProvider>
+              <ImageViewerProvider>
+                <PortalProvider>
+                  <VideoPlayerProvider>
+                    <AudioRecorderProvider>
+                      <Slot />
+                      <FlashMessage
+                        floating={true}
+                        style={{ paddingTop: 40 }}
+                        position="top"
+                      />
+                    </AudioRecorderProvider>
+                  </VideoPlayerProvider>
+                </PortalProvider>
+              </ImageViewerProvider>
             </ThemedRoot>
           </MessageTrackerProvider>
         </SettingsProvider>

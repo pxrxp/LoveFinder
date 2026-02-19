@@ -1,0 +1,159 @@
+=== services/chat-media.ts ===
+import { apiFetch } from "@/services/api";
+
+export async function uploadChatMedia(media: {
+  uri: string;
+  type: string;
+}) {
+  const uriParts = media.uri.split(".");
+  const fileType = uriParts[uriParts.length - 1];
+
+  const formData = new FormData();
+
+  formData.append("file", {
+    uri: media.uri,
+    name: `file.${fileType}`,
+    type: `${media.type}/${fileType}`,
+  } as any);
+
+  const res = await apiFetch(
+    "chat-media/upload",
+    {
+      method: "POST",
+      body: formData,
+    }
+  );
+
+  return res.json();
+}
+
+
+
+=== services/date.ts ===
+import dayjs from "dayjs";
+
+export function formatFriendlyDate(date: string | Date | number): string {
+  const timestamp = dayjs(date);
+
+  if (timestamp.isSame(dayjs(), "day")) {
+    return timestamp.format("h:mm A");
+  } else if (timestamp.isSame(dayjs(), "year")) {
+    return timestamp.format("MMM D");
+  } else {
+    return timestamp.format("MMM D, YYYY");
+  }
+}
+
+
+
+=== services/socket.ts ===
+import { io, Socket } from "socket.io-client";
+import { showThemedError } from "./themed-error";
+
+const BACKEND_BASE_URL = 'http://192.168.1.70:3000'
+// const BACKEND_BASE_URL = 'http://172.25.140.84:3000/api/v1/'
+
+let socket: Socket | null = null;
+
+export function getSocket() {
+  if (!socket) {
+    socket = io(BACKEND_BASE_URL, {
+      transports: ["websocket"],
+      autoConnect: true,
+      withCredentials: true,
+    });
+    socket.connect();
+  }
+
+  socket.onAny((event, ...args) => {
+    console.log("SOCKET EVENT", event, args);
+  });
+
+  return socket;
+}
+
+
+
+=== services/api.ts ===
+const BACKEND_BASE_URL = 'http://192.168.1.70:3000/api/v1/'
+// const BACKEND_BASE_URL = 'http://172.25.140.84:3000/api/v1/'
+
+export const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
+  const isFormData = options.body instanceof FormData;
+
+  const res = await fetch(`${BACKEND_BASE_URL}${endpoint}`, {
+    ...options,
+    credentials: "include",
+    headers: {
+      ...(!isFormData && { "Content-Type": "application/json" }),
+      ...options.headers,
+    },
+  });
+
+  if (!res.ok) {
+    let message = res.statusText;
+
+    try {
+      const text = await res.text();
+      if (text) message = text;
+    } catch { }
+
+    throw new Error(`HTTP ${res.status}: ${message}`);
+  }
+
+  return res;
+};
+
+
+
+
+=== services/themed-error.ts ===
+import { showMessage } from "react-native-flash-message";
+import { colors } from "@/constants/colors";
+
+export function showThemedError(message: string, themeColors: typeof colors.light) {
+  showMessage({
+    message: "Error",
+    description: message,
+    type: "default",
+    backgroundColor: themeColors.bgPrimary,
+    color: themeColors.textPrimary,
+    icon: "warning",
+    duration: 4000,
+  });
+}
+
+
+
+
+=== services/media-picker.ts ===
+import { launchCameraAsync, launchImageLibraryAsync } from "expo-image-picker";
+
+export type MediaPreview = { uri: string; type: "image" | "video" | "audio" };
+
+export async function pickPhoto(): Promise<MediaPreview | null> {
+  const result = await launchImageLibraryAsync({
+    mediaTypes: ["images", "videos"],
+    quality: 0.7,
+  });
+
+  if (!result.canceled && (result.assets[0].type === "image" || result.assets[0].type === "video")) {
+    return { uri: result.assets[0].uri, type: result.assets[0].type };
+  }
+  return null;
+}
+
+export async function launchCamera(): Promise<MediaPreview | null> {
+  const result = await launchCameraAsync({
+    mediaTypes: ["images"],
+    quality: 0.7,
+  });
+
+  if (!result.canceled && result.assets[0].type === "image") {
+    return { uri: result.assets[0].uri, type: "image" };
+  }
+  return null;
+}
+
+
+

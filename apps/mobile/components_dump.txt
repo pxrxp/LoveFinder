@@ -1,0 +1,1306 @@
+=== components/FullScreenVideo.tsx ===
+import React, { useEffect } from "react";
+import { View, TouchableOpacity, StatusBar } from "react-native";
+import { Portal } from "@gorhom/portal";
+import * as ScreenOrientation from "expo-screen-orientation";
+import * as NavigationBar from "expo-navigation-bar";
+import { MaterialIcons } from "@expo/vector-icons";
+import { VideoPlayer, VideoView } from "expo-video";
+import { VideoThumbnailsResult } from "expo-video-thumbnails";
+
+export default function FullScreenVideo({
+  player,
+  visible,
+  onClose,
+  videoThumbnail,
+}: {
+  player: VideoPlayer;
+  visible: boolean;
+  onClose: () => void;
+  videoThumbnail: VideoThumbnailsResult | null;
+}) {
+  useEffect(() => {
+    if (!visible || !player) return;
+
+    const lockOrientation = async () => {
+      if (videoThumbnail && videoThumbnail?.width > videoThumbnail?.height) {
+        await ScreenOrientation.lockAsync(
+          ScreenOrientation.OrientationLock.LANDSCAPE,
+        );
+      } else {
+        await ScreenOrientation.lockAsync(
+          ScreenOrientation.OrientationLock.PORTRAIT,
+        );
+      }
+    };
+
+    lockOrientation();
+    StatusBar.setHidden(true, "fade");
+    NavigationBar.setVisibilityAsync("hidden");
+    NavigationBar.setBehaviorAsync("overlay-swipe");
+
+    return () => {
+      StatusBar.setHidden(false, "fade");
+      NavigationBar.setVisibilityAsync("visible");
+      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.DEFAULT);
+    };
+  }, [visible, player]);
+
+  if (!visible) return null;
+
+  return (
+    <Portal>
+      <View
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          backgroundColor: "black",
+        }}
+      >
+        <VideoView
+          style={{ width: "100%", height: "100%" }}
+          player={player}
+          allowsFullscreen={false}
+        />
+
+        <TouchableOpacity
+          onPress={onClose}
+          style={{
+            position: "absolute",
+            top: 10,
+            right: 10,
+            backgroundColor: "rgba(0,0,0,0.4)",
+            padding: 8,
+            borderRadius: 999,
+            opacity: 0.5
+          }}
+        >
+          <MaterialIcons name="close" size={30} color="white" />
+        </TouchableOpacity>
+      </View>
+    </Portal>
+  );
+}
+
+
+
+=== components/ErrorScreen.tsx ===
+import { View, Text } from "react-native";
+import FontAwesome from '@expo/vector-icons/FontAwesome';
+
+export default function ErrorScreen({error} : {error: string | null}) {
+  return (
+    <View className="bg-bgPrimaryLight dark:bg-bgPrimaryDark flex-1 justify-center items-center">
+      <FontAwesome name="warning" size={48} color="red" className="my-5" />
+      <Text className="text-l font-regular text-textPrimaryLight dark:text-textPrimaryDark">{error ?? ""}</Text>
+    </View>
+  )
+}
+
+
+
+
+=== components/ModalMenu.tsx ===
+import { JSX, useEffect, useState } from "react";
+import { Modal, Pressable, Text, View } from "react-native";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  Easing,
+} from "react-native-reanimated";
+import { scheduleOnRN } from "react-native-worklets";
+
+export interface MenuAction {
+  label: string;
+  icon?: JSX.Element;
+  color?: string;
+  onPress: () => void;
+}
+
+interface ModalMenuProps {
+  visible: boolean;
+  onDismiss: () => void;
+  actions: MenuAction[];
+  width?: number;
+}
+
+export default function ModalMenu({
+  visible,
+  onDismiss,
+  actions,
+}: ModalMenuProps) {
+  const [rendered, setRendered] = useState(visible);
+
+  const scale = useSharedValue(0.85);
+  const opacity = useSharedValue(0);
+
+  useEffect(() => {
+    if (visible) {
+      setRendered(true);
+
+      scale.value = 0.85;
+      opacity.value = 0;
+
+      scale.value = withTiming(1, {
+        duration: 220,
+        easing: Easing.out(Easing.cubic),
+      });
+
+      opacity.value = withTiming(1, {
+        duration: 180,
+        easing: Easing.out(Easing.cubic),
+      });
+    } else {
+      scale.value = withTiming(
+        0.85,
+        {
+          duration: 180,
+          easing: Easing.in(Easing.cubic),
+        },
+        (finished) => {
+          if (finished) {
+            scheduleOnRN(setRendered, false);
+          }
+        },
+      );
+
+      opacity.value = withTiming(0, {
+        duration: 160,
+        easing: Easing.in(Easing.cubic),
+      });
+    }
+  }, [visible]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+    opacity: opacity.value,
+  }));
+
+  if (!rendered) return null;
+
+  return (
+    <Modal transparent visible animationType="none" >
+      <Pressable
+        onPress={onDismiss}
+        className="flex-1 justify-center items-center bg-black/30"
+      >
+        <Animated.View
+          style={[animatedStyle]}
+          className="bg-bgPrimaryLight dark:bg-bgPrimaryDark rounded-2xl py-2 shadow-lg"
+        >
+          <Pressable onPress={(e) => e.stopPropagation()}>
+            {actions.map((action, index) => (
+              <View key={index}>
+                <Pressable
+                  onPress={() => {
+                    action.onPress();
+                    onDismiss();
+                  }}
+                  className="flex-row px-4 py-3.5 active:opacity-60"
+                >
+                  {action.icon && <View className="mr-3 w-6 items-center">{action.icon}</View>}
+
+                  <Text
+                    className="text-base font-semiBold px-7 text-textPrimaryLight dark:text-textPrimaryDark"
+                    style={action.color ? { color: action.color } : undefined}
+                  >
+                    {action.label}
+                  </Text>
+                </Pressable>
+
+                {index < actions.length - 1 && (
+                  <View className="h-[0.5px] mx-3 bg-black/10 dark:bg-white/10" />
+                )}
+              </View>
+            ))}
+          </Pressable>
+        </Animated.View>
+      </Pressable>
+    </Modal>
+  );
+}
+
+
+
+=== components/ChatMediaPreview.tsx ===
+import {
+  View,
+  TouchableOpacity,
+  Image,
+  ImageBackground,
+  Text,
+} from "react-native";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
+import AudioRecorder from "./AudioRecorder";
+import { useImageViewerContext } from "@/contexts/ImageViewerContext";
+import { useVideoPlayerContext } from "@/contexts/VideoPlayerContext";
+import { useAudioRecorderContext } from "@/contexts/AudioRecorderContext";
+
+export type MediaPreview = {
+  uri: string;
+  type: "image" | "video" | "audio";
+};
+
+type Props = {
+  mediaPreview: MediaPreview | null;
+  setMediaPreview: (media: MediaPreview | null) => void;
+};
+
+export default function ChatMediaPreview({
+  mediaPreview,
+  setMediaPreview,
+}: Props) {
+  const { openImageViewer } = useImageViewerContext();
+  const { thumbnail, openVideoPlayer } = useVideoPlayerContext();
+  const {
+    audioModuleVisible,
+    audioRecordComplete,
+    audioUri,
+    openAudioModule,
+    closeAudioModule,
+    onAudioRecordComplete,
+  } = useAudioRecorderContext();
+
+  if (!mediaPreview) return null;
+
+  return (
+    <View className="mx-5 my-2 relative">
+      {mediaPreview.type === "image" && (
+        <TouchableOpacity
+          activeOpacity={0.9}
+          onPress={() => openImageViewer(mediaPreview.uri)}
+        >
+          <Image
+            source={{ uri: mediaPreview.uri }}
+            style={{ width: 96, height: 96, borderRadius: 8 }}
+          />
+        </TouchableOpacity>
+      )}
+
+      {mediaPreview.type === "audio" && (
+        <TouchableOpacity
+          onPress={openAudioModule}
+          className="p-2 bg-gray-700 rounded-md"
+        >
+          <Text className="text-white">Play Audio</Text>
+        </TouchableOpacity>
+      )}
+
+      {mediaPreview.type === "video" && (
+        <TouchableOpacity
+          activeOpacity={0.9}
+          onPress={() => openVideoPlayer(mediaPreview.uri)}
+        >
+          <ImageBackground
+            source={{ uri: thumbnail?.uri }}
+            style={{
+              width: 96,
+              height: 96,
+              borderRadius: 8,
+              alignItems: "center",
+              justifyContent: "center",
+              overflow: "hidden",
+            }}
+          >
+            <FontAwesome5
+              name="play-circle"
+              size={42}
+              color="black"
+              className="opacity-70"
+            />
+          </ImageBackground>
+        </TouchableOpacity>
+      )}
+
+      <TouchableOpacity
+        onPress={() => {
+          setMediaPreview(null);
+          closeAudioModule();
+        }}
+        className="absolute -top-1 -left-1 bg-black/40 p-1 rounded-full m-2"
+      >
+        <MaterialIcons name="close" size={20} color="white" />
+      </TouchableOpacity>
+
+      {audioModuleVisible && !audioRecordComplete && (
+        <AudioRecorder onRecordComplete={onAudioRecordComplete} />
+      )}
+
+      {audioModuleVisible && audioRecordComplete && <Text>{audioUri}</Text>}
+    </View>
+  );
+}
+
+
+
+=== components/ProfilePicture.tsx ===
+import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
+import { Image } from "expo-image";
+
+export default function ProfilePicture({
+  url,
+  size,
+  color = "black"
+}: {
+  url: string | null | undefined;
+  size: number;
+  color?: string
+}) {
+  if (url) {
+    return (
+      <Image
+        source={{ uri: url }}
+        style={{ width: size, height: size, borderRadius: size / 2 }}
+      />
+    );
+  } else {
+    return <FontAwesome5 name="user-circle" size={size} color={color} />;
+  }
+}
+
+
+
+=== components/LoadingScreen.tsx ===
+import { ActivityIndicator, View } from "react-native";
+
+export default function LoadingScreen() {
+  return (
+    <View className="bg-bgPrimaryLight dark:bg-bgPrimaryDark flex-1 justify-center items-center">
+      <ActivityIndicator color="gray" size="large"/>
+    </View>
+  )
+}
+
+
+
+
+=== components/Card.tsx ===
+import { View, Text, StyleSheet } from "react-native";
+import { ImageBackground } from "expo-image";
+import Animated from "react-native-reanimated";
+import { LinearGradient } from "expo-linear-gradient";
+import MaskedView from "@react-native-masked-view/masked-view";
+import AntDesign from "@expo/vector-icons/AntDesign";
+import Entypo from "@expo/vector-icons/Entypo";
+import { FeedUser } from "@/types/FeedUser";
+import { useTheme } from "@/contexts/ThemeContext";
+
+interface CardProps {
+  style: any;
+  showHeartStyle: any;
+  showCrossStyle: any;
+  item: FeedUser;
+  isTop: boolean;
+}
+
+export default function Card({
+  style,
+  showHeartStyle,
+  showCrossStyle,
+  item,
+  isTop,
+}: CardProps) {
+  const { themeColors } = useTheme();
+
+  return (
+    <Animated.View
+      style={[
+        { position: "absolute", inset: 0 },
+        isTop ? style : { zIndex: -1 },
+      ]}
+    >
+      <ImageBackground
+        source={{ uri: item.image_url }}
+        style={{
+          backgroundColor: themeColors.chatBg,
+          flex: 1,
+          justifyContent: "flex-end",
+          padding: 20,
+          borderRadius: 24,
+          overflow: "hidden",
+        }}
+      >
+        {isTop && (
+          <>
+            <Animated.View
+              style={[
+                { position: "absolute", top: 30, left: 30 },
+                showHeartStyle,
+              ]}
+            >
+              <MaskedView
+                style={{ transform: [{ rotateZ: "-20deg" }] }}
+                maskElement={
+                  <AntDesign name="heart" size={100} color="white" />
+                }
+              >
+                <LinearGradient
+                  colors={["#2EB62C", "#C5E8B7"]}
+                  start={{ x: 1, y: 0 }}
+                  end={{ x: 0, y: 1 }}
+                  style={{ width: 100, height: 100 }}
+                />
+              </MaskedView>
+            </Animated.View>
+
+            <Animated.View
+              style={[
+                { position: "absolute", top: 25, right: 30 },
+                showCrossStyle,
+              ]}
+            >
+              <MaskedView
+                style={{ transform: [{ rotateZ: "20deg" }] }}
+                maskElement={<Entypo name="cross" size={125} color="white" />}
+              >
+                <LinearGradient
+                  colors={["#FD267D", "#FE6D58"]}
+                  start={{ x: 1, y: 0 }}
+                  end={{ x: 0, y: 1 }}
+                  style={{ width: 125, height: 125 }}
+                />
+              </MaskedView>
+            </Animated.View>
+          </>
+        )}
+
+        <LinearGradient
+          colors={["transparent", "rgba(0,0,0,0.7)"]}
+          style={{ ...StyleSheet.absoluteFillObject }}
+        />
+
+        <View className="flex-row">
+          <Text className="text-white text-3xl font-bold">
+            {item.full_name}{" "}
+          </Text>
+          <Text className="text-white text-3xl font-regular"> {item.age}</Text>
+        </View>
+        <Text className="text-white text-base font-regular">{item.bio}</Text>
+      </ImageBackground>
+    </Animated.View>
+  );
+}
+
+
+
+=== components/ChatHeader.tsx ===
+import { View, Text } from "react-native";
+import ProfilePicture from "./ProfilePicture";
+import DataLoader from "./DataLoader";
+import { User } from "@/types/chat";
+import { useTheme } from "@/contexts/ThemeContext";
+
+export default function ChatHeader({
+  fetchResult,
+}: {
+  fetchResult: any;
+}) {
+  const { themeColors } = useTheme();
+
+  return (
+    <DataLoader fetchResult={fetchResult}>
+      {(user: User) => (
+        <View className="flex-row items-center">
+          <ProfilePicture
+            url={user.profile_picture_url}
+            size={40}
+            color={themeColors.textPrimary}
+          />
+
+          <Text className="text-xl font-bold pt-2 pl-5 text-textPrimaryLight dark:text-textPrimaryDark">
+            {user.full_name}
+          </Text>
+        </View>
+      )}
+    </DataLoader>
+  );
+}
+
+
+
+=== components/DataLoader.tsx ===
+import React, { useState, useCallback, ReactNode } from "react";
+import LoadingScreen from "@/components/LoadingScreen";
+import ErrorScreen from "@/components/ErrorScreen";
+
+type DataLoaderProps<T> = {
+  fetchResult: {
+    data: T | null;
+    loading: boolean;
+    error: string | null;
+    refetch: () => Promise<void>;
+  };
+  pullToRefresh?: boolean;
+  displayLoadingScreen?: boolean;
+  displayErrorScreen?: boolean;
+  children: (
+    data: T,
+    refreshing?: boolean,
+    onRefresh?: () => void,
+  ) => ReactNode;
+};
+
+export default function DataLoader<T>({
+  fetchResult,
+  children,
+  pullToRefresh = false,
+  displayLoadingScreen = true,
+  displayErrorScreen = true
+}: DataLoaderProps<T>) {
+  const { data, loading, error, refetch } = fetchResult;
+
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await refetch();
+    setRefreshing(false);
+  }, [refetch]);
+
+  if (displayLoadingScreen && loading) return <LoadingScreen />;
+  if (displayErrorScreen && error) return <ErrorScreen error={error} />;
+  if (!data) return null;
+
+  return children(
+    data,
+    pullToRefresh ? refreshing : undefined,
+    pullToRefresh ? onRefresh : undefined,
+  );
+}
+
+
+
+=== components/MaterialTopTabs.tsx ===
+import {
+  MaterialTopTabNavigationEventMap,
+  MaterialTopTabNavigationOptions,
+  createMaterialTopTabNavigator,
+} from "@react-navigation/material-top-tabs";
+import { withLayoutContext } from "expo-router";
+import { ParamListBase, TabNavigationState } from "@react-navigation/native";
+
+const { Navigator } = createMaterialTopTabNavigator();
+
+export const MaterialTopTabs = withLayoutContext<
+  MaterialTopTabNavigationOptions,
+  typeof Navigator,
+  TabNavigationState<ParamListBase>,
+  MaterialTopTabNavigationEventMap
+>(Navigator);
+
+
+
+=== components/MessageItem.tsx ===
+import { View, Text, TouchableOpacity, GestureResponderEvent } from "react-native";
+import { Image } from "expo-image";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { useEffect, useState } from "react";
+import { Message, User } from "@/types/chat";
+import { useTheme } from "@/contexts/ThemeContext";
+import { colors } from "@/constants/colors";
+
+interface Props {
+  other_user: User | null;
+  item: Message;
+  openViewer: (image_uri: string) => void;
+  onPress: (event: GestureResponderEvent) => void;
+  onLongPress: (event: GestureResponderEvent) => void;
+}
+
+export default function MessageItem({
+  other_user,
+  item,
+  openViewer,
+  onPress,
+  onLongPress,
+}: Props) {
+  const isMine = item.sender_id !== other_user?.user_id;
+  const [failed, setFailed] = useState(false);
+
+  const { theme } = useTheme();
+
+  useEffect(() => setFailed(false), [item.message_id]);
+
+  return (
+    <View className={`my-2 px-1 ${isMine ? "self-end" : "self-start"}`}>
+      <TouchableOpacity onPress={onPress} onLongPress={onLongPress} activeOpacity={0.9}>
+        {item.message_type === "text" ? (
+          <View
+            className={`max-w-52 px-2 items-end flex-row-reverse rounded-2xl ${isMine ? "bg-accent shadow-md" : "bg-bgPrimaryDark dark:bg-bgPrimaryLight"}`}
+          >
+            {item.is_read && (
+              <Ionicons
+                name="checkmark-done-sharp"
+                size={18}
+                color={
+                  isMine
+                    ? "white"
+                    : theme === "dark"
+                      ? colors.light.textPrimary
+                      : colors.dark.textPrimary
+                }
+              />
+            )}
+            <Text
+              className={`px-2 py-2 text-base ${
+                isMine
+                  ? "text-white"
+                  : "text-textPrimaryDark dark:text-textPrimaryLight"
+              }`}
+            >
+              {item.message_content}
+            </Text>
+          </View>
+        ) : (
+          <View>
+            <TouchableOpacity
+              activeOpacity={0.9}
+              onPress={() => !failed && openViewer(item.message_content)}
+              onLongPress={onLongPress}
+            >
+              <Image
+                source={{ uri: item.message_content }}
+                style={{
+                  borderRadius: 12,
+                  width: failed ? 56 : 256,
+                  height: failed ? 56 : 256,
+                }}
+                className={`${failed ? "w-14 h-14" : "w-64 h-64"} rounded-xl`}
+                onError={() => setFailed(true)}
+              />
+              {failed && (
+                <MaterialIcons
+                  name="image-not-supported"
+                  size={50}
+                  color="gray"
+                  style={{ position: "absolute" }}
+                />
+              )}
+            </TouchableOpacity>
+          </View>
+        )}
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+
+
+=== components/ChatList.tsx ===
+import { FlatList, Text, View } from "react-native";
+import { Link } from "expo-router";
+import Entypo from "@expo/vector-icons/Entypo";
+import { useTheme } from "@/contexts/ThemeContext";
+import ProfilePicture from "@/components/ProfilePicture";
+import DataLoader from "@/components/DataLoader";
+import { AuthContext } from "@/contexts/AuthContext";
+import { useContext, useState } from "react";
+import { Conversation } from "@/types/Conversation";
+
+import Octicons from "@expo/vector-icons/Octicons";
+import ModalMenu from "./ModalMenu";
+
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+dayjs.extend(relativeTime);
+declare module "dayjs" {
+  interface Dayjs {
+    fromNow(date?: string): string;
+  }
+}
+
+interface ChatListProps {
+  conversations: Conversation[];
+  loading: boolean;
+  error?: any;
+  refetch: () => Promise<void>;
+}
+
+export default function ChatList({
+  conversations,
+  loading,
+  error,
+  refetch,
+}: ChatListProps) {
+  const { user } = useContext(AuthContext)!;
+  const { themeColors } = useTheme();
+
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<string | null>(null);
+
+  return (
+    <>
+      <DataLoader
+        fetchResult={{ data: conversations, loading, error, refetch }}
+        pullToRefresh
+      >
+        {(conversations, refreshing, onRefresh) => (
+          <FlatList
+            data={conversations}
+            keyExtractor={(item) => item.other_user_id}
+            onRefresh={onRefresh}
+            refreshing={refreshing ?? false}
+            ListEmptyComponent={
+              <View className="flex-row justify-center py-10">
+                <Entypo
+                  name="emoji-sad"
+                  size={64}
+                  color={themeColors.textPrimary}
+                />
+                <Text className="text-textPrimaryLight dark:text-textPrimaryDark font-bold text-2xl ml-5 mt-5">
+                  Nothing to see here!
+                </Text>
+              </View>
+            }
+            ListFooterComponent={<View className="w-full h-20" />}
+            renderItem={({ item, index }) => (
+              <>
+                <Link
+                  onLongPress={() => {
+                    setMenuVisible(true);
+                    setSelectedUser(item.other_user_id);
+                  }}
+                  href={`/chat/${item.other_user_id}`}
+                  className="my-5"
+                >
+                  <View className="flex-row items-center w-full">
+                    <ProfilePicture
+                      url={item.profile_picture_url}
+                      size={90}
+                      color={themeColors.textPrimary}
+                    />
+                    <View className="flex-1 pl-5 py-3">
+                      <Text
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                        className="text-textPrimaryLight dark:text-textPrimaryDark font-bold text-xl"
+                      >
+                        {item.full_name}
+                      </Text>
+
+                      <View className="flex-row items-center w-full">
+                        <Text className="text-gray-500 font-regular text-sm">
+                          {dayjs(item.last_message_sent_at).fromNow()}
+                        </Text>
+                        <View className="flex-1" />
+                        <Text className="text-textPrimaryDark font-light bg-gray-500 px-2 py-1 rounded-full">
+                          {item.last_message_sender_id === user?.user_id
+                            ? "Their turn"
+                            : "Your turn"}
+                        </Text>
+                      </View>
+
+                      <Text
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                        className={`text-gray-500 ${item.last_message_type === "text" ? "font-regular" : "font-italic"}`}
+                      >
+                        {item.last_message_type
+                          ? item.last_message_type === "text"
+                            ? item.last_message
+                            : "Sent an attachment."
+                          : "Start conversation"}
+                      </Text>
+
+                      {index !== conversations.length - 1 && (
+                        <View className="w-full h-[1.5px] bg-gray-500 relative top-3 rounded-full" />
+                      )}
+                    </View>
+                  </View>
+                </Link>
+              </>
+            )}
+          />
+        )}
+      </DataLoader>
+      <ModalMenu
+        visible={menuVisible}
+        onDismiss={() => setMenuVisible(false)}
+        actions={[
+          {
+            label: "Unswipe",
+            icon: (
+              <Octicons name="undo" size={20} color={themeColors.textPrimary} />
+            ),
+            onPress: () => console.log("Unswipe"),
+          },
+          {
+            label: "Report",
+            icon: (
+              <Octicons
+                name="report"
+                size={20}
+                color={themeColors.textPrimary}
+              />
+            ),
+            onPress: () => console.log("Report"),
+          },
+          {
+            label: "Block",
+            color: "red",
+            icon: <Octicons name="blocked" size={20} color="red" />,
+            onPress: () => console.log("Block"),
+          },
+        ]}
+      />
+    </>
+  );
+}
+
+
+
+=== components/ChatInputBar.tsx ===
+import { View, TextInput, TouchableOpacity } from "react-native";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { useTheme } from "@/contexts/ThemeContext";
+
+type Props = {
+  messageToSend: string;
+  setMessageToSend: (val: string) => void;
+  handleSend: () => void;
+  messagable?: boolean;
+  openMediaMenu: () => void;
+  mediaPreview?: { uri: string; type: "image" | "audio" | "video" } | null;
+};
+
+export default function ChatInputBar({
+  messageToSend,
+  setMessageToSend,
+  handleSend,
+  messagable = true,
+  openMediaMenu,
+  mediaPreview,
+}: Props) {
+  const { themeColors } = useTheme();
+
+  return (
+    <View className="flex-row w-11/12 self-center mt-3 overflow-hidden rounded-3xl border-2 border-gray-500 bg-chatBgDark">
+      <TouchableOpacity onPress={openMediaMenu} className="p-2">
+        <Ionicons
+          name="add-circle-outline"
+          size={26}
+          color={themeColors.textPrimary}
+        />
+      </TouchableOpacity>
+
+      <TextInput
+        className="flex-1 text-white pr-4"
+        placeholder={messagable ? "Type a message" : "You can't message this user"}
+        placeholderTextColor="white"
+        editable={messagable}
+        value={messageToSend}
+        onChangeText={setMessageToSend}
+        multiline
+      />
+
+      {(messageToSend.trim() || mediaPreview) && (
+        <TouchableOpacity
+          onPress={handleSend}
+          className="bg-accent py-3 px-4 rounded-l-full"
+        >
+          <MaterialIcons name="send" size={20} color="white" />
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+}
+
+
+
+=== components/ChatMessagesList.tsx ===
+import { FlatList, View, Pressable, Text } from "react-native";
+import { Message, User } from "@/types/chat";
+import MessageItem from "./MessageItem";
+import { formatFriendlyDate } from "@/services/date";
+
+type Props = {
+  messages: Message[];
+  otherUser: User | null;
+  pressedMessage: string | null;
+  setPressedMessage: React.Dispatch<React.SetStateAction<string | null>>;
+  setSelectedMessage: React.Dispatch<React.SetStateAction<string | null>>;
+  openDeleteMenu: () => void;
+  openViewer: (uri: string) => void;
+  refreshing?: boolean;
+  onRefresh?: () => void;
+};
+
+export default function ChatMessagesList({
+  messages,
+  otherUser,
+  pressedMessage,
+  setPressedMessage,
+  setSelectedMessage,
+  openDeleteMenu,
+  openViewer,
+  refreshing = false,
+  onRefresh,
+}: Props) {
+  return (
+    <FlatList
+      data={messages}
+      inverted
+      keyExtractor={(item) => item.message_id}
+      className="px-4"
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+      ListFooterComponent={<View className="h-12 w-full" />}
+      renderItem={({ item }) => (
+        <>
+          {pressedMessage === item.message_id && (
+            <Text
+              className={`text-sm font-light pb-5 ${
+                item.sender_id === otherUser?.user_id
+                  ? "text-left pl-3 text-gray-200"
+                  : "text-right pr-3 text-gray-200"
+              }`}
+            >
+              Sent at {formatFriendlyDate(item.sent_at)}
+            </Text>
+          )}
+          <MessageItem
+            other_user={otherUser}
+            item={item}
+            openViewer={openViewer}
+            onPress={(e) => {
+              e.stopPropagation();
+              setPressedMessage((prev) =>
+                prev === item.message_id ? null : item.message_id
+              );
+            }}
+            onLongPress={() => {
+              if (item.sender_id !== otherUser?.user_id) {
+                openDeleteMenu();
+                setSelectedMessage(item.message_id);
+              }
+            }}
+          />
+        </>
+      )}
+    />
+  );
+}
+
+
+
+
+=== components/AudioPreview.tsx ===
+import { Audio } from 'expo-av';
+import { useEffect, useState } from 'react';
+import { Pressable } from 'react-native';
+
+const AudioPreview = ({ uri }: { uri: string }) => {
+  const [sound, setSound] = useState<Audio.Sound | null>(null);
+  const [playing, setPlaying] = useState(false);
+
+  const togglePlay = async () => {
+    if (!sound) return;
+    if (playing) {
+      await sound.pauseAsync();
+      setPlaying(false);
+    } else {
+      await sound.playAsync();
+      setPlaying(true);
+    }
+  };
+
+  useEffect(() => {
+    const load = async () => {
+      const { sound } = await Audio.Sound.createAsync({ uri });
+      setSound(sound);
+    };
+    load();
+    return () => { sound?.unloadAsync(); };
+  }, [uri]);
+
+  return <Pressable onPress={togglePlay}>{playing ? 'Pause' : 'Play'}</Pressable>;
+};
+
+
+
+
+=== components/modals/MediaMenuModal.tsx ===
+import React from "react";
+import ModalMenu from "@/components/ModalMenu";
+import Entypo from "@expo/vector-icons/Entypo";
+import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
+import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
+import { useTheme } from "@/contexts/ThemeContext";
+
+type Props = {
+  visible: boolean;
+  onDismiss: () => void;
+  launchCamera: () => void;
+  pickPhoto: () => void;
+  openAudioRecorder: () => void;
+};
+
+export default function MediaMenuModal({ visible, onDismiss, launchCamera, pickPhoto, openAudioRecorder }: Props) {
+  const { themeColors } = useTheme();
+
+  return (
+    <ModalMenu
+      visible={visible}
+      onDismiss={onDismiss}
+      actions={[
+        {
+          label: "Take photo",
+          icon: <Entypo name="camera" size={20} color={themeColors.textPrimary} />,
+          onPress: launchCamera,
+        },
+        {
+          label: "Choose a photo/video",
+          icon: <FontAwesome6 name="photo-film" size={17} color={themeColors.textPrimary} />,
+          onPress: pickPhoto,
+        },
+        {
+          label: "Record audio",
+          icon: <FontAwesome5 name="microphone" size={22} color={themeColors.textPrimary} />,
+          onPress: openAudioRecorder,
+        },
+      ]}
+    />
+  );
+}
+
+
+
+=== components/modals/DeleteMenuModal.tsx ===
+import React from "react";
+import ModalMenu from "@/components/ModalMenu";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+
+type Props = {
+  visible: boolean;
+  onDismiss: () => void;
+  onDelete: () => void;
+};
+
+export default function DeleteMenuModal({ visible, onDismiss, onDelete }: Props) {
+  return (
+    <ModalMenu
+      visible={visible}
+      onDismiss={onDismiss}
+      actions={[
+        {
+          label: "Delete",
+          color: "red",
+          icon: <MaterialCommunityIcons name="delete-outline" size={24} color="red" />,
+          onPress: onDelete,
+        },
+      ]}
+    />
+  );
+}
+
+
+
+=== components/AudioWaveform.tsx ===
+import { useTheme } from "@/contexts/ThemeContext";
+import { View, LayoutChangeEvent } from "react-native";
+import Svg, { Rect } from "react-native-svg";
+import { useState, useMemo } from "react";
+
+export default function AudioWaveform({
+  levels,
+  className,
+  targetBars = 30,
+  min_db = -60,
+  max_db = 0,
+}: {
+  levels: number[];
+  className: string;
+  targetBars?: number;
+  min_db?: number;
+  max_db?: number;
+}) {
+  const { themeColors } = useTheme();
+
+  const [size, setSize] = useState({ width: 0, height: 0 });
+
+  const onLayout = (e: LayoutChangeEvent) => {
+    const { width, height } = e.nativeEvent.layout;
+    setSize({ width, height });
+  };
+
+  const bars = useMemo(() => {
+    if (size.width === 0 || size.height === 0) return [];
+
+    const barWidth = (size.width / targetBars) * 0.6;
+    const spacing = (size.width / targetBars) * 0.4;
+
+    const maxBars = Math.floor(size.width / (barWidth + spacing));
+    const visibleLevels = levels.slice(-maxBars);
+
+    const halfHeight = size.height / 2;
+
+    return visibleLevels.map((level, index) => {
+      const clamped = Math.max(min_db, Math.min(level, max_db));
+      const normalized = (clamped - min_db) / (max_db - min_db);
+
+      const barHeight = Math.max(2, normalized * size.height);
+
+      const x = index * (barWidth + spacing);
+      const y = halfHeight - barHeight / 2;
+
+      return (
+        <Rect
+          key={index}
+          x={x}
+          y={y}
+          width={barWidth}
+          height={barHeight}
+          fill={themeColors.textPrimary}
+          rx={barWidth / 2}
+        />
+      );
+    });
+  }, [levels, size, themeColors]);
+
+  return (
+    <View className={`${className} flex-row`} onLayout={onLayout}>
+      <Svg width="100%" height="100%">
+        {bars}
+      </Svg>
+    </View>
+  );
+}
+
+
+
+=== components/AudioRecorder.tsx ===
+import { useTheme } from "@/contexts/ThemeContext";
+import { showThemedError } from "@/services/themed-error";
+import { Text, TouchableOpacity, View } from "react-native";
+import {
+  useAudioRecorder,
+  useAudioRecorderState,
+  RecordingPresets,
+  setAudioModeAsync,
+  getRecordingPermissionsAsync,
+  requestRecordingPermissionsAsync,
+} from "expo-audio";
+
+import Fontisto from "@expo/vector-icons/Fontisto";
+import { useEffect, useState } from "react";
+
+import dayjs from "dayjs";
+import duration from "dayjs/plugin/duration";
+import AudioWaveform from "./AudioWaveform";
+dayjs.extend(duration);
+
+export default function AudioRecorder({
+  onRecordComplete,
+}: {
+  onRecordComplete: (uri: string | null) => void;
+}) {
+  const { themeColors } = useTheme();
+
+  const audioRecorder = useAudioRecorder({
+    ...RecordingPresets.LOW_QUALITY,
+    isMeteringEnabled: true,
+  });
+
+  const recorderState = useAudioRecorderState(audioRecorder);
+
+  const [levels, setLevels] = useState<number[]>([]);
+
+  const record = async () => {
+    audioRecorder.record();
+  };
+
+  const pauseRecording = () => {
+    audioRecorder.pause();
+  };
+
+  const stopRecording = async () => {
+    await audioRecorder.stop();
+    onRecordComplete(audioRecorder.uri);
+  };
+
+  useEffect(() => {
+    (async () => {
+      let { granted } = await getRecordingPermissionsAsync();
+      if (!granted) {
+        const result = await requestRecordingPermissionsAsync();
+        granted = result.granted;
+      }
+      if (!granted) {
+        showThemedError("Microphone permission denied", themeColors);
+        return;
+      }
+      await setAudioModeAsync({
+        playsInSilentMode: true,
+        allowsRecording: true,
+      });
+      await audioRecorder.prepareToRecordAsync();
+    })();
+  }, []);
+
+  useEffect(() => {
+    if (!recorderState.isRecording) return;
+
+    const interval = setInterval(() => {
+      if (recorderState.metering != null) {
+        setLevels((prev) => {
+          const next = [...prev, recorderState.metering!];
+          return next.slice(-100);
+        });
+      }
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, [recorderState.isRecording, recorderState.metering]);
+
+  return (
+    <View className="flex-row items-center justify-center">
+      {!recorderState.isRecording && (
+        <TouchableOpacity
+          activeOpacity={recorderState.canRecord ? 0.2 : 1}
+          onPress={() => recorderState.canRecord && record()}
+        >
+          <Fontisto
+            name="record"
+            size={24}
+            color={recorderState.canRecord ? "red" : "gray"}
+          />
+        </TouchableOpacity>
+      )}
+
+      {recorderState.isRecording && (
+        <View className="flex-row gap-x-6">
+          <TouchableOpacity
+            onPress={() => {
+              pauseRecording();
+            }}
+          >
+            <Fontisto name="pause" size={24} color={themeColors.textPrimary} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => {
+              stopRecording();
+            }}
+          >
+            <Fontisto name="stop" size={24} color={themeColors.textPrimary} />
+          </TouchableOpacity>
+        </View>
+      )}
+
+      <Text className="text-white px-6">
+        {dayjs.duration(recorderState?.durationMillis).format("HH:mm:ss")}
+      </Text>
+      <AudioWaveform levels={levels} className="w-1/3 h-12" />
+    </View>
+  );
+}
+
+
+
