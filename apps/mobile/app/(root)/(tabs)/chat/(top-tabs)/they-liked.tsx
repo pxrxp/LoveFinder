@@ -9,6 +9,7 @@ export default function YouLikedScreen() {
     <SafeAreaView className="flex-1 px-7 bg-bgPrimaryLight dark:bg-bgPrimaryDark" edges={["bottom"]}>
       <ChatList
         conversations={conversations?.filter(c => c.swipe_category === "they") ?? []}
+        unswipeVisible={false}
         loading={loading}
         refetch={refetch}
       />

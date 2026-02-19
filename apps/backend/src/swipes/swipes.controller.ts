@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post } from '@nestjs/common';
+import { Controller, Delete, Get, Param, ParseUUIDPipe, Post } from '@nestjs/common';
 import { SwipesService } from './swipes.service';
 import { GetUser } from '../auth/decorators/get-user.decorator';
 import { UserDto } from '../users/dto/user.dto';

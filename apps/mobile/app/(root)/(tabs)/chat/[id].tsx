@@ -63,7 +63,7 @@ export default function OtherUserScreen() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [messageToSend, setMessageToSend] = useState("");
   const [pressedMessage, setPressedMessage] = useState<string | null>(null);
-  const [selectedMessage, setSelectedMessage] = useState<string | null>(null);
+  const [longPressedMessage, setLongPressedMessage] = useState<string | null>(null);
 
   const [mediaMenuVisible, setMediaMenuVisible] = useState(false);
   const [deleteMenuVisible, setDeleteMenuVisible] = useState(false);
@@ -134,10 +134,10 @@ export default function OtherUserScreen() {
   };
 
   const handleDelete = () => {
-    if (selectedMessage) {
+    if (longPressedMessage) {
       socket.emit("delete_message", {
         other_user_id: id,
-        message_id: selectedMessage,
+        message_id: longPressedMessage,
       });
       setDeleteMenuVisible(false);
     }
@@ -211,7 +211,7 @@ export default function OtherUserScreen() {
                         otherUser={otherUser}
                         pressedMessage={pressedMessage}
                         setPressedMessage={setPressedMessage}
-                        setSelectedMessage={setSelectedMessage}
+                        setSelectedMessage={setLongPressedMessage}
                         openDeleteMenu={() => setDeleteMenuVisible(true)}
                         openViewer={openImageViewer}
                         refreshing={refreshing}
