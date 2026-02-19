@@ -14,7 +14,6 @@ import { useFetch } from "@/hooks/useFetch";
 import { FeedUser } from "@/types/FeedUser";
 import Card from "@/components/Card";
 import DataLoader from "@/components/DataLoader";
-import { apiFetch } from "@/services/api";
 import { scheduleOnRN } from "react-native-worklets";
 import { showThemedError } from "@/services/themed-error";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -33,6 +32,7 @@ export default function HomeScreen() {
   const status = useSharedValue<SwipeStatus>("pending");
 
   const [cards, setCards] = useState<FeedUser[]>([]);
+  const [bioExpanded, setBioExpanded] = useState(false);
   useEffect(() => {
     if (data) setCards([...data].reverse());
   }, [data]);
@@ -68,9 +68,10 @@ export default function HomeScreen() {
   };
 
   const gesture = Gesture.Pan()
+    .enabled(!bioExpanded)
     .onUpdate((event) => {
       x.value = event.translationX;
-      y.value = event.translationY;
+      y.value = event.translationY * 0.1;
       const swipePercent = Math.abs(x.value) / SCREEN_WIDTH;
       status.value =
         swipePercent >= 0.1 ? (x.value > 0 ? "like" : "dislike") : "pending";
@@ -105,7 +106,7 @@ export default function HomeScreen() {
 
   const style = useAnimatedStyle(() => ({
     transform: [
-      { translateX: 1.5 * x.value },
+      { translateX: x.value },
       { translateY: 2 * y.value },
       { rotateZ: `${-0.17 * x.value}deg` },
     ],
@@ -141,6 +142,8 @@ export default function HomeScreen() {
                       showCrossStyle={showCrossStyle}
                       item={item}
                       isTop={isTop}
+                      bioExpanded={bioExpanded}
+                      setBioExpanded={setBioExpanded}
                     />
                   </GestureDetector>
                 );

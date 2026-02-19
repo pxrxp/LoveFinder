@@ -78,7 +78,6 @@ export const VideoPlayerProvider = ({ children }: { children: ReactNode }) => {
       <FullScreenVideo
         player={player}
         visible={visible}
-        loading={loading}
         setLoading={setLoading}
         videoThumbnail={thumbnail!}
         onClose={closeVideoPlayer}

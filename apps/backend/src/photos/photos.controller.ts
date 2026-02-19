@@ -1,8 +1,7 @@
-import { BadRequestException, Body, Controller, Delete, Get, Param, ParseBoolPipe, Post, Query, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, Param, ParseBoolPipe, ParseUUIDPipe, Post, Query, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { PhotosService } from './photos.service';
 import { UserDto } from '../users/dto/user.dto';
 import { GetUser } from '../auth/decorators/get-user.decorator';
-import { CreatePhotoDto } from './dto/create-photo.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { randomUUID } from 'crypto';
@@ -56,6 +55,11 @@ export class PhotosController {
   @Get('me')
   findMyPhotos(@GetUser() user: UserDto) {
     return this.photosService.findByUser(user.user_id);
+  }
+
+  @Get(':user_id')
+  findUserPhotos(@Param('user_id', ParseUUIDPipe) user_id: string) {
+    return this.photosService.findByUser(user_id);
   }
 
   @Delete(':photo_id')

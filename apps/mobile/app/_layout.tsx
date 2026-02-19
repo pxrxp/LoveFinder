@@ -28,10 +28,10 @@ function ThemedRoot({ children }: { children: React.ReactNode }) {
   }, [bgColor]);
 
   return (
-    <GestureHandlerRootView>
+    <>
       <StatusBar style={theme === "light" ? "dark" : "light"} />
       {children}
-    </GestureHandlerRootView>
+    </>
   );
 }
 
@@ -68,20 +68,22 @@ export default function RootLayout() {
         <SettingsProvider>
           <MessageTrackerProvider>
             <ThemedRoot>
-              <ImageViewerProvider>
-                <PortalProvider>
-                  <VideoPlayerProvider>
-                    <AudioRecorderProvider>
-                      <Slot />
-                      <FlashMessage
-                        floating={true}
-                        style={{ paddingTop: 40 }}
-                        position="top"
-                      />
-                    </AudioRecorderProvider>
-                  </VideoPlayerProvider>
-                </PortalProvider>
-              </ImageViewerProvider>
+              <GestureHandlerRootView>
+                <ImageViewerProvider>
+                  <PortalProvider>
+                    <VideoPlayerProvider>
+                      <AudioRecorderProvider>
+                        <Slot />
+                        <FlashMessage
+                          floating={true}
+                          style={{ paddingTop: 40 }}
+                          position="top"
+                        />
+                      </AudioRecorderProvider>
+                    </VideoPlayerProvider>
+                  </PortalProvider>
+                </ImageViewerProvider>
+              </GestureHandlerRootView>
             </ThemedRoot>
           </MessageTrackerProvider>
         </SettingsProvider>

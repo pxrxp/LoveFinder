@@ -1,18 +1,42 @@
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import { ImageBackground } from "expo-image";
-import Animated from "react-native-reanimated";
+import { View, Text, TouchableOpacity } from "react-native";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSequence,
+  withSpring,
+  withTiming,
+  SlideInDown,
+  SlideOutDown,
+  useAnimatedScrollHandler,
+} from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
 import MaskedView from "@react-native-masked-view/masked-view";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { FeedUser } from "@/types/FeedUser";
 import { useTheme } from "@/contexts/ThemeContext";
-import { FontAwesome5 } from "@expo/vector-icons";
-import Entypo from "@expo/vector-icons/Entypo";
-import { useState } from "react";
+import {
+  FontAwesome5,
+  Entypo,
+  Ionicons,
+  MaterialIcons,
+} from "@expo/vector-icons";
+import { useEffect, useState } from "react";
+import { GestureDetector, Gesture } from "react-native-gesture-handler";
+import { Image } from "expo-image";
 import ReportModal from "./modals/ReportModal";
-import { ReportReason, reportUser } from "@/services/user-actions";
+import { reportUser } from "@/services/user-actions";
 import { showThemedError } from "@/services/themed-error";
 import { showThemedSuccess } from "@/services/themed-success";
+import { ImageCarousel } from "./ImageCarousel";
+import { scheduleOnRN } from "react-native-worklets";
+import { useFetch } from "@/hooks/useFetch";
+
+interface Photo {
+  photo_id: string;
+  uploader_id: string;
+  image_url: string;
+  is_primary: boolean;
+}
 
 interface CardProps {
   style: any;
@@ -20,6 +44,8 @@ interface CardProps {
   showCrossStyle: any;
   item: FeedUser;
   isTop: boolean;
+  bioExpanded: boolean;
+  setBioExpanded: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export default function Card({
@@ -28,67 +54,243 @@ export default function Card({
   showCrossStyle,
   item,
   isTop,
+  bioExpanded,
+  setBioExpanded,
 }: CardProps) {
   const { themeColors } = useTheme();
-
   const [reportMenuVisible, setReportMenuVisible] = useState(false);
-  const handleReportSubmit = (reason: ReportReason, details: string) => {
-    try {
-      reportUser(item.user_id, reason, details);
-      setReportMenuVisible(false);
-      showThemedSuccess("User has been reported to our team.", themeColors);
-    } catch (e: any) {
-      showThemedError(e, themeColors);
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const cleanUserId = item.user_id.replace("-copy", "");
+  const { data: userPhotos, error } = useFetch<Photo[]>(
+    `photos/${cleanUserId}`,
+  );
+  const [photos, setPhotos] = useState<string[]>([item.image_url]);
+  useEffect(() => {
+    if (userPhotos && userPhotos.length > 0) {
+      const photoUrls = userPhotos.map((p) => p.image_url);
+      setPhotos(photoUrls);
     }
+    if (error) {
+      showThemedError(`Failed to fetch photos\n${error}`, themeColors);
+    }
+  }, [userPhotos, error]);
+
+  const scrollY = useSharedValue(0);
+  const gestureStartY = useSharedValue(0);
+  const expandActivationY = useSharedValue(0);
+
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y;
+    },
+  });
+
+  // -- Animations --
+  const rotateY = useSharedValue(0);
+
+  const wobble = (direction: "left" | "right") => {
+    const deg = direction === "left" ? 10 : -10;
+    rotateY.value = withSequence(
+      withTiming(deg, { duration: 40 }),
+      withSpring(0, { damping: 40, stiffness: 1200 }),
+    );
   };
+
+  const verticalSwipe = Gesture.Pan()
+    .activeOffsetY([-15, 15])
+    .failOffsetX([-10, 10])
+    .onBegin((event) => {
+      gestureStartY.value = event.y;
+    })
+    .onEnd((event) => {
+      const swipeUp = event.translationY < -80;
+      const swipeDown = event.translationY > 80;
+
+      const startedInBottomArea =
+        gestureStartY.value >= expandActivationY.value;
+
+      // Expand only if swipe started in bottom panel
+      if (swipeUp && !bioExpanded && startedInBottomArea) {
+        scheduleOnRN(setBioExpanded, true);
+        return;
+      }
+
+      // Close only if scroll at top
+      if (swipeDown && bioExpanded && scrollY.value <= 0) {
+        scheduleOnRN(setBioExpanded, false);
+      }
+    });
+
+  const animatedWobble = useAnimatedStyle(() => ({
+    transform: [{ perspective: 1000 }, { rotateY: `${rotateY.value}deg` }],
+  }));
+
+  if (photos.length === 0) {
+    return null;
+  }
 
   return (
     <>
       <ReportModal
         visible={reportMenuVisible}
         onDismiss={() => setReportMenuVisible(false)}
-        onSubmit={handleReportSubmit}
+        onSubmit={(reason, details) => {
+          try {
+            reportUser(item.user_id, reason, details);
+            setReportMenuVisible(false);
+            showThemedSuccess("Reported", themeColors);
+          } catch (e: any) {
+            showThemedError(e, themeColors);
+          }
+        }}
       />
 
-      <Animated.View
-        style={[
-          { position: "absolute", inset: 0 },
-          isTop ? style : { zIndex: -1 },
-        ]}
-      >
-        <ImageBackground
-          source={{ uri: item.image_url }}
-          style={{
-            backgroundColor: themeColors.chatBg,
-            flex: 1,
-            justifyContent: "flex-end",
-            padding: 20,
-            borderRadius: 24,
-            overflow: "hidden",
-          }}
+      <GestureDetector gesture={verticalSwipe}>
+        <Animated.View
+          style={[
+            {
+              position: "absolute",
+              inset: 0,
+              borderRadius: 24,
+              overflow: "hidden",
+            },
+            isTop ? style : { zIndex: -1 },
+            animatedWobble,
+          ]}
         >
-          {isTop && (
+          <ImageCarousel
+            images={photos}
+            currentIndex={currentIndex}
+            onNext={() => {
+              setCurrentIndex((p) => Math.min(p + 1, photos.length - 1));
+              wobble("right");
+            }}
+            onPrev={() => {
+              setCurrentIndex((p) => Math.max(p - 1, 0));
+              wobble("left");
+            }}
+          />
+
+          {!bioExpanded && (
+            <View className="absolute top-4 w-full flex-row justify-center gap-3 px-4">
+              {photos.map((_, index) => (
+                <View
+                  key={index}
+                  style={{}}
+                  className={`h-1.5 flex-1 rounded-full overflow-hidden ${
+                    index === currentIndex ? "bg-white" : "bg-gray-500/80"
+                  }`}
+                />
+              ))}
+            </View>
+          )}
+
+          {!bioExpanded && (
+            <View
+              className="absolute inset-0 justify-end"
+              onLayout={(e) => {
+                expandActivationY.value = e.nativeEvent.layout.y;
+              }}
+              pointerEvents="box-none"
+            >
+              <LinearGradient
+                colors={["transparent", "rgba(0,0,0,0.85)"]}
+                className="absolute inset-0"
+                pointerEvents="none"
+              />
+              <View
+                className="py-8 px-5 flex-row items-end justify-between"
+                pointerEvents="box-none"
+              >
+                <View className="flex-1 mr-4" pointerEvents="none">
+                  <View className="flex-row items-baseline">
+                    <Text className="text-white text-3xl font-bold">
+                      {item.full_name}{"  "}
+                    </Text>
+                    <Text className="text-white text-2xl font-regular">
+                      {item.age}
+                    </Text>
+                  </View>
+                  <Text
+                    className="text-white text-base font-regular mt-1"
+                    numberOfLines={2}
+                  >
+                    {item.bio?.replace(/\\n/g, "\n")}
+                  </Text>
+                </View>
+
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  onPress={() => setBioExpanded(true)}
+                  className="bg-black/30 p-2.5 mb-3 rounded-full border border-white/10"
+                >
+                  <MaterialIcons
+                    name="keyboard-arrow-up"
+                    size={24}
+                    color="white"
+                  />
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
+          {bioExpanded && (
+            <Animated.View
+              entering={SlideInDown.duration(400)}
+              exiting={SlideOutDown.duration(300)}
+              className="absolute inset-0 z-[100] justify-center"
+            >
+              <Image
+                source={{ uri: photos[currentIndex] }}
+                blurRadius={60}
+                className="absolute inset-0"
+              />
+              <View className="absolute inset-0 bg-black/80" />
+
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => setBioExpanded(false)}
+                className="absolute top-10 right-4 z-[110] bg-black/30 p-2.5 rounded-full border border-white/10"
+              >
+                <Ionicons name="close" size={24} color="white" />
+              </TouchableOpacity>
+
+              <View className="px-8 flex-1 mt-20">
+                <Text className="text-white text-4xl font-bold mb-4">
+                  {item.full_name}, {item.age}
+                </Text>
+                <Animated.ScrollView
+                  onScroll={scrollHandler}
+                  scrollEventThrottle={16}
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={{ paddingBottom: 80 }}
+                >
+                  <Text className="text-white text-xl leading-8 font-regular">
+                    {item.bio?.replace(/\\n/g, "\n")}
+                  </Text>
+                  <View className="h-20" />
+                </Animated.ScrollView>
+              </View>
+            </Animated.View>
+          )}
+
+          {isTop && !bioExpanded && (
             <>
               <TouchableOpacity
                 activeOpacity={0.7}
                 onPress={() => setReportMenuVisible(true)}
-                style={{
-                  position: "absolute",
-                  top: 15,
-                  right: 10,
-                  zIndex: 50,
-                  backgroundColor: "rgba(0,0,0,0.2)",
-                  padding: 10,
-                  borderRadius: 999,
-                }}
+                className="absolute top-10 right-4 z-50 bg-black/30 p-2.5 rounded-full border border-white/10"
               >
-                <FontAwesome5 name="shield-alt" size={22} color="white" />
+                <FontAwesome5 name="shield-alt" size={20} color="white" />
               </TouchableOpacity>
+
               <Animated.View
                 style={[
-                  { position: "absolute", top: 30, left: 30 },
+                  { position: "absolute", top: 60, left: 30, zIndex: 40 },
                   showHeartStyle,
                 ]}
+                pointerEvents="none"
               >
                 <MaskedView
                   style={{ transform: [{ rotateZ: "-20deg" }] }}
@@ -98,8 +300,6 @@ export default function Card({
                 >
                   <LinearGradient
                     colors={["#2EB62C", "#C5E8B7"]}
-                    start={{ x: 1, y: 0 }}
-                    end={{ x: 0, y: 1 }}
                     style={{ width: 100, height: 100 }}
                   />
                 </MaskedView>
@@ -107,9 +307,10 @@ export default function Card({
 
               <Animated.View
                 style={[
-                  { position: "absolute", top: 25, right: 30 },
+                  { position: "absolute", top: 55, right: 30, zIndex: 40 },
                   showCrossStyle,
                 ]}
+                pointerEvents="none"
               >
                 <MaskedView
                   style={{ transform: [{ rotateZ: "20deg" }] }}
@@ -117,32 +318,14 @@ export default function Card({
                 >
                   <LinearGradient
                     colors={["#FD267D", "#FE6D58"]}
-                    start={{ x: 1, y: 0 }}
-                    end={{ x: 0, y: 1 }}
                     style={{ width: 125, height: 125 }}
                   />
                 </MaskedView>
               </Animated.View>
             </>
           )}
-
-          <LinearGradient
-            colors={["transparent", "rgba(0,0,0,0.7)"]}
-            style={{ ...StyleSheet.absoluteFillObject }}
-          />
-
-          <View className="flex-row">
-            <Text className="text-white text-3xl font-bold">
-              {item.full_name}{" "}
-            </Text>
-            <Text className="text-white text-3xl font-regular">
-              {" "}
-              {item.age}
-            </Text>
-          </View>
-          <Text className="text-white text-base font-regular">{item.bio}</Text>
-        </ImageBackground>
-      </Animated.View>
+        </Animated.View>
+      </GestureDetector>
     </>
   );
 }
