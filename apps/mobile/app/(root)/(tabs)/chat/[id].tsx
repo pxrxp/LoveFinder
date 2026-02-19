@@ -98,7 +98,7 @@ export default function OtherUserScreen() {
     setActiveChatUserId(id);
     markAsRead(id);
     return () => setActiveChatUserId(null);
-  }, [id, setActiveChatUserId, markAsRead]);
+  }, [id]);
 
   // --- Actions ---
   const handleSend = async () => {
@@ -109,16 +109,10 @@ export default function OtherUserScreen() {
 
     try {
       if (messageToSend.trim()) {
-        await new Promise<void>((resolve) => {
-          socket.emit(
-            "send_message",
-            {
-              other_user_id: id,
-              message: messageToSend.trim(),
-              message_type: "text",
-            },
-            () => resolve(),
-          );
+        socket.emit("send_message", {
+          other_user_id: id,
+          message: messageToSend.trim(),
+          message_type: "text",
         });
         setMessageToSend("");
       }

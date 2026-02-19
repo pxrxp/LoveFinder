@@ -1,7 +1,6 @@
 import { View, TextInput, TouchableOpacity } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { useTheme } from "@/contexts/ThemeContext";
 import { colors } from "@/constants/colors";
 
 type Props = {
@@ -23,7 +22,6 @@ export default function ChatInputBar({
   openMediaMenu,
   mediaPreview,
 }: Props) {
-  const { themeColors } = useTheme();
 
   return (
     <View className="flex-row w-11/12 self-center mt-3 overflow-hidden rounded-3xl border-2 bg-chatBgDark/60 border-gray-500">
