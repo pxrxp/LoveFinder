@@ -11,14 +11,12 @@ export default function FullScreenVideo({
   player,
   visible,
   onClose,
-  loading,
   setLoading,
   videoThumbnail,
 }: {
   player: VideoPlayer;
   visible: boolean;
   onClose: () => void;
-  loading: boolean;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
   videoThumbnail: VideoThumbnailsResult;
 }) {
@@ -42,8 +40,8 @@ export default function FullScreenVideo({
         );
       }
       StatusBar.setHidden(true, "fade");
-      NavigationBar.setVisibilityAsync("hidden");
-      NavigationBar.setBackgroundColorAsync("black");
+      await NavigationBar.setVisibilityAsync("hidden");
+      await NavigationBar.setBackgroundColorAsync("black");
     };
 
     lock();
@@ -51,15 +49,14 @@ export default function FullScreenVideo({
 
   const handleClose = async () => {
     StatusBar.setHidden(false, "fade");
-    NavigationBar.setVisibilityAsync("visible");
-    NavigationBar.setBackgroundColorAsync("black");
+    await NavigationBar.setVisibilityAsync("visible");
+    await NavigationBar.setBackgroundColorAsync("black");
     await ScreenOrientation.lockAsync(
       ScreenOrientation.OrientationLock.DEFAULT,
     );
-
-    setTimeout(() => setInternalVisible(false), 100);
     onClose();
     setLoading(false);
+    setInternalVisible(false);
   };
 
   if (!internalVisible) return null;
