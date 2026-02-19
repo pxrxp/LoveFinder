@@ -16,6 +16,9 @@ import Card from "@/components/Card";
 import DataLoader from "@/components/DataLoader";
 import { apiFetch } from "@/services/api";
 import { scheduleOnRN } from "react-native-worklets";
+import { showThemedError } from "@/services/themed-error";
+import { useTheme } from "@/contexts/ThemeContext";
+import { swipeUser } from "@/services/user-actions";
 
 const SCREEN_WIDTH = require("react-native").Dimensions.get("window").width;
 type SwipeStatus = "dislike" | "like" | "pending";
@@ -23,6 +26,7 @@ type SwipeStatus = "dislike" | "like" | "pending";
 export default function HomeScreen() {
   const { data, loading, error, refetch } = useFetch<FeedUser[]>("feed");
   const tabBarHeight = useBottomTabBarHeight();
+  const {themeColors} = useTheme();
 
   const x = useSharedValue(0);
   const y = useSharedValue(0);
@@ -57,9 +61,9 @@ export default function HomeScreen() {
 
   const postSwipe = async (receiver_id: string, type: "like" | "dislike") => {
     try {
-      await apiFetch(`swipes/${receiver_id}/${type}`, { method: "POST" });
+      await swipeUser(receiver_id, type)
     } catch (err) {
-      console.error("Swipe POST failed", err);
+      showThemedError(`Swipe POST failed:\n ${err}`, themeColors);
     }
   };
 

@@ -13,12 +13,13 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import { getSocket } from "@/services/socket";
 
 // API & Modals
-import { apiFetch } from "@/services/api";
 import { showThemedError } from "@/services/themed-error";
 import ReportModal, { ReportReason } from "./modals/ReportModal";
 import ConfirmModal from "./modals/ConfirmModal";
 
 import { Octicons, FontAwesome5 } from "@expo/vector-icons";
+import { blockUser, reportUser, swipeUser, unswipeUser } from "@/services/user-actions";
+import { showThemedSuccess } from "@/services/themed-success";
 
 dayjs.extend(relativeTime);
 
@@ -48,15 +49,15 @@ export default function ChatList({
 
   // --- UI State ---
   const [menuVisible, setMenuVisible] = useState(false);
-  const [reportVisible, setReportVisible] = useState(false);
-  const [confirmBlockVisible, setConfirmBlockVisible] = useState(false);
+  const [reportMenuVisible, setReportMenuVisible] = useState(false);
+  const [confirmBlockMenuVisible, setConfirmBlockMenuVisible] = useState(false);
   const [longPressedUser, setLongPressedUser] = useState<string | null>(null);
 
   // --- Handlers ---
   const handleSwipeBack = async () => {
     if (!longPressedUser) return;
     try {
-      await apiFetch(`swipes/${longPressedUser}/like`, { method: "POST" });
+      await swipeUser(longPressedUser, "like");
       setMenuVisible(false);
       await refetch();
     } catch (e: any) {
@@ -67,7 +68,7 @@ export default function ChatList({
   const handleUnswipe = async () => {
     if (!longPressedUser) return;
     try {
-      await apiFetch(`swipes/${longPressedUser}`, { method: "DELETE" });
+      await unswipeUser(longPressedUser);
       setMenuVisible(false);
       await refetch();
     } catch (e: any) {
@@ -78,7 +79,7 @@ export default function ChatList({
   const executeBlock = async () => {
     if (!longPressedUser) return;
     try {
-      await apiFetch(`blocks/${longPressedUser}`, { method: "POST" });
+      await blockUser(longPressedUser);
       setMenuVisible(false);
       await refetch();
     } catch (e: any) {
@@ -89,12 +90,10 @@ export default function ChatList({
   const handleReportSubmit = async (reason: ReportReason, details: string) => {
     if (!longPressedUser) return;
     try {
-      await apiFetch(`reports/${longPressedUser}`, {
-        method: "POST",
-        body: JSON.stringify({ reason, details }),
-      });
-      setReportVisible(false);
+      await reportUser(longPressedUser, reason, details);
+      setReportMenuVisible(false);
       setMenuVisible(false);
+      showThemedSuccess("User has been reported to our team.", themeColors);
     } catch (e: any) {
       showThemedError(e.message, themeColors);
     }
@@ -187,29 +186,29 @@ export default function ChatList({
           {
             label: "Report",
             icon: <Octicons name="report" size={20} color={themeColors.textPrimary} />,
-            onPress: () => setReportVisible(true),
+            onPress: () => setReportMenuVisible(true),
           },
           {
             label: "Block",
             color: "red",
             icon: <Octicons name="blocked" size={20} color="red" />,
-            onPress: () => setConfirmBlockVisible(true),
+            onPress: () => setConfirmBlockMenuVisible(true),
           },
         ]}
       />
 
       <ReportModal
-        visible={reportVisible}
-        onDismiss={() => setReportVisible(false)}
+        visible={reportMenuVisible}
+        onDismiss={() => setReportMenuVisible(false)}
         onSubmit={handleReportSubmit}
       />
 
       <ConfirmModal
-        visible={confirmBlockVisible}
+        visible={confirmBlockMenuVisible}
         title="Block User"
         description="Are you sure? This conversation will disappear."
         confirmLabel="Block"
-        onDismiss={() => setConfirmBlockVisible(false)}
+        onDismiss={() => setConfirmBlockMenuVisible(false)}
         onConfirm={executeBlock}
       />
     </>

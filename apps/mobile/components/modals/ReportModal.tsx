@@ -9,26 +9,7 @@ import {
   ScrollView,
 } from "react-native";
 import { useTheme } from "@/contexts/ThemeContext";
-
-export enum ReportReason {
-  SPAM = "spam",
-  HARASSMENT = "harassment",
-  FAKE_PROFILE = "fake_profile",
-  INAPPROPRIATE_CONTENT = "inappropriate_content",
-  SCAM = "scam",
-  IMPERSONATION = "impersonation",
-  HATE_SPEECH = "hate_speech",
-  DISCRIMINATION = "discrimination",
-  THREATS = "threats",
-  VIOLENCE = "violence",
-  NUDITY = "nudity",
-  SELF_HARM = "self_harm",
-  UNDERAGE_USER = "underage_user",
-  BULLYING = "bullying",
-  MISLEADING_INFORMATION = "misleading_information",
-  OFFENSIVE_LANGUAGE = "offensive_language",
-  OTHER = "other",
-}
+import { ReportReason } from "@/services/user-actions";
 
 type Props = {
   visible: boolean;
@@ -48,7 +29,7 @@ export default function ReportModal({ visible, onDismiss, onSubmit }: Props) {
     }
   }, [visible]);
 
-  const isReady = details.trim().length >= 10;
+  const isReady = details.trim().length > 10;
 
   const handlePressSubmit = () => {
     if (isReady) {
@@ -73,7 +54,7 @@ export default function ReportModal({ visible, onDismiss, onSubmit }: Props) {
             Report User
           </Text>
           <Text className="text-gray-500 mb-6">
-            Select a reason and provide details (min 10 chars).
+            Select a reason and provide details (min 11 chars).
           </Text>
 
           <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
@@ -125,7 +106,7 @@ export default function ReportModal({ visible, onDismiss, onSubmit }: Props) {
                 isReady ? "text-green-500" : "text-red-400"
               }`}
             >
-              {details.length}/10 characters minimum
+              {details.length}/11 characters minimum
             </Text>
           </ScrollView>
 
