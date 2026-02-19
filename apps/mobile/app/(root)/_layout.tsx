@@ -4,7 +4,6 @@ import { AuthContext } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useColorScheme } from "nativewind";
 import LoadingScreen from "@/components/LoadingScreen";
-import { colors } from "@/constants/colors";
 
 export default function AppLayout() {
   const { user, loading } = useContext(AuthContext)!;

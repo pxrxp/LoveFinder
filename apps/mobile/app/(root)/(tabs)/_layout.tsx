@@ -6,12 +6,14 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "@/contexts/ThemeContext";
-import { colors } from "@/constants/colors";
+import { useMessageNotifications } from "@/hooks/useMessageNotifications";
 
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
   const isAndroid = Platform.OS === "android";
   const { themeColors } = useTheme();
+
+  useMessageNotifications();
 
   const renderLabel = (label: string, focused: boolean) => (
     <Text

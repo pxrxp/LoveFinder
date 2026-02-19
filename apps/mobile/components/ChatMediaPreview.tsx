@@ -1,13 +1,9 @@
-import {
-  View,
-  TouchableOpacity,
-  Image,
-  ImageBackground,
-  Text,
-} from "react-native";
+import { View, TouchableOpacity, Image } from "react-native";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
-import { VideoThumbnailsResult } from "expo-video-thumbnails";
+import VideoThumbnailPreview from "@/components/VideoThumbnailPreview";
+import AudioPlayer from "@/components/AudioPlayer";
+import { Ionicons } from "@expo/vector-icons";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export type MediaPreviewType = {
   uri: string;
@@ -20,7 +16,6 @@ type Props = {
   onViewImage: (uri: string) => void;
   onPlayVideo: () => void;
   onRecordAudio: () => void;
-  videoThumbnail: VideoThumbnailsResult | null;
 };
 
 export default function ChatMediaPreview({
@@ -29,8 +24,8 @@ export default function ChatMediaPreview({
   onViewImage,
   onPlayVideo,
   onRecordAudio,
-  videoThumbnail
 }: Props) {
+  const {themeColors} = useTheme();
   if (!mediaPreview) return null;
 
   return (
@@ -48,43 +43,30 @@ export default function ChatMediaPreview({
       )}
 
       {mediaPreview.type === "audio" && (
-        <TouchableOpacity
-          onPress={onRecordAudio}
-          className="p-2 bg-gray-700 rounded-md self-start"
-        >
-          <Text className="text-white">Redo / Play Audio</Text>
-        </TouchableOpacity>
+        <View className="px-4 py-3 flex-row self-center items-center bg-black/50 rounded-full">
+          <AudioPlayer uri={mediaPreview.uri} />
+          <TouchableOpacity
+            onPress={onRecordAudio}
+            className="ml-6 p-1 rounded-full border border-white"
+          >
+            <Ionicons name="refresh" size={18} color="white" />
+          </TouchableOpacity>
+        </View>
       )}
 
       {mediaPreview.type === "video" && (
-        <TouchableOpacity
-          activeOpacity={0.9}
+        <VideoThumbnailPreview
+          uri={mediaPreview.uri}
           onPress={onPlayVideo}
-        >
-          <ImageBackground
-            source={{ uri: videoThumbnail?.uri || "" }}
-            style={{
-              width: 96,
-              height: 96,
-              borderRadius: 8,
-              alignItems: "center",
-              justifyContent: "center",
-              overflow: "hidden",
-            }}
-          >
-            <FontAwesome5
-              name="play-circle"
-              size={42}
-              color="black"
-              className="opacity-70"
-            />
-          </ImageBackground>
-        </TouchableOpacity>
+          width={96}
+          height={96}
+          style={{ borderRadius: 8 }}
+        />
       )}
 
       <TouchableOpacity
         onPress={onClear}
-        className="absolute -top-1 -left-1 bg-black/40 p-1 rounded-full m-2"
+        className="absolute -top-1 -left-1 bg-black/65 p-1 rounded-full m-2"
       >
         <MaterialIcons name="close" size={20} color="white" />
       </TouchableOpacity>

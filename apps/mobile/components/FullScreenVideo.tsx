@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { View, TouchableOpacity, StatusBar } from "react-native";
 import { Portal } from "@gorhom/portal";
 import * as ScreenOrientation from "expo-screen-orientation";
@@ -11,18 +11,28 @@ export default function FullScreenVideo({
   player,
   visible,
   onClose,
+  loading,
+  setLoading,
   videoThumbnail,
 }: {
   player: VideoPlayer;
   visible: boolean;
   onClose: () => void;
-  videoThumbnail: VideoThumbnailsResult | null;
+  loading: boolean;
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  videoThumbnail: VideoThumbnailsResult;
 }) {
-  useEffect(() => {
-    if (!visible || !player) return;
+  const [internalVisible, setInternalVisible] = useState(visible);
 
-    const lockOrientation = async () => {
-      if (videoThumbnail && videoThumbnail?.width > videoThumbnail?.height) {
+  useEffect(() => {
+    if (visible) setInternalVisible(true);
+  }, [visible]);
+
+  useEffect(() => {
+    if (!internalVisible || !player) return;
+
+    const lock = async () => {
+      if (videoThumbnail?.width > videoThumbnail?.height) {
         await ScreenOrientation.lockAsync(
           ScreenOrientation.OrientationLock.LANDSCAPE,
         );
@@ -31,21 +41,28 @@ export default function FullScreenVideo({
           ScreenOrientation.OrientationLock.PORTRAIT,
         );
       }
+      StatusBar.setHidden(true, "fade");
+      NavigationBar.setVisibilityAsync("hidden");
+      NavigationBar.setBackgroundColorAsync("black");
     };
 
-    lockOrientation();
-    StatusBar.setHidden(true, "fade");
-    NavigationBar.setVisibilityAsync("hidden");
-    NavigationBar.setBehaviorAsync("overlay-swipe");
+    lock();
+  }, [internalVisible, player]);
 
-    return () => {
-      StatusBar.setHidden(false, "fade");
-      NavigationBar.setVisibilityAsync("visible");
-      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.DEFAULT);
-    };
-  }, [visible, player]);
+  const handleClose = async () => {
+    StatusBar.setHidden(false, "fade");
+    NavigationBar.setVisibilityAsync("visible");
+    NavigationBar.setBackgroundColorAsync("black");
+    await ScreenOrientation.lockAsync(
+      ScreenOrientation.OrientationLock.DEFAULT,
+    );
 
-  if (!visible) return null;
+    setTimeout(() => setInternalVisible(false), 100);
+    onClose();
+    setLoading(false);
+  };
+
+  if (!internalVisible) return null;
 
   return (
     <Portal>
@@ -63,10 +80,10 @@ export default function FullScreenVideo({
           style={{ width: "100%", height: "100%" }}
           player={player}
           allowsFullscreen={false}
+          onFirstFrameRender={() => setLoading(false)}
         />
-
         <TouchableOpacity
-          onPress={onClose}
+          onPress={handleClose}
           style={{
             position: "absolute",
             top: 10,
@@ -74,7 +91,6 @@ export default function FullScreenVideo({
             backgroundColor: "rgba(0,0,0,0.4)",
             padding: 8,
             borderRadius: 999,
-            opacity: 0.5
           }}
         >
           <MaterialIcons name="close" size={30} color="white" />

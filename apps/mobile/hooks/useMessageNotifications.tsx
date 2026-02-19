@@ -20,7 +20,7 @@ export function useMessageNotifications() {
 
       showMessage({
         message: `New message from ${msg.sender_name}`,
-        description: msg.message_content,
+        description: msg.message_type === "text" ? msg.message_content : "Sent an attachment",
         type: "info",
         floating: true,
         duration: 4000,

@@ -26,7 +26,7 @@ export const ImageViewerProvider = ({ children }: { children: ReactNode }) => {
       {children}
 
       <ImageViewing
-        presentationStyle="pageSheet"
+        presentationStyle="overFullScreen"
         images={viewerImage ? [{ uri: viewerImage }] : []}
         animationType="slide"
         swipeToCloseEnabled

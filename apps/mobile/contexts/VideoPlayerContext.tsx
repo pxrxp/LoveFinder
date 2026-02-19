@@ -19,12 +19,14 @@ import FullScreenVideo from "../components/FullScreenVideo";
 type ContextType = {
   openVideoPlayer: (uri: string) => Promise<void>;
   thumbnail: VideoThumbnailsResult | null;
+  loading: boolean;
 };
 
 const VideoPlayerContext = createContext<ContextType | undefined>(undefined);
 
 export const VideoPlayerProvider = ({ children }: { children: ReactNode }) => {
   const [visible, setVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [videoUri, setVideoUri] = useState<string | null>(null);
   const [thumbnail, setThumbnail] = useState<VideoThumbnailsResult | null>(
     null,
@@ -34,10 +36,12 @@ export const VideoPlayerProvider = ({ children }: { children: ReactNode }) => {
     videoUri ? { uri: videoUri } : null,
     (player) => {
       player.play();
+      setLoading(false);
     },
   );
 
   const openVideoPlayer = async (uri: string) => {
+    setLoading(true);
     setThumbnail(await getThumbnailAsync(uri));
     setVideoUri(uri);
     setVisible(true);
@@ -47,6 +51,7 @@ export const VideoPlayerProvider = ({ children }: { children: ReactNode }) => {
     setVisible(false);
     setVideoUri(null);
     setThumbnail(null);
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -68,13 +73,14 @@ export const VideoPlayerProvider = ({ children }: { children: ReactNode }) => {
   }, [visible, thumbnail]);
 
   return (
-    <VideoPlayerContext.Provider value={{ openVideoPlayer, thumbnail }}>
+    <VideoPlayerContext.Provider value={{ openVideoPlayer, thumbnail, loading }}>
       {children}
-
       <FullScreenVideo
         player={player}
         visible={visible}
-        videoThumbnail={thumbnail}
+        loading={loading}
+        setLoading={setLoading}
+        videoThumbnail={thumbnail!}
         onClose={closeVideoPlayer}
       />
     </VideoPlayerContext.Provider>

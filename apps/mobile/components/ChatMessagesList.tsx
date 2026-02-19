@@ -39,10 +39,10 @@ export default function ChatMessagesList({
         <>
           {pressedMessage === item.message_id && (
             <Text
-              className={`text-sm font-light pb-5 ${
+              className={`text-sm font-regular pb-5 text-gray-500 ${
                 item.sender_id === otherUser?.user_id
-                  ? "text-left pl-3 text-gray-200"
-                  : "text-right pr-3 text-gray-200"
+                  ? "text-left pl-3"
+                  : "text-right pr-3"
               }`}
             >
               Sent at {formatFriendlyDate(item.sent_at)}

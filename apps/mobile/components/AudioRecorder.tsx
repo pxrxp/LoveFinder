@@ -103,7 +103,7 @@ export default function AudioRecorder({
               pauseRecording();
             }}
           >
-            <Fontisto name="pause" size={24} color={themeColors.textPrimary} />
+            <Fontisto name="pause" size={24} color={themeColors.textPrimary} style={{opacity: 0.65}} />
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -111,12 +111,12 @@ export default function AudioRecorder({
               stopRecording();
             }}
           >
-            <Fontisto name="stop" size={24} color={themeColors.textPrimary} />
+            <Fontisto name="stop" size={24} color={themeColors.textPrimary} style={{opacity: 0.65}} />
           </TouchableOpacity>
         </View>
       )}
 
-      <Text className="text-white px-6">
+      <Text className="text-textPrimaryLight dark:text-textPrimaryDark font-regular px-6">
         {dayjs.duration(recorderState?.durationMillis).format("HH:mm:ss")}
       </Text>
       <AudioWaveform levels={levels} className="w-1/3 h-12" />
