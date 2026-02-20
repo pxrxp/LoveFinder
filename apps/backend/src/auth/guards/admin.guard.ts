@@ -3,7 +3,8 @@ import { CanActivate, ExecutionContext } from '@nestjs/common';
 export class AdminGuard implements CanActivate {
   async canActivate(context: ExecutionContext) {
     const request = context.switchToHttp().getRequest();
-    const userId = request.user?.id;
+    const userId = request.user?.user_id;
+    console.log(userId);
     if (!userId) return false;
 
     const result = await Bun.sql`

@@ -30,7 +30,12 @@ export class ReportsService {
 
   async findPending(reporter_id: string) {
     return Bun.sql`
-      SELECT *
+      SELECT
+          REPORT_ID,
+          REPORTED_ID,
+          REASON,
+          DETAILS,
+          STATUS
       FROM REPORTS
       WHERE STATUS = 'under_review'
           AND REPORTER_ID = ${reporter_id}
