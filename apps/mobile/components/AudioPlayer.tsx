@@ -4,16 +4,14 @@ import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import dayjs from "dayjs";
 
-type Props = {
+type AudioPlayerProps = {
   uri: string;
   color?: "white" | "black";
 };
 
-export default function AudioPlayer({ uri, color = "white" }: Props) {
+export default function AudioPlayer({ uri }: AudioPlayerProps) {
   const player = useAudioPlayer(uri, { updateInterval: 100 });
   const status = useAudioPlayerStatus(player);
-
-  const isWhite = color === "white";
 
   const togglePlayback = () => {
     if (status.currentTime >= status.duration && status.duration > 0) {

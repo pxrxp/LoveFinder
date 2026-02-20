@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, ReactNode } from "react";
 
-interface MessageTrackerContextType {
+interface MessageTrackerContextValue {
   unreadCounts: Record<string, number>;
   activeChatUserId: string | null;
   setActiveChatUserId: (id: string | null) => void;
@@ -10,7 +10,7 @@ interface MessageTrackerContextType {
 }
 
 const MessageTrackerContext = createContext<
-  MessageTrackerContextType | undefined
+  MessageTrackerContextValue | undefined
 >(undefined);
 
 export function MessageTrackerProvider({ children }: { children: ReactNode }) {

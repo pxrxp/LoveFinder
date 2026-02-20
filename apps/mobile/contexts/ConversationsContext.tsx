@@ -12,7 +12,7 @@ import { Conversation } from "@/types/Conversation";
 import { getSocket } from "@/services/socket";
 import { apiFetch } from "@/services/api";
 
-interface ConversationsContextType {
+interface ConversationsContextValue {
   conversations: Conversation[];
   setConversations: React.Dispatch<React.SetStateAction<Conversation[]>>;
   loading: boolean;
@@ -23,7 +23,7 @@ interface ConversationsContextType {
 }
 
 const ConversationsContext = createContext<
-  ConversationsContextType | undefined
+  ConversationsContextValue | undefined
 >(undefined);
 
 const getTime = (date?: string | Date) => {

@@ -3,15 +3,10 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import VideoThumbnailPreview from "@/components/VideoThumbnailPreview";
 import AudioPlayer from "@/components/AudioPlayer";
 import { Ionicons } from "@expo/vector-icons";
-import { useTheme } from "@/contexts/ThemeContext";
-
-export type MediaPreviewType = {
-  uri: string;
-  type: "image" | "video" | "audio";
-};
+import { MediaPreview } from "@/types/MediaPreview";
 
 type Props = {
-  mediaPreview: MediaPreviewType;
+  mediaPreview: MediaPreview;
   onClear: () => void;
   onViewImage: (uri: string) => void;
   onPlayVideo: () => void;
@@ -25,7 +20,7 @@ export default function ChatMediaPreview({
   onPlayVideo,
   onRecordAudio,
 }: Props) {
-  const {themeColors} = useTheme();
+
   if (!mediaPreview) return null;
 
   return (

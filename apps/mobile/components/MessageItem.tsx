@@ -7,17 +7,17 @@ import {
 import { Image } from "expo-image";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import { useEffect, useState } from "react";
-import { Message, User } from "@/types/chat";
 import { useTheme } from "@/contexts/ThemeContext";
 import { colors } from "@/constants/colors";
 import { useVideoPlayerContext } from "@/contexts/VideoPlayerContext";
-import VideoThumbnailPreview from "./VideoThumbnailPreview";
-import AudioPlayer from "./AudioPlayer";
+import VideoThumbnailPreview from "@/components/VideoThumbnailPreview";
+import AudioPlayer from "@/components/AudioPlayer";
 import { useImageViewerContext } from "@/contexts/ImageViewerContext";
+import { User } from "@/types/User";
+import { Message } from "@/types/Message";
 
-interface Props {
+interface MessageItemProps {
   other_user: User | null;
   item: Message;
   onPress: (event: GestureResponderEvent) => void;
@@ -29,7 +29,7 @@ export default function MessageItem({
   item,
   onPress,
   onLongPress,
-}: Props) {
+}: MessageItemProps) {
   const isMine = item.sender_id !== other_user?.user_id;
   const [failed, setFailed] = useState(false);
   const { theme } = useTheme();

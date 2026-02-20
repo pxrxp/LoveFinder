@@ -1,9 +1,5 @@
+import { MediaPreview } from "@/types/MediaPreview";
 import { useState } from "react";
-
-export type MediaPreview = {
-  uri: string;
-  type: "image" | "video" | "audio";
-};
 
 export function useMediaPreview() {
   const [mediaPreview, setMediaPreview] =

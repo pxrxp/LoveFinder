@@ -1,30 +1,30 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { View, Text, ScrollView, Image, TouchableOpacity, TextInput, Alert } from "react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useTheme } from "@/contexts/ThemeContext";
 import { pickMedia, launchCamera } from "@/services/media-picker";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { AuthContext } from "@/contexts/AuthContext";
 
 const MAX_PHOTOS = 6;
 
-// Dummy types
+interface Photo
+
 type Photo = { id: string; uri?: string; };
 type Interest = { id: number; name: string };
 type User = { full_name?: string; bio?: string; date_of_birth?: string; interests?: Interest[] };
 
 export default function ProfileScreen() {
-  const { themeColors } = useTheme();
-  const [editing, setEditing] = useState(false);
+  const {theme, toggleTheme} = useTheme();
+  const insets = useSafeAreaInsets();
+
+  const {login, loading, user, logout} = useContext(AuthContext)!;
+
+  const [editingMode, setEditingMode] = useState(false);
   const [bioExpanded, setBioExpanded] = useState(false);
 
-  const [user, setUser] = useState<User>({
-    full_name: "Jane Doe",
-    bio: "Hello world! This is a long bio that should be expandable to show more text when in read more mode.",
-    date_of_birth: "1995-01-01",
-    interests: [{ id: 1, name: "Music" }, { id: 2, name: "Travel" }],
-  });
-
-  const [nameInput, setNameInput] = useState(user.full_name);
-  const [bioInput, setBioInput] = useState(user.bio);
+  const [nameInput, setNameInput] = useState(user?.full_name);
+  const [bioInput, setBioInput] = useState(user?.bio);
   const [photos, setPhotos] = useState<Photo[]>(Array.from({ length: MAX_PHOTOS }, (_, i) => ({ id: `p${i}` })));
 
   const age = user.date_of_birth ? new Date().getFullYear() - new Date(user.date_of_birth).getFullYear() : "";

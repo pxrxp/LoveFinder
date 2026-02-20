@@ -1,6 +1,6 @@
 import React, { createContext, useContext, ReactNode, useState, useCallback } from "react";
 
-type AudioRecorderContextType = {
+type AudioRecorderContextValue = {
   audioModuleVisible: boolean;
   audioRecordComplete: boolean;
   audioUri: string | null;
@@ -9,7 +9,7 @@ type AudioRecorderContextType = {
   onAudioRecordComplete: (uri: string | null) => void;
 };
 
-const AudioRecorderContext = createContext<AudioRecorderContextType | undefined>(undefined);
+const AudioRecorderContext = createContext<AudioRecorderContextValue | undefined>(undefined);
 
 export const AudioRecorderProvider = ({ children }: { children: ReactNode }) => {
   const [audioModuleVisible, setAudioModuleVisible] = useState(false);

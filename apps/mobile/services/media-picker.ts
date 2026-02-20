@@ -1,7 +1,5 @@
 import { launchCameraAsync, launchImageLibraryAsync } from "expo-image-picker";
 
-export type MediaPreview = { uri: string; type: "image" | "video" | "audio" };
-
 interface MediaProps { videosAllowed?: boolean; allowsEditing?: boolean; };
 
 export async function pickMedia(props?: MediaProps): Promise<MediaPreview | null> {

@@ -20,11 +20,11 @@ import { scheduleOnRN } from "react-native-worklets";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
-type ImageViewerContextType = {
+type ImageViewerContextValue = {
   openImageViewer: (uri: string) => void;
 };
 
-const ImageViewerContext = createContext<ImageViewerContextType | undefined>(
+const ImageViewerContext = createContext<ImageViewerContextValue | undefined>(
   undefined,
 );
 
