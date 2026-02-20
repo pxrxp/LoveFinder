@@ -14,11 +14,10 @@ export function getSocket() {
       withCredentials: true,
     });
     socket.connect();
+    socket.onAny((event, ...args) => {
+      console.log("SOCKET EVENT", event, args);
+    });
   }
-
-  socket.onAny((event, ...args) => {
-    console.log("SOCKET EVENT", event, args);
-  });
 
   return socket;
 }

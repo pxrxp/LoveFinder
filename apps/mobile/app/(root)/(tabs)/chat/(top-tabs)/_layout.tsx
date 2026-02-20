@@ -1,13 +1,13 @@
 import { Stack } from "expo-router";
 import { MaterialTopTabs } from "@/components/MaterialTopTabs";
-import { ChatProvider } from "@/contexts/ChatContext";
+import { ConversationsProvider } from "@/contexts/ConversationsContext";
 import { useTheme } from "@/contexts/ThemeContext";
 
 export default function TabLayout() {
   const { themeColors } = useTheme();
 
   return (
-    <ChatProvider>
+    <ConversationsProvider>
       <Stack.Screen options={{ headerTitle: "Chats" }} />
 
       <MaterialTopTabs
@@ -35,6 +35,6 @@ export default function TabLayout() {
           options={{ title: "Both liked" }}
         />
       </MaterialTopTabs>
-    </ChatProvider>
+    </ConversationsProvider>
   );
 }

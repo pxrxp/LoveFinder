@@ -10,24 +10,43 @@ import { Conversation } from "@/types/Conversation";
 import ModalMenu from "./ModalMenu";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import { getSocket } from "@/services/socket";
-
-// API & Modals
+import utc from "dayjs/plugin/utc";
 import { showThemedError } from "@/services/themed-error";
-import ReportModal, { ReportReason } from "./modals/ReportModal";
+import ReportModal from "./modals/ReportModal";
 import ConfirmModal from "./modals/ConfirmModal";
-
 import { Octicons, FontAwesome5 } from "@expo/vector-icons";
-import { blockUser, reportUser, swipeUser, unswipeUser } from "@/services/user-actions";
+import {
+  blockUser,
+  ReportReason,
+  reportUser,
+  swipeUser,
+  unswipeUser,
+} from "@/services/user-actions";
 import { showThemedSuccess } from "@/services/themed-success";
 
 dayjs.extend(relativeTime);
+dayjs.extend(utc);
 
-declare module "dayjs" {
-  interface Dayjs {
-    fromNow(date?: string): string;
-  }
-}
+const TimeAgo = ({ date }: { date?: string }) => {
+  const [timeText, setTimeText] = useState("");
+
+  useEffect(() => {
+    const updateTime = () => {
+      if (!date) return;
+      let d = date.endsWith("Z") ? dayjs(date) : dayjs.utc(date).local();
+
+      if (d.isAfter(dayjs())) d = dayjs();
+
+      setTimeText(d.fromNow());
+    };
+
+    updateTime();
+    const interval = setInterval(updateTime, 30000);
+    return () => clearInterval(interval);
+  }, [date]);
+
+  return <Text className="text-gray-500 font-regular text-sm">{timeText}</Text>;
+};
 
 interface ChatListProps {
   conversations: Conversation[];
@@ -35,6 +54,7 @@ interface ChatListProps {
   error?: any;
   unswipeVisible?: boolean;
   refetch: () => Promise<void>;
+  extraData?: any;
 }
 
 export default function ChatList({
@@ -43,17 +63,16 @@ export default function ChatList({
   error,
   unswipeVisible = true,
   refetch,
+  extraData,
 }: ChatListProps) {
   const { user } = useContext(AuthContext)!;
   const { themeColors } = useTheme();
 
-  // --- UI State ---
   const [menuVisible, setMenuVisible] = useState(false);
   const [reportMenuVisible, setReportMenuVisible] = useState(false);
   const [confirmBlockMenuVisible, setConfirmBlockMenuVisible] = useState(false);
   const [longPressedUser, setLongPressedUser] = useState<string | null>(null);
 
-  // --- Handlers ---
   const handleSwipeBack = async () => {
     if (!longPressedUser) return;
     try {
@@ -99,18 +118,6 @@ export default function ChatList({
     }
   };
 
-  // --- Socket Listeners ---
-  useEffect(() => {
-    const socket = getSocket();
-    const handleSocketUpdate = () => refetch();
-    socket.on("new_message", handleSocketUpdate);
-    socket.on("delete_message", handleSocketUpdate);
-    return () => {
-      socket.off("new_message", handleSocketUpdate);
-      socket.off("delete_message", handleSocketUpdate);
-    };
-  }, [refetch]);
-
   return (
     <>
       <DataLoader
@@ -120,12 +127,17 @@ export default function ChatList({
         {(conversations, refreshing, onRefresh) => (
           <FlatList
             data={conversations}
+            extraData={extraData}
             keyExtractor={(item) => item.other_user_id}
             onRefresh={onRefresh}
             refreshing={refreshing ?? false}
             ListEmptyComponent={
               <View className="flex-row justify-center py-10">
-                <Entypo name="emoji-sad" size={64} color={themeColors.textPrimary} />
+                <Entypo
+                  name="emoji-sad"
+                  size={64}
+                  color={themeColors.textPrimary}
+                />
                 <Text className="text-textPrimaryLight dark:text-textPrimaryDark font-bold text-2xl ml-5 mt-5">
                   Nothing to see here!
                 </Text>
@@ -143,22 +155,38 @@ export default function ChatList({
               >
                 <Pressable className="my-5">
                   <View className="flex-row items-center w-full">
-                    <ProfilePicture url={item.profile_picture_url} size={90} color={themeColors.textPrimary} />
+                    <ProfilePicture
+                      url={item.profile_picture_url}
+                      size={90}
+                      color={themeColors.textPrimary}
+                    />
                     <View className="flex-1 pl-5 py-3">
-                      <Text numberOfLines={1} ellipsizeMode="tail" className="text-textPrimaryLight dark:text-textPrimaryDark font-bold text-xl">
+                      <Text
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                        className="text-textPrimaryLight dark:text-textPrimaryDark font-bold text-xl"
+                      >
                         {item.full_name}
                       </Text>
                       <View className="flex-row items-center w-full">
-                        <Text className="text-gray-500 font-regular text-sm">
-                          {dayjs(item.last_message_sent_at).fromNow()}
-                        </Text>
+                        <TimeAgo date={item.last_message_sent_at} />
                         <View className="flex-1" />
                         <Text className="text-textPrimaryDark font-light bg-gray-500 px-2 py-1 rounded-full">
-                          {item.last_message_sender_id === user?.user_id ? "Their turn" : "Your turn"}
+                          {item.last_message_sender_id === user?.user_id
+                            ? "Their turn"
+                            : "Your turn"}
                         </Text>
                       </View>
-                      <Text numberOfLines={1} ellipsizeMode="tail" className={`text-gray-500 ${item.last_message_type === "text" ? "font-regular" : "font-italic"}`}>
-                        {item.last_message_type ? (item.last_message_type === "text" ? item.last_message : "Sent an attachment.") : "Start conversation"}
+                      <Text
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                        className={`text-gray-500 ${item.last_message_type === "text" ? "font-regular" : "font-italic"}`}
+                      >
+                        {item.last_message_type
+                          ? item.last_message_type === "text"
+                            ? item.last_message
+                            : "Sent an attachment."
+                          : "Start conversation"}
                       </Text>
                       {index !== conversations.length - 1 && (
                         <View className="w-full h-[0.5px] bg-gray-500 relative top-3 rounded-full" />
@@ -180,12 +208,24 @@ export default function ChatList({
             label: unswipeVisible ? "Unswipe" : "Swipe back",
             icon: unswipeVisible ? (
               <Octicons name="undo" size={20} color={themeColors.textPrimary} />
-            ) : <FontAwesome5 name="heart" size={20} color={themeColors.textPrimary} />,
+            ) : (
+              <FontAwesome5
+                name="heart"
+                size={20}
+                color={themeColors.textPrimary}
+              />
+            ),
             onPress: unswipeVisible ? handleUnswipe : handleSwipeBack,
           },
           {
             label: "Report",
-            icon: <Octicons name="report" size={20} color={themeColors.textPrimary} />,
+            icon: (
+              <Octicons
+                name="report"
+                size={20}
+                color={themeColors.textPrimary}
+              />
+            ),
             onPress: () => setReportMenuVisible(true),
           },
           {
@@ -196,13 +236,11 @@ export default function ChatList({
           },
         ]}
       />
-
       <ReportModal
         visible={reportMenuVisible}
         onDismiss={() => setReportMenuVisible(false)}
         onSubmit={handleReportSubmit}
       />
-
       <ConfirmModal
         visible={confirmBlockMenuVisible}
         title="Block User"
