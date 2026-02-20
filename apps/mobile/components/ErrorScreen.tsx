@@ -15,7 +15,7 @@ export default function ErrorScreen({
       className={`${hasBackground ? "bg-bgPrimaryLight dark:bg-bgPrimaryDark" : "bg-transparent"} flex-1 justify-center items-center ${className}`}
     >
       <FontAwesome name="warning" size={48} color="red" className="my-5" />
-      <Text className="text-l font-regular text-textPrimaryLight dark:text-textPrimaryDark">
+      <Text className="text-lg font-regular text-center text-textPrimaryLight dark:text-textPrimaryDark">
         {error ?? ""}
       </Text>
     </View>

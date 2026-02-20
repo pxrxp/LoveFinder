@@ -20,7 +20,7 @@ import { useImageViewerContext } from "@/contexts/ImageViewerContext";
 import { useVideoPlayerContext } from "@/contexts/VideoPlayerContext";
 import { AuthContext } from "@/contexts/AuthContext";
 
-import { uploadChatMedia } from "@/services/chat-media";
+import { uploadFile } from "@/services/upload-media";
 import { pickMedia, launchCamera } from "@/services/media-picker";
 import { showThemedError } from "@/services/themed-error";
 
@@ -38,9 +38,9 @@ import LoadingScreen from "@/components/LoadingScreen";
 import { Portal } from "@gorhom/portal";
 
 import dayjs from "dayjs";
-import { apiFetch } from "@/services/api";
 import { Message } from "@/types/Message";
 import { SwipedUser } from "@/types/User";
+import { fetchChatMessages } from "@/services/chat";
 
 export default function OtherUserScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -134,7 +134,7 @@ export default function OtherUserScreen() {
     const cursor = messages[0].sent_at;
 
     try {
-      const res = await apiFetch(`chat/${id}?cursor=${encodeURIComponent(cursor)}&limit=20`);
+      const res = await fetchChatMessages(id, cursor);
       const older: Message[] = await res.json();
 
       if (older.length > 0) {
@@ -185,7 +185,7 @@ export default function OtherUserScreen() {
         
         clearMediaPreview();
 
-        const data = await uploadChatMedia({ uri: uploadUri, type });
+        const data = await uploadFile({ uri: uploadUri, type: "image" }, "chat-media/upload");
         
         const tempMsg: Message = {
           message_id: Date.now().toString(),
@@ -251,7 +251,7 @@ export default function OtherUserScreen() {
         {(otherUser) => {
           const messagable =
             otherUser.allow_messages_from_strangers ||
-            otherUser.swipe_category === "them" ||
+            otherUser.swipe_category === "they" ||
             otherUser.swipe_category === "both";
 
           return (

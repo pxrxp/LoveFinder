@@ -13,9 +13,9 @@ type Props = {
   pickPhoto?: () => void;
   openAudioRecorder?: () => void;
 
-  showCamera?: boolean;
-  showPhoto?: boolean;
-  showAudio?: boolean;
+  hideCameraAction?: boolean;
+  hideLibraryPickerAction?: boolean;
+  hideAudioRecorderAction?: boolean;
 };
 
 export default function MediaMenuModal({
@@ -24,15 +24,15 @@ export default function MediaMenuModal({
   launchCamera,
   pickPhoto,
   openAudioRecorder,
-  showCamera = true,
-  showPhoto = true,
-  showAudio = true,
+  hideCameraAction = false,
+  hideLibraryPickerAction = false,
+  hideAudioRecorderAction = false,
 }: Props) {
   const { themeColors } = useTheme();
 
   const actions = [];
 
-  if (showCamera && launchCamera) {
+  if (!hideCameraAction && launchCamera) {
     actions.push({
       label: "Open camera",
       icon: (
@@ -46,7 +46,7 @@ export default function MediaMenuModal({
     });
   }
 
-  if (showPhoto && pickPhoto) {
+  if (!hideLibraryPickerAction && pickPhoto) {
     actions.push({
       label: "Choose from library",
       icon: (
@@ -60,7 +60,7 @@ export default function MediaMenuModal({
     });
   }
 
-  if (showAudio && openAudioRecorder) {
+  if (!hideAudioRecorderAction && openAudioRecorder) {
     actions.push({
       label: "Record audio",
       icon: (

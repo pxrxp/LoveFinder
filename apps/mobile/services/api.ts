@@ -15,14 +15,14 @@ export const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
   });
 
   if (!res.ok) {
-    let message = res.statusText;
+    let message: any = res.statusText;
 
     try {
-      const text = await res.text();
+      const text = await res.json();
       if (text) message = text;
     } catch { }
 
-    throw new Error(`HTTP ${res.status}: ${message}`);
+    throw new Error(`${message.statusCode}: ${message.error}\n${message.message}`);
   }
 
   return res;

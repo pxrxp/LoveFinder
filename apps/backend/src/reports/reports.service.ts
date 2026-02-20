@@ -28,7 +28,7 @@ export class ReportsService {
     )[0];
   }
 
-  async findPending(reporter_id: string) {
+  async findAll(reporter_id: string) {
     return Bun.sql`
       SELECT
           REPORT_ID,
@@ -37,8 +37,7 @@ export class ReportsService {
           DETAILS,
           STATUS
       FROM REPORTS
-      WHERE STATUS = 'under_review'
-          AND REPORTER_ID = ${reporter_id}
+      WHERE REPORTER_ID = ${reporter_id}
     `;
   }
 }

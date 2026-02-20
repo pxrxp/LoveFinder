@@ -10,7 +10,7 @@ import {
 import { useFetch } from "@/hooks/useFetch";
 import { Conversation } from "@/types/Conversation";
 import { getSocket } from "@/services/socket";
-import { apiFetch } from "@/services/api";
+import { fetchConversations } from "@/services/chat";
 
 interface ConversationsContextValue {
   conversations: Conversation[];
@@ -38,7 +38,7 @@ export function ConversationsProvider({ children }: { children: ReactNode }) {
   const [totalOffset, setTotalOffset] = useState(0);
 
   const { data, loading, refetch } = useFetch<Conversation[]>(
-    "chat?limit=20&offset=0",
+    "chat",
   );
 
   const refetchRef = useRef(refetch);
@@ -59,7 +59,7 @@ export function ConversationsProvider({ children }: { children: ReactNode }) {
 
     setLoadingMore(true);
     try {
-      const res = await apiFetch(`chat?limit=20&offset=${totalOffset}`);
+      const res = await fetchConversations(totalOffset);
       const newData: Conversation[] = await res.json();
 
       if (newData.length < 20) setHasMore(false);

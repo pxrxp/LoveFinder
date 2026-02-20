@@ -1,5 +1,6 @@
 import React, { createContext, ReactNode, useEffect, useState } from 'react';
-import { apiFetch } from '@/services/api';
+import { getMyProfile } from '@/services/users';
+import * as Auth from "@/services/auth";
 
 export const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
@@ -35,7 +36,7 @@ export const AuthProvider = ({ children }: {children: ReactNode}) => {
 
   const checkAuth = async () => {
     try {
-      const res = await apiFetch('users/me');
+      const res = await getMyProfile();
       const data = await res.json();
       setUser(data);
     } catch {
@@ -45,17 +46,14 @@ export const AuthProvider = ({ children }: {children: ReactNode}) => {
     }
   };
 
-  const login = async (email: string, password: string) => {
-    await apiFetch('auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ email, password }),
-    });
 
+  const login = async (email: string, password: string) => {
+    await Auth.login(email, password);
     await checkAuth();
   };
 
   const logout = async () => {
-    await apiFetch('auth/logout', { method: 'POST' });
+    await Auth.logout();
     setUser(null);
   };
 
