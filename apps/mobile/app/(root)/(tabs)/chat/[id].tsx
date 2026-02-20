@@ -8,9 +8,8 @@ import {
 import { ImageBackground } from "expo-image";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useContext } from "react";
 
-// Hooks & Contexts
 import { useFetch } from "@/hooks/useFetch";
 import { useChatSocket } from "@/hooks/useChatSocket";
 import { useMediaPreview } from "@/hooks/useMediaPreview";
@@ -19,13 +18,12 @@ import { useMessageTracker } from "@/contexts/MessageTrackerContext";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useImageViewerContext } from "@/contexts/ImageViewerContext";
 import { useVideoPlayerContext } from "@/contexts/VideoPlayerContext";
+import { AuthContext } from "@/contexts/AuthContext";
 
-// Services
 import { uploadChatMedia } from "@/services/chat-media";
 import { pickPhoto, launchCamera } from "@/services/media-picker";
 import { showThemedError } from "@/services/themed-error";
 
-// Components
 import DataLoader from "@/components/DataLoader";
 import ChatHeader from "@/components/ChatHeader";
 import ChatMessagesList from "@/components/ChatMessagesList";
@@ -35,31 +33,29 @@ import MediaMenuModal from "@/components/modals/MediaMenuModal";
 import DeleteMenuModal from "@/components/modals/DeleteMenuModal";
 import AudioRecorder from "@/components/AudioRecorder";
 
-// Types
 import { Message, User } from "@/types/chat";
 import { MaterialIcons } from "@expo/vector-icons";
 import LoadingScreen from "@/components/LoadingScreen";
 import { Portal } from "@gorhom/portal";
+
+import dayjs from "dayjs";
 
 export default function OtherUserScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { theme, themeColors } = useTheme();
   const tabBarHeight = useBottomTabBarHeight();
   const { settings } = useSettings();
+  const { user } = useContext(AuthContext)!;
 
-  // --- Global Contexts ---
   const { openImageViewer } = useImageViewerContext();
   const { openVideoPlayer, loading: videoLoading } = useVideoPlayerContext();
 
-  // --- Hooks ---
   const chat = useFetch<Message[]>(`chat/${id}`);
   const otherUserFetch = useFetch<User>(`users/${id}`);
   const { setActiveChatUserId, markAsRead } = useMessageTracker();
 
-  const { mediaPreview, setMediaPreview, clearMediaPreview } =
-    useMediaPreview();
+  const { mediaPreview, setMediaPreview, clearMediaPreview } = useMediaPreview();
 
-  // --- Local State ---
   const [messages, setMessages] = useState<Message[]>([]);
   const [messageToSend, setMessageToSend] = useState("");
   const [pressedMessage, setPressedMessage] = useState<string | null>(null);
@@ -68,12 +64,32 @@ export default function OtherUserScreen() {
   const [mediaMenuVisible, setMediaMenuVisible] = useState(false);
   const [deleteMenuVisible, setDeleteMenuVisible] = useState(false);
   const [audioRecorderVisible, setAudioRecorderVisible] = useState(false);
+  const [sending, setSending] = useState(false);
 
-  // --- Socket Logic ---
   const handleNewMessage = useCallback((msg: Message) => {
-    setMessages((prev) =>
-      prev.find((m) => m.message_id === msg.message_id) ? prev : [msg, ...prev],
-    );
+    const serverDate = dayjs(msg.sent_at);
+    const safeMsg = {
+        ...msg,
+        sent_at: serverDate.isAfter(dayjs()) ? dayjs().toISOString() : msg.sent_at
+    };
+
+    setMessages((prev) => {
+      if (prev.find((m) => m.message_id === safeMsg.message_id)) return prev;
+
+      const tempMatch = prev.find(
+        (m) =>
+          m.message_content === safeMsg.message_content &&
+          m.message_type === safeMsg.message_type &&
+          m.sender_id === safeMsg.sender_id &&
+          m.message_id.length < 20
+      );
+
+      if (tempMatch) {
+        return prev.map((m) => (m.message_id === tempMatch.message_id ? safeMsg : m));
+      }
+
+      return [safeMsg, ...prev];
+    });
   }, []);
 
   const handleDeleteMessage = useCallback((messageId: string) => {
@@ -87,11 +103,19 @@ export default function OtherUserScreen() {
     onError: (msg) => showThemedError(msg, themeColors),
     sendReceipts: settings.sendReceipts,
   });
-  const [sending, setSending] = useState(false);
 
-  // --- Effects ---
   useEffect(() => {
-    if (chat.data) setMessages(chat.data);
+    if (chat.data) {
+        setMessages((prev) => {
+            const serverMsgs = chat.data || [];
+            const optimisticMsgs = prev.filter(m => m.message_id.length < 20);
+            
+            const combined = [...optimisticMsgs, ...serverMsgs];
+            const unique = Array.from(new Map(combined.map(m => [m.message_id, m])).values());
+            
+            return unique.sort((a, b) => new Date(b.sent_at).getTime() - new Date(a.sent_at).getTime());
+        });
+    }
   }, [chat.data]);
 
   useEffect(() => {
@@ -100,7 +124,6 @@ export default function OtherUserScreen() {
     return () => setActiveChatUserId(null);
   }, [id]);
 
-  // --- Actions ---
   const handleSend = async () => {
     if (sending) return;
     if (!messageToSend.trim() && !mediaPreview) return;
@@ -109,25 +132,53 @@ export default function OtherUserScreen() {
 
     try {
       if (messageToSend.trim()) {
+        const textContent = messageToSend.trim();
+        const tempMsg: Message = {
+          message_id: Date.now().toString(),
+          sender_id: user!.user_id,
+          message_content: textContent,
+          message_type: "text",
+          sent_at: new Date().toISOString(),
+          is_read: false,
+        };
+        
+        setMessages((prev) => [tempMsg, ...prev]);
+        setMessageToSend("");
+
         socket.emit("send_message", {
           other_user_id: id,
-          message: messageToSend.trim(),
+          message: textContent,
           message_type: "text",
         });
-        setMessageToSend("");
       }
 
       if (mediaPreview) {
-        const data = await uploadChatMedia(mediaPreview);
+        const type = mediaPreview.type;
+        const uploadUri = mediaPreview.uri;
+        
+        clearMediaPreview();
+
+        const data = await uploadChatMedia({ uri: uploadUri, type });
+        
+        const tempMsg: Message = {
+          message_id: Date.now().toString(),
+          sender_id: user!.user_id,
+          message_content: data.url,
+          message_type: type,
+          sent_at: new Date().toISOString(),
+          is_read: false,
+        };
+
+        setMessages((prev) => [tempMsg, ...prev]);
+
         socket.emit("send_message", {
           other_user_id: id,
           message: data.url,
-          message_type: mediaPreview.type,
+          message_type: type,
         });
-        clearMediaPreview();
       }
-    } catch {
-      showThemedError("Send failed", themeColors);
+    } catch (e: any) {
+      showThemedError("Send failed: " + e.message, themeColors);
     } finally {
       setSending(false);
     }
