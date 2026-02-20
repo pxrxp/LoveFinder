@@ -39,6 +39,7 @@ import LoadingScreen from "@/components/LoadingScreen";
 import { Portal } from "@gorhom/portal";
 
 import dayjs from "dayjs";
+import { apiFetch } from "@/services/api";
 
 export default function OtherUserScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -60,6 +61,7 @@ export default function OtherUserScreen() {
   const [messageToSend, setMessageToSend] = useState("");
   const [pressedMessage, setPressedMessage] = useState<string | null>(null);
   const [longPressedMessage, setLongPressedMessage] = useState<string | null>(null);
+  const [loadingOlderMessages, setLoadingOlderMessages] = useState(false);
 
   const [mediaMenuVisible, setMediaMenuVisible] = useState(false);
   const [deleteMenuVisible, setDeleteMenuVisible] = useState(false);
@@ -88,7 +90,7 @@ export default function OtherUserScreen() {
         return prev.map((m) => (m.message_id === tempMatch.message_id ? safeMsg : m));
       }
 
-      return [safeMsg, ...prev];
+      return [...prev, safeMsg];
     });
   }, []);
 
@@ -113,7 +115,7 @@ export default function OtherUserScreen() {
             const combined = [...optimisticMsgs, ...serverMsgs];
             const unique = Array.from(new Map(combined.map(m => [m.message_id, m])).values());
             
-            return unique.sort((a, b) => new Date(b.sent_at).getTime() - new Date(a.sent_at).getTime());
+            return unique.sort((a, b) => new Date(a.sent_at).getTime() - new Date(b.sent_at).getTime());
         });
     }
   }, [chat.data]);
@@ -123,6 +125,30 @@ export default function OtherUserScreen() {
     markAsRead(id);
     return () => setActiveChatUserId(null);
   }, [id]);
+
+  const loadOlderMessages = async () => {
+    if (loadingOlderMessages || messages.length === 0) return;
+    
+    setLoadingOlderMessages(true);
+    const cursor = messages[0].sent_at;
+
+    try {
+      const res = await apiFetch(`chat/${id}?cursor=${encodeURIComponent(cursor)}&limit=20`);
+      const older: Message[] = await res.json();
+
+      if (older.length > 0) {
+        setMessages((prev) => {
+          const combined = [...older, ...prev];
+          const unique = Array.from(new Map(combined.map((m) => [m.message_id, m])).values());
+          return unique.sort((a, b) => new Date(a.sent_at).getTime() - new Date(b.sent_at).getTime());
+        });
+      }
+    } catch (e: any) {
+      showThemedError(e.message, themeColors);
+    } finally {
+      setLoadingOlderMessages(false);
+    }
+  };
 
   const handleSend = async () => {
     if (sending) return;
@@ -142,7 +168,7 @@ export default function OtherUserScreen() {
           is_read: false,
         };
         
-        setMessages((prev) => [tempMsg, ...prev]);
+        setMessages((prev) => [...prev, tempMsg]);
         setMessageToSend("");
 
         socket.emit("send_message", {
@@ -169,7 +195,7 @@ export default function OtherUserScreen() {
           is_read: false,
         };
 
-        setMessages((prev) => [tempMsg, ...prev]);
+        setMessages((prev) => [...prev, tempMsg]);
 
         socket.emit("send_message", {
           other_user_id: id,
@@ -243,7 +269,7 @@ export default function OtherUserScreen() {
                 className="flex-1"
               >
                 <DataLoader fetchResult={chat} pullToRefresh>
-                  {(_, refreshing, onRefresh) => (
+                  {() => (
                     <>
                       {!socket?.connected && (
                         <Text className="text-center text-lg font-bold p-9 text-textPrimaryLight dark:text-textPrimaryDark">
@@ -264,9 +290,8 @@ export default function OtherUserScreen() {
                         setPressedMessage={setPressedMessage}
                         setSelectedMessage={setLongPressedMessage}
                         openDeleteMenu={() => setDeleteMenuVisible(true)}
-                        openViewer={openImageViewer}
-                        refreshing={refreshing}
-                        onRefresh={onRefresh}
+                        loadOlderMessages = {loadOlderMessages}
+                        loadingOlderMessages = {loadingOlderMessages}
                       />
                     </>
                   )}

@@ -1,4 +1,5 @@
-import { FlatList, Text, View, TouchableOpacity } from "react-native";
+import { Text, View, TouchableOpacity } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import { Link } from "expo-router";
 import Entypo from "@expo/vector-icons/Entypo";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -55,6 +56,8 @@ interface ConversationsListProps {
   unswipeVisible?: boolean;
   refetch: () => Promise<void>;
   extraData?: any;
+  onLoadMore?: () => void;
+  loadingMore?: boolean;
 }
 
 export default function ConversationsList({
@@ -64,6 +67,8 @@ export default function ConversationsList({
   unswipeVisible = true,
   refetch,
   extraData,
+  onLoadMore,
+  loadingMore,
 }: ConversationsListProps) {
   const { user } = useContext(AuthContext)!;
   const { themeColors } = useTheme();
@@ -125,12 +130,15 @@ export default function ConversationsList({
         pullToRefresh
       >
         {(conversations, refreshing, onRefresh) => (
-          <FlatList
+          <FlashList
             data={conversations}
             extraData={extraData}
             keyExtractor={(item) => item.other_user_id}
             onRefresh={onRefresh}
             refreshing={refreshing ?? false}
+            onEndReached={onLoadMore}
+            onEndReachedThreshold={0.5}
+            contentContainerClassName="px-7"
             ListEmptyComponent={
               <View className="flex-row justify-center py-10">
                 <Entypo

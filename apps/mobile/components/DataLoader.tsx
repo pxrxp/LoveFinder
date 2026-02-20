@@ -10,8 +10,6 @@ type DataLoaderProps<T> = {
     refetch: () => Promise<void>;
   };
   pullToRefresh?: boolean;
-  displayLoadingScreen?: boolean;
-  displayErrorScreen?: boolean;
   children: (
     data: T,
     refreshing?: boolean,
@@ -23,8 +21,6 @@ export default function DataLoader<T>({
   fetchResult,
   children,
   pullToRefresh = false,
-  displayLoadingScreen = true,
-  displayErrorScreen = true
 }: DataLoaderProps<T>) {
   const { data, loading, error, refetch } = fetchResult;
 
@@ -36,8 +32,8 @@ export default function DataLoader<T>({
     setRefreshing(false);
   }, [refetch]);
 
-  if (displayLoadingScreen && loading) return <LoadingScreen />;
-  if (displayErrorScreen && error) return <ErrorScreen error={error} />;
+  if (loading) return <LoadingScreen hasBackground={false} />;
+  if (error) return <ErrorScreen error={error} />;
   if (!data) return null;
 
   return children(

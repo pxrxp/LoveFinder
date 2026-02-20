@@ -1,7 +1,9 @@
-import { FlatList, View, Pressable, Text } from "react-native";
+import { View, Text, ActivityIndicator } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import { Message, User } from "@/types/chat";
 import MessageItem from "./MessageItem";
 import { formatFriendlyDate } from "@/services/date";
+import LoadingScreen from "./LoadingScreen";
 
 type Props = {
   messages: Message[];
@@ -10,9 +12,8 @@ type Props = {
   setPressedMessage: React.Dispatch<React.SetStateAction<string | null>>;
   setSelectedMessage: React.Dispatch<React.SetStateAction<string | null>>;
   openDeleteMenu: () => void;
-  openViewer: (uri: string) => void;
-  refreshing?: boolean;
-  onRefresh?: () => void;
+  loadOlderMessages: () => void;
+  loadingOlderMessages: boolean;
 };
 
 export default function ChatMessagesList({
@@ -22,21 +23,46 @@ export default function ChatMessagesList({
   setPressedMessage,
   setSelectedMessage,
   openDeleteMenu,
-  openViewer,
-  refreshing = false,
-  onRefresh,
+  loadOlderMessages,
+  loadingOlderMessages,
 }: Props) {
   return (
-    <FlatList
+    <FlashList
       data={messages}
-      inverted
+      maintainVisibleContentPosition={{
+        autoscrollToBottomThreshold: 0.1,
+        startRenderingFromBottom: true,
+      }}
+      onStartReached={loadOlderMessages}
+      onStartReachedThreshold={0.1}
+      drawDistance={1000}
       keyExtractor={(item) => item.message_id}
       className="px-4"
-      refreshing={refreshing}
-      onRefresh={onRefresh}
-      ListFooterComponent={<View className="h-12 w-full" />}
+      ListHeaderComponent={
+        loadingOlderMessages ? (
+          <LoadingScreen hasBackground={false} className="p-4"/>
+        ) : (
+          <View className="h-12 w-full" />
+        )
+      }
       renderItem={({ item }) => (
         <>
+          <MessageItem
+            other_user={otherUser}
+            item={item}
+            onPress={(e) => {
+              e.stopPropagation();
+              setPressedMessage((prev) =>
+                prev === item.message_id ? null : item.message_id,
+              );
+            }}
+            onLongPress={() => {
+              if (item.sender_id !== otherUser?.user_id) {
+                openDeleteMenu();
+                setSelectedMessage(item.message_id);
+              }
+            }}
+          />
           {pressedMessage === item.message_id && (
             <Text
               className={`text-sm font-regular pb-5 text-gray-500 ${
@@ -48,26 +74,8 @@ export default function ChatMessagesList({
               Sent at {formatFriendlyDate(item.sent_at)}
             </Text>
           )}
-          <MessageItem
-            other_user={otherUser}
-            item={item}
-            openViewer={openViewer}
-            onPress={(e) => {
-              e.stopPropagation();
-              setPressedMessage((prev) =>
-                prev === item.message_id ? null : item.message_id
-              );
-            }}
-            onLongPress={() => {
-              if (item.sender_id !== otherUser?.user_id) {
-                openDeleteMenu();
-                setSelectedMessage(item.message_id);
-              }
-            }}
-          />
         </>
       )}
     />
   );
 }
-

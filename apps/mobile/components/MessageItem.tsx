@@ -15,11 +15,11 @@ import { colors } from "@/constants/colors";
 import { useVideoPlayerContext } from "@/contexts/VideoPlayerContext";
 import VideoThumbnailPreview from "./VideoThumbnailPreview";
 import AudioPlayer from "./AudioPlayer";
+import { useImageViewerContext } from "@/contexts/ImageViewerContext";
 
 interface Props {
   other_user: User | null;
   item: Message;
-  openViewer: (image_uri: string) => void;
   onPress: (event: GestureResponderEvent) => void;
   onLongPress: (event: GestureResponderEvent) => void;
 }
@@ -27,7 +27,6 @@ interface Props {
 export default function MessageItem({
   other_user,
   item,
-  openViewer,
   onPress,
   onLongPress,
 }: Props) {
@@ -35,6 +34,7 @@ export default function MessageItem({
   const [failed, setFailed] = useState(false);
   const { theme } = useTheme();
 
+  const { openImageViewer } = useImageViewerContext();
   const { openVideoPlayer } = useVideoPlayerContext();
 
   useEffect(() => setFailed(false), [item.message_id]);
@@ -75,7 +75,7 @@ export default function MessageItem({
   const renderImage = () => (
     <TouchableOpacity
       activeOpacity={0.9}
-      onPress={() => !failed && openViewer(item.message_content)}
+      onPress={() => !failed && openImageViewer(item.message_content)}
       onLongPress={onLongPress}
     >
       <Image
