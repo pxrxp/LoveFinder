@@ -1,6 +1,6 @@
 import { View, Text, ScrollView, RefreshControl } from "react-native";
 import { useEffect, useState, memo, useCallback } from "react";
-import { FeedUser } from "@/types/FeedUser";
+import { User } from "@/types/User";
 import Card from "@/components/Card";
 import DataLoader from "@/components/DataLoader";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -9,7 +9,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 const MemoizedCard = memo(Card);
 
 interface FeedProps {
-  data: FeedUser[] | null;
+  data: User[] | null;
   loading: boolean;
   error: any;
   refetch: () => Promise<void>;
@@ -17,7 +17,7 @@ interface FeedProps {
 
 export default function Feed({ data, loading, error, refetch }: FeedProps) {
   const { themeColors } = useTheme();
-  const [cards, setCards] = useState<FeedUser[]>([]);
+  const [cards, setCards] = useState<User[]>([]);
   const [bioExpanded, setBioExpanded] = useState(false);
 
   useEffect(() => {

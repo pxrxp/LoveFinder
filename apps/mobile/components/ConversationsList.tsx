@@ -7,13 +7,13 @@ import DataLoader from "@/components/DataLoader";
 import { AuthContext } from "@/contexts/AuthContext";
 import { useContext, useState, useEffect } from "react";
 import { Conversation } from "@/types/Conversation";
-import ModalMenu from "./ModalMenu";
+import ModalMenu from "@/components/ModalMenu";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import utc from "dayjs/plugin/utc";
 import { showThemedError } from "@/services/themed-error";
-import ReportModal from "./modals/ReportModal";
-import ConfirmModal from "./modals/ConfirmModal";
+import ReportModal from "@/components/modals/ReportModal";
+import ConfirmModal from "@/components/modals/ConfirmModal";
 import {
   Octicons,
   FontAwesome5,
@@ -24,11 +24,9 @@ import {
   reportUser,
   swipeUser,
   unswipeUser,
-  ReportReason,
 } from "@/services/user-actions";
 import { showThemedSuccess } from "@/services/themed-success";
-import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
-import LoadingScreen from "./LoadingScreen";
+import LoadingScreen from "@/components/LoadingScreen";
 
 dayjs.extend(relativeTime);
 dayjs.extend(utc);

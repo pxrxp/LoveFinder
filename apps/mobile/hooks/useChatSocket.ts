@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useIsFocused } from "@react-navigation/native";
 import { getSocket } from "@/services/socket";
-import { Message } from "@/types/chat";
+import { Message } from "@/types/Message";
 
 export function useChatSocket({
   otherUserId,

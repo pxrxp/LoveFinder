@@ -33,13 +33,14 @@ import MediaMenuModal from "@/components/modals/MediaMenuModal";
 import DeleteMenuModal from "@/components/modals/DeleteMenuModal";
 import AudioRecorder from "@/components/AudioRecorder";
 
-import { Message, User } from "@/types/chat";
 import { MaterialIcons } from "@expo/vector-icons";
 import LoadingScreen from "@/components/LoadingScreen";
 import { Portal } from "@gorhom/portal";
 
 import dayjs from "dayjs";
 import { apiFetch } from "@/services/api";
+import { Message } from "@/types/Message";
+import { SwipedUser } from "@/types/User";
 
 export default function OtherUserScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -52,7 +53,7 @@ export default function OtherUserScreen() {
   const { openVideoPlayer, loading: videoLoading } = useVideoPlayerContext();
 
   const chat = useFetch<Message[]>(`chat/${id}`);
-  const otherUserFetch = useFetch<User>(`users/${id}`);
+  const otherUserFetch = useFetch<SwipedUser>(`users/${id}`);
   const { setActiveChatUserId, markAsRead } = useMessageTracker();
 
   const { mediaPreview, setMediaPreview, clearMediaPreview } = useMediaPreview();

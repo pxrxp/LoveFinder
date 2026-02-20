@@ -15,7 +15,7 @@ import { useEffect, useState } from "react";
 
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
-import AudioWaveform from "./AudioWaveform";
+import AudioWaveform from "@/components/AudioWaveform";
 dayjs.extend(duration);
 
 export default function AudioRecorder({

@@ -1,11 +1,11 @@
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { useFetch } from "@/hooks/useFetch";
-import { FeedUser } from "@/types/FeedUser";
+import { User } from "@/types/User";
 import Feed from "@/components/Feed";
 
 export default function HomeScreen() {
-  const { data, loading, error, refetch } = useFetch<FeedUser[]>("feed");
+  const { data, loading, error, refetch } = useFetch<User[]>("feed");
   const tabBarHeight = useBottomTabBarHeight();
 
   return (

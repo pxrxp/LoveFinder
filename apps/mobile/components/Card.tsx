@@ -27,18 +27,18 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { useState, useMemo } from "react";
 import { GestureDetector, Gesture } from "react-native-gesture-handler";
 import { Image } from "expo-image";
-import ReportModal from "./modals/ReportModal";
 import { reportUser, swipeUser } from "@/services/user-actions";
 import { showThemedError } from "@/services/themed-error";
 import { showThemedSuccess } from "@/services/themed-success";
-import { ImageCarousel } from "./ImageCarousel";
+import { ImageCarousel } from "@/components/ImageCarousel";
+import ReportModal from "@/components/modals/ReportModal";
 import { useFetch } from "@/hooks/useFetch";
-import { FeedUser } from "@/types/FeedUser";
+import { User } from "@/types/User";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 interface CardProps {
-  item: FeedUser;
+  item: User;
   isTop: boolean;
   bioExpanded: boolean;
   setBioExpanded: (val: boolean) => void;

@@ -1,7 +1,7 @@
 import { View, Text, Pressable } from "react-native";
-import ProfilePicture from "./ProfilePicture";
-import DataLoader from "./DataLoader";
-import { User } from "@/types/chat";
+import ProfilePicture from "@/components/ProfilePicture";
+import DataLoader from "@/components/DataLoader";
+import { User } from "@/types/User";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useImageViewerContext } from "@/contexts/ImageViewerContext";
 

@@ -1,9 +1,10 @@
-import { View, Text, ActivityIndicator } from "react-native";
+import { View, Text } from "react-native";
 import { FlashList } from "@shopify/flash-list";
-import { Message, User } from "@/types/chat";
-import MessageItem from "./MessageItem";
+import { Message } from "@/types/Message";
+import { User } from "@/types/User";
+import MessageItem from "@/components/MessageItem";
 import { formatFriendlyDate } from "@/services/date";
-import LoadingScreen from "./LoadingScreen";
+import LoadingScreen from "@/components/LoadingScreen";
 
 type Props = {
   messages: Message[];

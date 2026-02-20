@@ -1,4 +1,4 @@
-import { apiFetch } from "./api";
+import { apiFetch } from "@/services/api";
 
 export enum ReportReason {
   SPAM = "spam",

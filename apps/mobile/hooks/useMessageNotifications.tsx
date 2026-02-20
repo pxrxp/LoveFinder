@@ -1,8 +1,8 @@
 import { useEffect, useRef, useContext } from "react";
 import { useMessageTracker } from "@/contexts/MessageTrackerContext";
 import { AuthContext } from "@/contexts/AuthContext";
-import { useSettings } from "@/contexts/SettingsContext"; // Added
-import { Message } from "@/types/chat";
+import { useSettings } from "@/contexts/SettingsContext";
+import { Message } from "@/types/Message";
 import { showMessage } from "react-native-flash-message";
 import { useTheme } from "@/contexts/ThemeContext";
 import { colors } from "@/constants/colors";
