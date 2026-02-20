@@ -232,6 +232,22 @@ export default function Card({
 
           {isTop && !bioExpanded && (
             <>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => setReportMenuVisible(true)}
+                style={{
+                  position: "absolute",
+                  top: 55,
+                  right: 15,
+                  zIndex: 50,
+                  backgroundColor: "rgba(0,0,0,0.2)",
+                  padding: 10,
+                  borderRadius: 999,
+                }}
+              >
+                <FontAwesome5 name="shield-alt" size={22} color="white" />
+              </TouchableOpacity>
+
               <Animated.View
                 style={[
                   { position: "absolute", top: 60, left: 30, zIndex: 40 },
@@ -305,7 +321,8 @@ export default function Card({
                 <View className="flex-1 mr-4" pointerEvents="none">
                   <View className="flex-row items-baseline">
                     <Text className="text-white text-3xl font-bold">
-                      {item.full_name}{"  "}
+                      {item.full_name}
+                      {"  "}
                     </Text>
                     <Text className="text-white text-2xl font-regular">
                       {item.age}
