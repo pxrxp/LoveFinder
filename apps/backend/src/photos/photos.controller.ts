@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Delete, Get, Param, ParseBoolPipe, ParseUUIDPipe, Post, Query, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, Controller, Delete, Get, Param, ParseBoolPipe, ParseUUIDPipe, Post, Query, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { PhotosService } from './photos.service';
 import { UserDto } from '../users/dto/user.dto';
 import { GetUser } from '../auth/decorators/get-user.decorator';
@@ -16,11 +16,11 @@ export class PhotosController {
     FileInterceptor('file', {
       storage: diskStorage({
         destination: './uploads/profile',
-        filename: (req, file, cb) => {
+        filename: (_, file, cb) => {
           cb(null, randomUUID() + extname(file.originalname));
         },
       }),
-      fileFilter: (req, file, cb) => {
+      fileFilter: (_, file, cb) => {
         if (
           !file.mimetype.startsWith('image/')
         ) {
@@ -29,7 +29,7 @@ export class PhotosController {
         }
         cb(null, true);
       },
-      limits: { fileSize: 50 * 1024 * 1024 },
+      limits: { fileSize: 5 * 1024 * 1024 },
     }),
   )
   upload(

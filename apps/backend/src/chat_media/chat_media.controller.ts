@@ -15,7 +15,7 @@ export class ChatMediaController {
           cb(null, randomUUID() + extname(file.originalname));
         },
       }),
-      fileFilter: (req, file, cb) => {
+      fileFilter: (_, file, cb) => {
         if (
           !file.mimetype.startsWith('image/') &&
           !file.mimetype.startsWith('video/') &&
@@ -26,7 +26,7 @@ export class ChatMediaController {
         }
         cb(null, true);
       },
-      limits: { fileSize: 100 * 1024 * 1024 },
+      limits: { fileSize: 5 * 1024 * 1024 },
     }),
   )
   uploadChatMedia(

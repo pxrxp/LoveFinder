@@ -2,26 +2,36 @@ import { launchCameraAsync, launchImageLibraryAsync } from "expo-image-picker";
 
 export type MediaPreview = { uri: string; type: "image" | "video" | "audio" };
 
-export async function pickPhoto(): Promise<MediaPreview | null> {
+interface MediaProps { videosAllowed?: boolean; allowsEditing?: boolean; };
+
+export async function pickMedia(props?: MediaProps): Promise<MediaPreview | null> {
+  const { videosAllowed = false, allowsEditing = false } = props || {};
   const result = await launchImageLibraryAsync({
-    mediaTypes: ["images", "videos"],
+    mediaTypes: videosAllowed ? ["images", "videos"] : ["images"],
     quality: 0.7,
+    allowsEditing,
+    aspect: allowsEditing ? [1, 1] : undefined,
+    allowsMultipleSelection: false,
   });
 
-  if (!result.canceled && (result.assets[0].type === "image" || result.assets[0].type === "video")) {
+  if (!result.canceled && (result.assets[0].type === "image" || (videosAllowed && result.assets[0].type === "video"))) {
     return { uri: result.assets[0].uri, type: result.assets[0].type };
   }
   return null;
 }
 
-export async function launchCamera(): Promise<MediaPreview | null> {
+export async function launchCamera(props?: MediaProps): Promise<MediaPreview | null> {
+  const { videosAllowed = false, allowsEditing = false } = props || {};
   const result = await launchCameraAsync({
-    mediaTypes: ["images"],
+    mediaTypes: videosAllowed ? ["images", "videos"] : ["images"],
     quality: 0.7,
+    allowsEditing,
+    aspect: allowsEditing ? [1, 1] : undefined,
+    allowsMultipleSelection: false,
   });
 
-  if (!result.canceled && result.assets[0].type === "image") {
-    return { uri: result.assets[0].uri, type: "image" };
+  if (!result.canceled && (result.assets[0].type === "image" || (videosAllowed && result.assets[0].type === "video"))) {
+    return { uri: result.assets[0].uri, type: result.assets[0].type };
   }
   return null;
 }

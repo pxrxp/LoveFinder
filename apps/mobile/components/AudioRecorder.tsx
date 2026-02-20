@@ -26,7 +26,7 @@ export default function AudioRecorder({
   const { themeColors } = useTheme();
 
   const audioRecorder = useAudioRecorder({
-    ...RecordingPresets.LOW_QUALITY,
+    ...RecordingPresets.HIGH_QUALITY,
     isMeteringEnabled: true,
   });
 

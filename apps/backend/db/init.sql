@@ -247,6 +247,28 @@ CREATE TABLE IF NOT EXISTS PHOTOS (
 	IS_PRIMARY BOOLEAN NOT NULL DEFAULT FALSE
 );
 
+CREATE OR REPLACE FUNCTION check_max_photos()
+RETURNS TRIGGER AS $$
+DECLARE
+    photo_count INT;
+BEGIN
+    SELECT COUNT(*) INTO photo_count
+    FROM photos
+    WHERE uploader_id = NEW.uploader_id;
+
+    IF photo_count >= 6 THEN
+        RAISE EXCEPTION 'Cannot insert photo: a user can have a maximum of 6 photos.';
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_check_max_photos
+BEFORE INSERT ON photos
+FOR EACH ROW
+EXECUTE FUNCTION check_max_photos();
+
 CREATE INDEX idx_users_demographics ON users (gender, birth_date) WHERE is_active = true;
 
 CREATE INDEX idx_users_location ON users USING gist (ll_to_earth(latitude, longitude));

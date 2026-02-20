@@ -21,7 +21,7 @@ import { useVideoPlayerContext } from "@/contexts/VideoPlayerContext";
 import { AuthContext } from "@/contexts/AuthContext";
 
 import { uploadChatMedia } from "@/services/chat-media";
-import { pickPhoto, launchCamera } from "@/services/media-picker";
+import { pickMedia, launchCamera } from "@/services/media-picker";
 import { showThemedError } from "@/services/themed-error";
 
 import DataLoader from "@/components/DataLoader";
@@ -352,7 +352,7 @@ export default function OtherUserScreen() {
         }}
         pickPhoto={async () => {
           setMediaMenuVisible(false);
-          const res = await pickPhoto();
+          const res = await pickMedia();
           if (res) setMediaPreview(res);
         }}
         openAudioRecorder={() => {
