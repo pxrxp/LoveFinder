@@ -268,6 +268,56 @@ BEFORE INSERT ON photos
 FOR EACH ROW
 EXECUTE FUNCTION check_max_photos();
 
+CREATE OR REPLACE FUNCTION ENSURE_PRIMARY_ON_INSERT () RETURNS TRIGGER AS $$
+DECLARE
+    photo_count INT;
+BEGIN
+    SELECT COUNT(*) INTO photo_count
+    FROM photos
+    WHERE uploader_id = NEW.uploader_id;
+    IF photo_count = 0 THEN
+        NEW.is_primary := TRUE;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE PLPGSQL;
+
+CREATE TRIGGER TRG_ENSURE_PRIMARY_ON_INSERT BEFORE INSERT ON PHOTOS FOR EACH ROW
+EXECUTE FUNCTION ENSURE_PRIMARY_ON_INSERT ();
+
+CREATE OR REPLACE FUNCTION ENSURE_USER_HAS_PRIMARY () RETURNS TRIGGER AS $$
+DECLARE
+    primary_count INT;
+BEGIN
+    SELECT COUNT(*) INTO primary_count
+    FROM photos
+    WHERE uploader_id = COALESCE(NEW.uploader_id, OLD.uploader_id)
+      AND is_primary = TRUE;
+    IF primary_count = 0 THEN
+        UPDATE photos
+        SET is_primary = TRUE
+        WHERE photo_id = (
+            SELECT photo_id
+            FROM photos
+            WHERE uploader_id = COALESCE(NEW.uploader_id, OLD.uploader_id)
+            ORDER BY photo_id DESC
+            LIMIT 1
+        );
+    END IF;
+
+    RETURN NULL;
+END;
+$$ LANGUAGE PLPGSQL;
+
+CREATE TRIGGER TRG_ENSURE_PRIMARY_AFTER_UPDATE
+AFTER
+UPDATE OF IS_PRIMARY ON PHOTOS FOR EACH ROW
+EXECUTE FUNCTION ENSURE_USER_HAS_PRIMARY ();
+
+CREATE TRIGGER TRG_ENSURE_PRIMARY_AFTER_DELETE
+AFTER DELETE ON PHOTOS FOR EACH ROW
+EXECUTE FUNCTION ENSURE_USER_HAS_PRIMARY ();
+
 CREATE INDEX idx_users_demographics ON users (gender, birth_date) WHERE is_active = true;
 
 CREATE INDEX idx_users_location ON users USING gist (ll_to_earth(latitude, longitude));

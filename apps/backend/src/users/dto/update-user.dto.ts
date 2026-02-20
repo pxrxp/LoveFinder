@@ -1,4 +1,4 @@
-import { IsOptional, IsString, Length, IsArray, ArrayNotEmpty, IsBoolean, IsInt, Min, Max } from 'class-validator';
+import { IsOptional, IsString, Length, IsArray, ArrayNotEmpty, IsBoolean, IsInt, Min, Max, IsDateString } from 'class-validator';
 
 export class UpdateUserDto {
   @IsOptional()
@@ -10,6 +10,18 @@ export class UpdateUserDto {
   @IsString()
   @Length(0, 512)
   bio?: string;
+
+  @IsOptional()
+  @IsDateString()
+  birth_date?: string;
+
+  @IsOptional()
+  @IsString()
+  gender?: string;
+
+  @IsOptional()
+  @IsString()
+  sexual_orientation?: string;
 
   @IsOptional()
   @IsArray()

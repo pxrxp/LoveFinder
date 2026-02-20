@@ -83,16 +83,15 @@ export class UsersService {
     return result[0] ?? null;
   }
 
-  async update(
-    user_id: string,
-    data: UpdateUserDto
-  ): Promise<UserDto | null> {
-
+  async update(user_id: string, data: UpdateUserDto): Promise<UserDto | null> {
     const result = await Bun.sql`
       UPDATE USERS
       SET
         FULL_NAME = COALESCE(${data.full_name}, FULL_NAME),
         BIO = COALESCE(${data.bio}, BIO),
+        BIRTH_DATE = COALESCE(${data.birth_date}::DATE, BIRTH_DATE),
+        GENDER = COALESCE(${data.gender}::T_GENDER, GENDER),
+        SEXUAL_ORIENTATION = COALESCE(${data.sexual_orientation}::T_ORIENTATION, SEXUAL_ORIENTATION),
         PREF_GENDERS = COALESCE(${data.pref_genders}::T_GENDER[], PREF_GENDERS),
         PREF_MIN_AGE = COALESCE(${data.pref_min_age}, PREF_MIN_AGE),
         PREF_MAX_AGE = COALESCE(${data.pref_max_age}, PREF_MAX_AGE),

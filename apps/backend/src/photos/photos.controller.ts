@@ -1,4 +1,4 @@
-import { BadRequestException, Controller, Delete, Get, Param, ParseBoolPipe, ParseUUIDPipe, Post, Query, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { PhotosService } from './photos.service';
 import { UserDto } from '../users/dto/user.dto';
 import { GetUser } from '../auth/decorators/get-user.decorator';
@@ -21,9 +21,7 @@ export class PhotosController {
         },
       }),
       fileFilter: (_, file, cb) => {
-        if (
-          !file.mimetype.startsWith('image/')
-        ) {
+        if (!file.mimetype.startsWith('image/')) {
           cb(new Error('Invalid file type'), false);
           return;
         }
@@ -35,20 +33,25 @@ export class PhotosController {
   upload(
     @GetUser() user: UserDto,
     @UploadedFile() file: Express.Multer.File,
-    @Query('is_primary', ParseBoolPipe) is_primary?: boolean,
+    @Body('is_primary') is_primary?: string,
+    @Body('replace_photo_id') replace_photo_id?: string,
   ) {
     if (!file) {
       throw new BadRequestException('No file provided or file type invalid');
     }
     const url = `${process.env.BACKEND_URL}/static/profile/${file.filename}`;
-    return this.photosService.create(user.user_id, url, is_primary ?? false);
+    const isPrimaryBool = is_primary === 'true';
+
+    return this.photosService.create(
+      user.user_id, 
+      url, 
+      isPrimaryBool, 
+      replace_photo_id !== 'undefined' ? replace_photo_id : undefined
+    );
   }
 
   @Post(':photo_id/primary')
-  setPrimary(
-    @GetUser() user: UserDto,
-    @Param('photo_id', ParseUUIDPipe) photo_id: string
-  ) {
+  setPrimary(@GetUser() user: UserDto, @Param('photo_id', ParseUUIDPipe) photo_id: string) {
     return this.photosService.setPrimary(user.user_id, photo_id);
   }
 
@@ -63,10 +66,7 @@ export class PhotosController {
   }
 
   @Delete(':photo_id')
-  delete(
-    @GetUser() user: UserDto,
-    @Param('photo_id', ParseUUIDPipe) photo_id: string
-  ) {
+  delete(@GetUser() user: UserDto, @Param('photo_id', ParseUUIDPipe) photo_id: string) {
     return this.photosService.delete(user.user_id, photo_id);
   }
 }

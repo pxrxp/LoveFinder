@@ -12,3 +12,16 @@ export interface User {
 export interface SwipedUser extends User {
   swipe_category: SwipeCategory;
 }
+
+export interface UserPrivate extends Partial<User> {
+  full_name?: string;
+  bio?: string;
+  birth_date?: string;
+  gender?: string;
+  sexual_orientation?: string;
+  pref_genders?: string[];
+  pref_min_age?: number;
+  pref_max_age?: number;
+  pref_distance_radius_km?: number;
+  allow_messages_from_strangers?: boolean;
+}

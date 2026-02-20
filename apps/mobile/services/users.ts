@@ -1,7 +1,7 @@
 import { apiFetch } from "@/services/api";
-import { User } from "@/types/User"
+import { UserPrivate } from "@/types/User";
 
-export const updateProfile = async (data: Partial<User>) => {
+export const updateProfile = async (data: UserPrivate) => {
   return await apiFetch(`users`, {
     method: "PATCH",
     body: JSON.stringify(data),
