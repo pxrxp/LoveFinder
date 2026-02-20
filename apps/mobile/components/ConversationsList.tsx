@@ -1,4 +1,4 @@
-import { FlatList, Text, View, Pressable } from "react-native";
+import { FlatList, Text, View, TouchableOpacity } from "react-native";
 import { Link } from "expo-router";
 import Entypo from "@expo/vector-icons/Entypo";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -48,7 +48,7 @@ const TimeAgo = ({ date }: { date?: string }) => {
   return <Text className="text-gray-500 font-regular text-sm">{timeText}</Text>;
 };
 
-interface ChatListProps {
+interface ConversationsListProps {
   conversations: Conversation[];
   loading: boolean;
   error?: any;
@@ -57,14 +57,14 @@ interface ChatListProps {
   extraData?: any;
 }
 
-export default function ChatList({
+export default function ConversationsList({
   conversations,
   loading,
   error,
   unswipeVisible = true,
   refetch,
   extraData,
-}: ChatListProps) {
+}: ConversationsListProps) {
   const { user } = useContext(AuthContext)!;
   const { themeColors } = useTheme();
 
@@ -153,7 +153,7 @@ export default function ChatList({
                 href={`/chat/${item.other_user_id}`}
                 asChild
               >
-                <Pressable className="my-5">
+                <TouchableOpacity activeOpacity={0.5} className="my-5">
                   <View className="flex-row items-center w-full">
                     <ProfilePicture
                       url={item.profile_picture_url}
@@ -193,7 +193,7 @@ export default function ChatList({
                       )}
                     </View>
                   </View>
-                </Pressable>
+                </TouchableOpacity>
               </Link>
             )}
           />

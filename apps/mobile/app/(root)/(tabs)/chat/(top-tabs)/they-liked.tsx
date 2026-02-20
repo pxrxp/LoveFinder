@@ -1,5 +1,5 @@
 import { SafeAreaView } from "react-native-safe-area-context";
-import ChatList from "@/components/ChatList";
+import ConversationsList from "@/components/ConversationsList";
 import { useConversations } from "@/contexts/ConversationsContext";
 
 export default function YouLikedScreen() {
@@ -10,7 +10,7 @@ export default function YouLikedScreen() {
       className="flex-1 px-7 bg-bgPrimaryLight dark:bg-bgPrimaryDark"
       edges={["bottom"]}
     >
-      <ChatList
+      <ConversationsList
         conversations={
           conversations?.filter((c) => c.swipe_category === "they") ?? []
         }

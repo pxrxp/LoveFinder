@@ -5,6 +5,6 @@ export interface Conversation {
   last_message: string;
   last_message_type: "text" | "image" | "audio" | "video";
   last_message_sender_id: string;
-  last_message_sent_at: Date;
+  last_message_sent_at: string;
   swipe_category: "you" | "they" | "both" | "none";
 }
