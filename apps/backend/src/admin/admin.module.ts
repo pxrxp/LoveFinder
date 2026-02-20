@@ -4,9 +4,10 @@ import { AdminReportsController } from './reports/reports.controller';
 import { AdminReportsService } from './reports/reports.service';
 import { AdminInterestsService } from './interests/interests.service';
 import { AdminUsersController } from './users/users.controller';
+import { UsersService } from '../users/users.service';
 
 @Module({
   controllers: [AdminInterestsController, AdminReportsController, AdminUsersController],
-  providers: [AdminReportsService, AdminInterestsService]
+  providers: [AdminReportsService, AdminInterestsService, UsersService]
 })
 export class AdminModule {}
