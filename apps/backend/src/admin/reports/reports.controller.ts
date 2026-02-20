@@ -1,6 +1,8 @@
-import { Body, Controller, Get, Param, Patch, ParseUUIDPipe, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, ParseUUIDPipe, UseGuards, ParseEnumPipe } from '@nestjs/common';
 import { AdminReportsService } from './reports.service';
 import { AdminGuard } from '../../auth/guards/admin.guard';
+
+type ReportStatus = 'under_review' | 'dismissed' | 'action_taken';
 
 @UseGuards(AdminGuard)
 @Controller('admin/reports')
@@ -15,7 +17,7 @@ export class AdminReportsController {
   @Patch(':report_id/status')
   updateStatus(
     @Param('report_id', ParseUUIDPipe) report_id: string,
-    @Body('status') body: { status: 'under_review' | 'dismissed' | 'action_taken' }
+    @Body('status', ParseEnumPipe<ReportStatus>) body: { status: ReportStatus }
   ) {
     return this.reportsService.updateStatus(report_id, body.status);
   }

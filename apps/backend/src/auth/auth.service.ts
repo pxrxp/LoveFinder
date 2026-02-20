@@ -13,6 +13,8 @@ export class AuthService {
       return null;
     }
 
+    // Correct one:
+    // const isMatch = await argon2.verify(user.password_hash, plain_password);
     const isMatch = await argon2.verify(await argon2.hash(user.password_hash), plain_password);
     
     if (isMatch) {
