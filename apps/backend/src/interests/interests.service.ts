@@ -24,11 +24,42 @@ export class InterestsService {
 
   async getUserInterests(user_id: string) {
     return Bun.sql`
-      SELECT I.*
+      SELECT I.INTEREST_ID, I.INTEREST_NAME
       FROM INTERESTS I
       JOIN USER_INTERESTS UI
         ON UI.INTEREST_ID = I.INTEREST_ID
       WHERE UI.USER_ID = ${user_id}
     `;
+  }
+
+  async getApprovedInterests() {
+    return Bun.sql`
+      SELECT INTEREST_ID, INTEREST_NAME
+      FROM INTERESTS
+      WHERE is_approved = TRUE
+      ORDER BY interest_name
+    `;
+  }
+
+  async requestInterest(interest_name: string) {
+    const normalized = interest_name.trim();
+
+    const existing = await Bun.sql`
+      SELECT INTEREST_ID, INTEREST_NAME
+      FROM INTERESTS
+      WHERE interest_name = ${normalized}
+    `;
+
+    if (existing.length > 0) {
+      return { message: 'Interest already exists', interest: existing[0] };
+    }
+
+    return (
+      await Bun.sql`
+        INSERT INTO INTERESTS (interest_name, is_approved)
+        VALUES (${normalized}, FALSE)
+        RETURNING *
+      `
+    )[0];
   }
 }

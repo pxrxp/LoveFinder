@@ -16,12 +16,13 @@ import { ReportsModule } from './reports/reports.module';
 import { InterestsModule } from './interests/interests.module';
 import { join } from 'path';
 import { ChatMediaModule } from './chat_media/chat_media.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [ChatModule, FeedModule, LiveChatModule, AuthModule, UsersModule, PhotosModule, SwipesModule, BlocksModule, ReportsModule, InterestsModule, ServeStaticModule.forRoot({
     rootPath: join(__dirname, '..', 'uploads'),
     serveRoot: '/static',
-  }), ChatMediaModule],
+  }), ChatMediaModule, AdminModule],
   controllers: [AppController],
   providers: [
     AppService,

@@ -28,22 +28,12 @@ export class ReportsService {
     )[0];
   }
 
-  async updateStatus(report_id: string, status: string) {
-    return (
-      await Bun.sql`
-        UPDATE REPORTS
-        SET STATUS = ${status}::T_REPORT_STATUS
-        WHERE REPORT_ID = ${report_id}
-        RETURNING *
-      `
-    )[0];
-  }
-
-  async findPending() {
+  async findPending(reporter_id: string) {
     return Bun.sql`
       SELECT *
       FROM REPORTS
       WHERE STATUS = 'under_review'
+          AND REPORTER_ID = ${reporter_id}
     `;
   }
 }

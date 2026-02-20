@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseEnumPipe, ParseUUIDPipe, Patch, Post } from '@nestjs/common';
 import { ReportsService } from './reports.service';
 import { GetUser } from '../auth/decorators/get-user.decorator';
 import { UserDto } from '../users/dto/user.dto';
@@ -22,16 +22,8 @@ export class ReportsController {
     );
   }
 
-  @Patch(':report_id/status')
-  updateStatus(
-    @Param('report_id') report_id: string,
-    @Body() body: { status: string }
-  ) {
-    return this.reportsService.updateStatus(report_id, body.status);
-  }
-
   @Get('pending')
-  findPending() {
-    return this.reportsService.findPending();
+  findPending(@GetUser() user: UserDto) {
+    return this.reportsService.findPending(user.user_id);
   }
 }

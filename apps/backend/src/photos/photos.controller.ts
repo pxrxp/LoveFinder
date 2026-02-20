@@ -47,7 +47,7 @@ export class PhotosController {
   @Post(':photo_id/primary')
   setPrimary(
     @GetUser() user: UserDto,
-    @Param('photo_id') photo_id: string
+    @Param('photo_id', ParseUUIDPipe) photo_id: string
   ) {
     return this.photosService.setPrimary(user.user_id, photo_id);
   }
@@ -65,7 +65,7 @@ export class PhotosController {
   @Delete(':photo_id')
   delete(
     @GetUser() user: UserDto,
-    @Param('photo_id') photo_id: string
+    @Param('photo_id', ParseUUIDPipe) photo_id: string
   ) {
     return this.photosService.delete(user.user_id, photo_id);
   }

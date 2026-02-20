@@ -5,7 +5,7 @@ export type MediaPreview = { uri: string; type: "image" | "video" | "audio" };
 interface MediaProps { videosAllowed?: boolean; allowsEditing?: boolean; };
 
 export async function pickMedia(props?: MediaProps): Promise<MediaPreview | null> {
-  const { videosAllowed = false, allowsEditing = false } = props || {};
+  const { videosAllowed = true, allowsEditing = false } = props || {};
   const result = await launchImageLibraryAsync({
     mediaTypes: videosAllowed ? ["images", "videos"] : ["images"],
     quality: 0.7,
@@ -21,7 +21,7 @@ export async function pickMedia(props?: MediaProps): Promise<MediaPreview | null
 }
 
 export async function launchCamera(props?: MediaProps): Promise<MediaPreview | null> {
-  const { videosAllowed = false, allowsEditing = false } = props || {};
+  const { videosAllowed = true, allowsEditing = false } = props || {};
   const result = await launchCameraAsync({
     mediaTypes: videosAllowed ? ["images", "videos"] : ["images"],
     quality: 0.7,
