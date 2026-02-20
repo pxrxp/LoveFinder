@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { UserDto } from './dto/user.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import * as argon2 from 'argon2';
 
 @Injectable()
 export class UsersService {
@@ -21,7 +22,7 @@ export class UsersService {
         )
         VALUES (
           ${data.email},
-          ${data.password_hash},
+          ${await argon2.hash(data.password)},
           ${data.full_name},
           ${data.gender}::T_GENDER,
           ${data.sexual_orientation}::T_ORIENTATION,

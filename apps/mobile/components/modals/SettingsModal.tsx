@@ -134,7 +134,7 @@ export default function SettingsModal({ visible, onDismiss }: Props) {
             />
 
             <SettingRow
-              label="Notifications"
+              label="In-app Notifications"
               value={settings.getNotifications}
               onValueChange={(val) => setSetting("getNotifications", val)}
               icon={

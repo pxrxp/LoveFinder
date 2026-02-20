@@ -1,12 +1,12 @@
-import { IsEmail, IsString, IsEnum, IsDateString, Length } from 'class-validator';
+import { IsEmail, IsString, IsEnum, IsDateString, Length, IsStrongPassword } from 'class-validator';
 
 export class CreateUserDto {
   @IsEmail()
   email!: string;
 
   @IsString()
-  @Length(6, 255)
-  password_hash!: string;
+  @IsStrongPassword()
+  password!: string;
 
   @IsString()
   @Length(1, 255)
