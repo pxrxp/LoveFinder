@@ -95,7 +95,7 @@ export const ImageViewerProvider = ({ children }: { children: ReactNode }) => {
         visible={visible}
         transparent
         animationType="fade"
-        onRequestClose={() => runOnJS(closeViewer)()}
+        onRequestClose={() => scheduleOnRN(closeViewer)}
       >
         <GestureHandlerRootView className="flex-1">
           <Animated.View

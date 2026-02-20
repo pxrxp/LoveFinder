@@ -1,4 +1,10 @@
-import { View, Text, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Dimensions,
+  ScrollView,
+} from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -7,21 +13,18 @@ import Animated, {
   withTiming,
   SlideInDown,
   SlideOutDown,
-  useAnimatedScrollHandler,
-  SharedValue,
 } from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
 import MaskedView from "@react-native-masked-view/masked-view";
-import AntDesign from "@expo/vector-icons/AntDesign";
-import { FeedUser } from "@/types/FeedUser";
-import { useTheme } from "@/contexts/ThemeContext";
 import {
+  AntDesign,
   FontAwesome5,
   Entypo,
   Ionicons,
   MaterialIcons,
 } from "@expo/vector-icons";
-import { useEffect, useState } from "react";
+import { useTheme } from "@/contexts/ThemeContext";
+import { useState, useMemo } from "react";
 import { GestureDetector, Gesture } from "react-native-gesture-handler";
 import { Image } from "expo-image";
 import ReportModal from "./modals/ReportModal";
@@ -29,29 +32,17 @@ import { reportUser, swipeUser } from "@/services/user-actions";
 import { showThemedError } from "@/services/themed-error";
 import { showThemedSuccess } from "@/services/themed-success";
 import { ImageCarousel } from "./ImageCarousel";
-import { scheduleOnRN } from "react-native-worklets";
 import { useFetch } from "@/hooks/useFetch";
+import { FeedUser } from "@/types/FeedUser";
 
-const SCREEN_WIDTH = require("react-native").Dimensions.get("window").width;
-type SwipeStatus = "dislike" | "like" | "pending";
-
-interface Photo {
-  photo_id: string;
-  uploader_id: string;
-  image_url: string;
-  is_primary: boolean;
-}
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 interface CardProps {
   item: FeedUser;
   isTop: boolean;
   bioExpanded: boolean;
-  setBioExpanded: React.Dispatch<React.SetStateAction<boolean>>;
-  x: SharedValue<number>;
-  y: SharedValue<number>;
-  status: SharedValue<SwipeStatus>;
-  removeTopCard: () => void;
-  swapTopCard: () => void;
+  setBioExpanded: (val: boolean) => void;
+  onRemove: () => void;
 }
 
 export default function Card({
@@ -59,152 +50,91 @@ export default function Card({
   isTop,
   bioExpanded,
   setBioExpanded,
-  x,
-  y,
-  status,
-  removeTopCard,
-  swapTopCard,
+  onRemove,
 }: CardProps) {
   const { themeColors } = useTheme();
+  const x = useSharedValue(0);
+  const y = useSharedValue(0);
+  const rotateY = useSharedValue(0);
+  const [status, setStatus] = useState<"like" | "dislike" | "pending">(
+    "pending",
+  );
   const [reportMenuVisible, setReportMenuVisible] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  const cleanUserId = item.user_id.replace("-copy", "");
-  const { data: userPhotos, error } = useFetch<Photo[]>(
-    `photos/${cleanUserId}`,
+  const { data: userPhotos } = useFetch<any[]>(
+    `photos/${item.user_id.replace("-copy", "")}`,
   );
-  const [photos, setPhotos] = useState<string[]>([item.image_url]);
-
-  const postSwipe = async (receiver_id: string, type: "like" | "dislike") => {
-    try {
-      await swipeUser(receiver_id, type);
-    } catch (err) {
-      showThemedError(`Swipe POST failed:\n ${err}`, themeColors);
-    }
-  };
-
-  useEffect(() => {
-    if (userPhotos?.length) setPhotos(userPhotos.map((p) => p.image_url));
-    if (error) showThemedError(`Failed to fetch photos\n${error}`, themeColors);
-  }, [userPhotos, error]);
-
-  const scrollY = useSharedValue(0);
-  const gestureStartY = useSharedValue(0);
-  const expandActivationY = useSharedValue(0);
+  const photos = useMemo(
+    () =>
+      userPhotos?.length
+        ? userPhotos.map((p) => p.image_url)
+        : [item.image_url],
+    [userPhotos, item.image_url],
+  );
 
   const style = useAnimatedStyle(() => ({
     transform: [
       { translateX: x.value },
-      { translateY: 2 * y.value },
+      { translateY: y.value * 2 },
       { rotateZ: `${-0.17 * x.value}deg` },
     ],
+    zIndex: isTop ? 10 : 1,
   }));
-
-  const showHeartStyle = useAnimatedStyle(() => ({
-    opacity: status.value === "like" ? 1 : 0,
-  }));
-  const showCrossStyle = useAnimatedStyle(() => ({
-    opacity: status.value === "dislike" ? 1 : 0,
-  }));
-
-  const scrollHandler = useAnimatedScrollHandler({
-    onScroll: (event) => {
-      scrollY.value = event.contentOffset.y;
-    },
-  });
-
-  const rotateY = useSharedValue(0);
-  const wobble = (direction: "left" | "right") => {
-    const deg = direction === "left" ? 10 : -10;
-    rotateY.value = withSequence(
-      withTiming(deg, { duration: 40 }),
-      withSpring(0, { damping: 40, stiffness: 1200 }),
-    );
-  };
 
   const animatedWobble = useAnimatedStyle(() => ({
     transform: [{ perspective: 1000 }, { rotateY: `${rotateY.value}deg` }],
   }));
 
-  const verticalSwipe = Gesture.Pan()
-    .activeOffsetY([-15, 15])
-    .failOffsetX([-10, 10])
-    .onBegin((event) => {
-      gestureStartY.value = event.y;
-    })
-    .onEnd((event) => {
-      const swipeUp = event.translationY < -80;
-      const swipeDown = event.translationY > 80;
-      const startedInBottomArea =
-        gestureStartY.value >= expandActivationY.value;
-
-      if (swipeUp && !bioExpanded && startedInBottomArea) {
-        scheduleOnRN(setBioExpanded, true);
-        return;
-      }
-
-      if (swipeDown && bioExpanded && scrollY.value <= 0) {
-        scheduleOnRN(setBioExpanded, false);
-      }
-    });
-
   const horizontalSwipe = Gesture.Pan()
+    .runOnJS(true)
     .enabled(isTop && !bioExpanded)
-    .activeOffsetX([-10, 10])
-    .failOffsetY([-15, 15])
-    .onUpdate((event) => {
-      x.value = event.translationX;
-      y.value = event.translationY * 0.1;
-      const swipePercent = Math.abs(x.value) / SCREEN_WIDTH;
-      status.value =
-        swipePercent >= 0.1 ? (x.value > 0 ? "like" : "dislike") : "pending";
+    .onUpdate((e) => {
+      x.value = e.translationX;
+      y.value = e.translationY * 0.1;
+      const perc = Math.abs(x.value) / SCREEN_WIDTH;
+      if (perc >= 0.1) setStatus(x.value > 0 ? "like" : "dislike");
+      else setStatus("pending");
     })
     .onEnd(() => {
-      const swipePercent = Math.abs(x.value) / SCREEN_WIDTH;
-      const currentStatus = status.value;
-
-      if (swipePercent >= 0.1) {
-        scheduleOnRN(swapTopCard);
-
-        x.value = withTiming(
-          Math.sign(x.value) * SCREEN_WIDTH * 1.5,
-          {},
-          (finished) => {
-            if (finished) {
-              if (currentStatus !== "pending")
-                scheduleOnRN(postSwipe, item.user_id, currentStatus);
-              scheduleOnRN(removeTopCard);
-            }
-          },
-        );
+      if (Math.abs(x.value) / SCREEN_WIDTH >= 0.1) {
+        const finalDir = x.value > 0 ? "like" : "dislike";
+        swipeUser(item.user_id, finalDir).catch(() => {});
+        x.value = withTiming(Math.sign(x.value) * SCREEN_WIDTH * 1.5, {
+          duration: 250,
+        });
+        setTimeout(onRemove, 250);
       } else {
-        status.value = "pending";
+        setStatus("pending");
         x.value = withSpring(0);
         y.value = withSpring(0);
       }
     });
 
-  const combinedGesture = Gesture.Race(verticalSwipe, horizontalSwipe);
-
-  if (photos.length === 0) return null;
+  const verticalSwipe = Gesture.Pan()
+    .runOnJS(true)
+    .activeOffsetY([-15, 15])
+    .onEnd((e) => {
+      if (e.translationY < -80 && !bioExpanded) setBioExpanded(true);
+      else if (e.translationY > 80 && bioExpanded) setBioExpanded(false);
+    });
 
   return (
     <>
       <ReportModal
         visible={reportMenuVisible}
         onDismiss={() => setReportMenuVisible(false)}
-        onSubmit={(reason, details) => {
-          try {
-            reportUser(item.user_id, reason, details);
-            setReportMenuVisible(false);
-            showThemedSuccess("Reported", themeColors);
-          } catch (e: any) {
-            showThemedError(e, themeColors);
-          }
+        onSubmit={(r, d) => {
+          reportUser(item.user_id, r, d)
+            .then(() => {
+              setReportMenuVisible(false);
+              showThemedSuccess("Reported", themeColors);
+            })
+            .catch((e) => showThemedError(e.message, themeColors));
         }}
       />
 
-      <GestureDetector gesture={combinedGesture}>
+      <GestureDetector gesture={Gesture.Race(verticalSwipe, horizontalSwipe)}>
         <Animated.View
           style={[
             {
@@ -213,7 +143,7 @@ export default function Card({
               borderRadius: 24,
               overflow: "hidden",
             },
-            isTop ? style : { zIndex: -1 },
+            style,
             animatedWobble,
           ]}
         >
@@ -222,11 +152,17 @@ export default function Card({
             currentIndex={currentIndex}
             onNext={() => {
               setCurrentIndex((p) => Math.min(p + 1, photos.length - 1));
-              wobble("right");
+              rotateY.value = withSequence(
+                withTiming(-10, { duration: 40 }),
+                withSpring(0, { damping: 40, stiffness: 1200 }),
+              );
             }}
             onPrev={() => {
               setCurrentIndex((p) => Math.max(p - 1, 0));
-              wobble("left");
+              rotateY.value = withSequence(
+                withTiming(10, { duration: 40 }),
+                withSpring(0, { damping: 40, stiffness: 1200 }),
+              );
             }}
           />
 
@@ -235,24 +171,18 @@ export default function Card({
               <TouchableOpacity
                 activeOpacity={0.7}
                 onPress={() => setReportMenuVisible(true)}
-                style={{
-                  position: "absolute",
-                  top: 55,
-                  right: 15,
-                  zIndex: 50,
-                  backgroundColor: "rgba(0,0,0,0.2)",
-                  padding: 10,
-                  borderRadius: 999,
-                }}
+                className="absolute top-12 right-4 z-50 bg-black/20 p-2.5 rounded-full"
               >
                 <FontAwesome5 name="shield-alt" size={22} color="white" />
               </TouchableOpacity>
-
-              <Animated.View
-                style={[
-                  { position: "absolute", top: 60, left: 30, zIndex: 40 },
-                  showHeartStyle,
-                ]}
+              <View
+                style={{
+                  position: "absolute",
+                  top: 60,
+                  left: 30,
+                  zIndex: 40,
+                  opacity: status === "like" ? 1 : 0,
+                }}
                 pointerEvents="none"
               >
                 <MaskedView
@@ -266,13 +196,15 @@ export default function Card({
                     style={{ width: 100, height: 100 }}
                   />
                 </MaskedView>
-              </Animated.View>
-
-              <Animated.View
-                style={[
-                  { position: "absolute", top: 55, right: 30, zIndex: 40 },
-                  showCrossStyle,
-                ]}
+              </View>
+              <View
+                style={{
+                  position: "absolute",
+                  top: 55,
+                  right: 30,
+                  zIndex: 40,
+                  opacity: status === "dislike" ? 1 : 0,
+                }}
                 pointerEvents="none"
               >
                 <MaskedView
@@ -284,18 +216,16 @@ export default function Card({
                     style={{ width: 125, height: 125 }}
                   />
                 </MaskedView>
-              </Animated.View>
+              </View>
             </>
           )}
 
           {!bioExpanded && (
             <View className="absolute top-4 w-full flex-row justify-center gap-3 px-4">
-              {photos.map((_, index) => (
+              {photos.map((_, i) => (
                 <View
-                  key={index}
-                  className={`h-1.5 flex-1 rounded-full overflow-hidden ${
-                    index === currentIndex ? "bg-white" : "bg-gray-500/80"
-                  }`}
+                  key={i}
+                  className={`h-1.5 flex-1 rounded-full ${i === currentIndex ? "bg-white" : "bg-gray-500/80"}`}
                 />
               ))}
             </View>
@@ -304,9 +234,6 @@ export default function Card({
           {!bioExpanded && (
             <View
               className="absolute inset-0 justify-end"
-              onLayout={(e) => {
-                expandActivationY.value = e.nativeEvent.layout.y;
-              }}
               pointerEvents="box-none"
             >
               <LinearGradient
@@ -321,8 +248,7 @@ export default function Card({
                 <View className="flex-1 mr-4" pointerEvents="none">
                   <View className="flex-row items-baseline">
                     <Text className="text-white text-3xl font-bold">
-                      {item.full_name}
-                      {"  "}
+                      {item.full_name}{"  "}
                     </Text>
                     <Text className="text-white text-2xl font-regular">
                       {item.age}
@@ -332,10 +258,9 @@ export default function Card({
                     className="text-white text-base font-regular mt-1"
                     numberOfLines={2}
                   >
-                    {item.bio?.replace(/\n/g, "\n")}
+                    {item.bio.replaceAll("\\n", "\n")}
                   </Text>
                 </View>
-
                 <TouchableOpacity
                   activeOpacity={0.7}
                   onPress={() => setBioExpanded(true)}
@@ -363,7 +288,6 @@ export default function Card({
                 className="absolute inset-0"
               />
               <View className="absolute inset-0 bg-black/80" />
-
               <TouchableOpacity
                 activeOpacity={0.7}
                 onPress={() => setBioExpanded(false)}
@@ -371,22 +295,20 @@ export default function Card({
               >
                 <Ionicons name="close" size={24} color="white" />
               </TouchableOpacity>
-
               <View className="px-8 flex-1 mt-20">
                 <Text className="text-white text-4xl font-bold mb-4">
                   {item.full_name}, {item.age}
                 </Text>
-                <Animated.ScrollView
-                  onScroll={scrollHandler}
+                <ScrollView
                   scrollEventThrottle={16}
                   showsVerticalScrollIndicator={false}
                   contentContainerStyle={{ paddingBottom: 80 }}
                 >
                   <Text className="text-white text-xl leading-8 font-regular">
-                    {item.bio?.replace(/\n/g, "\n")}
+                    {item.bio.replaceAll("\\n", "\n")}
                   </Text>
                   <View className="h-20" />
-                </Animated.ScrollView>
+                </ScrollView>
               </View>
             </Animated.View>
           )}
