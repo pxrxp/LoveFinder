@@ -2,9 +2,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import ConversationsList from "@/components/ConversationsList";
 import { useConversations } from "@/contexts/ConversationsContext";
 
-export default function YouLikedScreen() {
-  const { conversations, loading, refetch, loadingMore, loadMore } =
-    useConversations();
+export default function BothLikedScreen() {
+  const { conversations, loading, refetch, loadingMore, loadMore } = useConversations("both");
 
   return (
     <SafeAreaView
@@ -12,9 +11,7 @@ export default function YouLikedScreen() {
       edges={["bottom"]}
     >
       <ConversationsList
-        conversations={
-          conversations?.filter((c) => c.swipe_category === "both") ?? []
-        }
+        conversations={conversations}
         loading={loading}
         refetch={refetch}
         extraData={conversations}

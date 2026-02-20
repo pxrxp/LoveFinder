@@ -84,6 +84,8 @@ export default function ProfileScreen() {
     setUploads(Array.from({ length: MAX_PHOTOS }, () => null));
   };
 
+  const avatarUri = photos[0]?.image_url ?? uploads[0]?.uri;
+
   if (loading) return <LoadingScreen />;
 
   return (
@@ -148,10 +150,14 @@ export default function ProfileScreen() {
               }}
               activeOpacity={0.7}
             >
-              {photos[0]?.image_url ? (
+              {avatarUri ? (
                 <Image
-                  source={{ uri: photos[0].image_url }}
-                  className="w-36 h-36 rounded-full"
+                  source={{ uri: avatarUri }}
+                  style={{
+                    width: 96,
+                    height: 96,
+                  }}
+                  className="rounded-full"
                 />
               ) : (
                 <FontAwesome
@@ -172,7 +178,6 @@ export default function ProfileScreen() {
           handlePhotoSelect(
             await launchCamera({
               videosAllowed: false,
-              allowsEditing: true,
             }),
           );
         }}
@@ -181,7 +186,6 @@ export default function ProfileScreen() {
           handlePhotoSelect(
             await pickMedia({
               videosAllowed: false,
-              allowsEditing: true,
             }),
           );
         }}
