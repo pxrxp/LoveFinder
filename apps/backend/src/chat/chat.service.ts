@@ -80,7 +80,7 @@ export class ChatService {
           ELSE 'none'
         END AS swipe_category,
 
-        COALESCE(S1.SWIPED_AT, S2.SWIPED_AT) AS LAST_MESSAGE_SENT_AT
+        COALESCE(LM.SENT_AT, S1.SWIPED_AT, S2.SWIPED_AT) AS LAST_MESSAGE_SENT_AT
 
       FROM conversation_users CU
 
