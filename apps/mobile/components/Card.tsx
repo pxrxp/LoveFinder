@@ -69,8 +69,8 @@ export default function Card({
     () =>
       userPhotos?.length
         ? userPhotos.map((p) => p.image_url)
-        : [item.image_url],
-    [userPhotos, item.image_url],
+        : [item.profile_picture_url],
+    [userPhotos, item.profile_picture_url],
   );
 
   const style = useAnimatedStyle(() => ({
@@ -255,7 +255,7 @@ export default function Card({
                     </Text>
                   </View>
                   <Text
-                    className="text-white text-base font-regular mt-1"
+                    className="text-white text-base font-light mt-1"
                     numberOfLines={2}
                   >
                     {item.bio.replaceAll("\\n", "\n")}
@@ -304,7 +304,7 @@ export default function Card({
                   showsVerticalScrollIndicator={false}
                   contentContainerStyle={{ paddingBottom: 80 }}
                 >
-                  <Text className="text-white text-xl leading-8 font-regular">
+                  <Text className="text-white text-xl leading-8 font-light">
                     {item.bio.replaceAll("\\n", "\n")}
                   </Text>
                   <View className="h-20" />

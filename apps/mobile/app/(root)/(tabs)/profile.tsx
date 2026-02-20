@@ -315,7 +315,7 @@ export default function ProfileScreen() {
           </View>
 
           <View className="mb-8">
-            <Text className="text-sm font-bold uppercase tracking-widest mb-3 opacity-40 text-textPrimaryLight dark:text-textPrimaryDark">
+            <Text className="text-base font-bold uppercase tracking-widest mb-3 opacity-40 text-textPrimaryLight dark:text-textPrimaryDark">
               About Me
             </Text>
             {editingMode ? (
@@ -326,21 +326,21 @@ export default function ProfileScreen() {
                 placeholderTextColor={themeColors.textPrimary + "60"}
                 multiline
                 textAlignVertical="top"
-                className="font-regular rounded-2xl p-4 text-base min-h-[100px] border border-black/10 dark:border-white/10"
+                className="font-light rounded-2xl p-4 text-base min-h-[100px] border border-black/10 dark:border-white/10"
                 style={{ color: themeColors.textPrimary, backgroundColor: themeColors.textPrimary + "05" }}
               />
             ) : (
               <View>
                 <Text 
                   numberOfLines={bioExpanded ? undefined : 3} 
-                  className="font-regular text-base leading-6 text-textPrimaryLight dark:text-textPrimaryDark opacity-80"
+                  className="font-light text-base leading-6 text-textPrimaryLight dark:text-textPrimaryDark opacity-80"
                 >
-                  {bioInput || "No bio added yet."}
+                  {bioInput.replaceAll("\\n", "\n") || "No bio added yet."}
                 </Text>
                 {!bioExpanded && bioInput?.length > 100 && (
                   <TouchableOpacity onPress={() => setBioExpanded(true)}>
-                    <Text className="mt-1 font-semibold opacity-50 text-textPrimaryLight dark:text-textPrimaryDark">
-                      read more...
+                    <Text className="mt-3 font-semibold opacity-50 text-textPrimaryLight dark:text-textPrimaryDark">
+                      Read more...
                     </Text>
                   </TouchableOpacity>
                 )}
@@ -349,7 +349,7 @@ export default function ProfileScreen() {
           </View>
 
           <View className="mb-8">
-            <Text className="text-sm font-bold uppercase tracking-widest mb-3 opacity-40 text-textPrimaryLight dark:text-textPrimaryDark">
+            <Text className="text-base font-bold uppercase tracking-widest mb-3 opacity-40 text-textPrimaryLight dark:text-textPrimaryDark">
               Interests
             </Text>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
@@ -359,7 +359,7 @@ export default function ProfileScreen() {
                   className="px-5 py-3 rounded-full flex-row items-center gap-3"
                   style={{ backgroundColor: themeColors.textPrimary + "15" }}
                 >
-                  <Text className="font-semibold text-sm" style={{ color: themeColors.textPrimary }}>
+                  <Text className="font-light text-sm" style={{ color: themeColors.textPrimary }}>
                     {getIntName(interest)}
                   </Text>
                   {editingMode && (
@@ -384,7 +384,7 @@ export default function ProfileScreen() {
               )}
               
               {!editingMode && userInterests.length === 0 && (
-                <Text className="font-light italic opacity-40 text-textPrimaryLight dark:text-textPrimaryDark">
+                <Text className="font-light opacity-40 text-textPrimaryLight dark:text-textPrimaryDark">
                   No interests added yet.
                 </Text>
               )}
@@ -392,7 +392,7 @@ export default function ProfileScreen() {
           </View>
 
           <View>
-            <Text className="text-sm font-bold uppercase tracking-widest mb-3 opacity-40 text-textPrimaryLight dark:text-textPrimaryDark">
+            <Text className="text-base font-bold uppercase tracking-widest mb-3 opacity-40 text-textPrimaryLight dark:text-textPrimaryDark">
               Photos
             </Text>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
