@@ -5,6 +5,7 @@ import {
   useState,
   useEffect,
   useRef,
+  useCallback,
 } from "react";
 import { useFetch } from "@/hooks/useFetch";
 import { Conversation } from "@/types/Conversation";
@@ -18,6 +19,7 @@ interface ConversationsContextType {
   refetch: () => Promise<void>;
   loadMore: () => Promise<void>;
   loadingMore: boolean;
+  hasMore: boolean;
 }
 
 const ConversationsContext = createContext<
@@ -30,12 +32,14 @@ const getTime = (date?: string | Date) => {
 };
 
 export function ConversationsProvider({ children }: { children: ReactNode }) {
-  const { data, loading, refetch } = useFetch<Conversation[]>(
-    "chat?limit=20&offset=0",
-  );
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+  const [totalOffset, setTotalOffset] = useState(0);
+
+  const { data, loading, refetch } = useFetch<Conversation[]>(
+    "chat?limit=20&offset=0",
+  );
 
   const refetchRef = useRef(refetch);
   useEffect(() => {
@@ -44,29 +48,43 @@ export function ConversationsProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (data) {
-      setConversations((prev) => {
-        const localMap = new Map(prev.map((c) => [c.other_user_id, c]));
-
-        const merged = data.map((serverConv) => {
-          const localConv = localMap.get(serverConv.other_user_id);
-
-          if (
-            localConv &&
-            getTime(localConv.last_message_sent_at) >
-              getTime(serverConv.last_message_sent_at)
-          ) {
-            return localConv;
-          }
-          return serverConv;
-        });
-
-        return merged.sort(
-          (a, b) =>
-            getTime(b.last_message_sent_at) - getTime(a.last_message_sent_at),
-        );
-      });
+      setConversations(data);
+      setTotalOffset(data.length);
+      setHasMore(data.length >= 20);
     }
   }, [data]);
+
+  const loadMore = useCallback(async () => {
+    if (loadingMore || !hasMore) return;
+
+    setLoadingMore(true);
+    try {
+      const res = await apiFetch(`chat?limit=20&offset=${totalOffset}`);
+      const newData: Conversation[] = await res.json();
+
+      if (newData.length < 20) setHasMore(false);
+
+      if (newData.length > 0) {
+        setTotalOffset((prev) => prev + newData.length);
+        setConversations((prev) => {
+          const combined = [...prev, ...newData];
+          const unique = Array.from(
+            new Map(
+              combined.map((item) => [item.other_user_id, item]),
+            ).values(),
+          );
+          return unique.sort(
+            (a, b) =>
+              getTime(b.last_message_sent_at) - getTime(a.last_message_sent_at),
+          );
+        });
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [loadingMore, hasMore, totalOffset]);
 
   useEffect(() => {
     const socket = getSocket();
@@ -104,9 +122,7 @@ export function ConversationsProvider({ children }: { children: ReactNode }) {
       });
     };
 
-    const handleDeleteMessage = () => {
-      refetchRef.current();
-    };
+    const handleDeleteMessage = () => refetchRef.current();
 
     socket.on("new_message", handleNewMessage);
     socket.on("delete_message", handleDeleteMessage);
@@ -117,36 +133,6 @@ export function ConversationsProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const loadMore = async () => {
-    if (loadingMore || !hasMore || conversations.length === 0) return;
-
-    setLoadingMore(true);
-    const offset = conversations.length;
-
-    try {
-      const res = await apiFetch(`chat?limit=20&offset=${offset}`);
-      const newData: Conversation[] = await res.json();
-
-      if (newData.length < 20) setHasMore(false);
-
-      if (newData.length > 0) {
-        setConversations((prev) => {
-          const combined = [...prev, ...newData];
-          const unique = Array.from(
-            new Map(
-              combined.map((item) => [item.other_user_id, item]),
-            ).values(),
-          );
-          return unique;
-        });
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoadingMore(false);
-    }
-  };
-
   return (
     <ConversationsContext.Provider
       value={{
@@ -156,6 +142,7 @@ export function ConversationsProvider({ children }: { children: ReactNode }) {
         refetch,
         loadMore,
         loadingMore,
+        hasMore,
       }}
     >
       {children}

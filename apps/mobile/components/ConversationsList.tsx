@@ -1,7 +1,6 @@
-import { Text, View, TouchableOpacity } from "react-native";
+import { Text, View, TouchableOpacity, ActivityIndicator } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import { Link } from "expo-router";
-import Entypo from "@expo/vector-icons/Entypo";
 import { useTheme } from "@/contexts/ThemeContext";
 import ProfilePicture from "@/components/ProfilePicture";
 import DataLoader from "@/components/DataLoader";
@@ -15,37 +14,38 @@ import utc from "dayjs/plugin/utc";
 import { showThemedError } from "@/services/themed-error";
 import ReportModal from "./modals/ReportModal";
 import ConfirmModal from "./modals/ConfirmModal";
-import { Octicons, FontAwesome5 } from "@expo/vector-icons";
+import {
+  Octicons,
+  FontAwesome5,
+  MaterialCommunityIcons,
+} from "@expo/vector-icons";
 import {
   blockUser,
-  ReportReason,
   reportUser,
   swipeUser,
   unswipeUser,
+  ReportReason,
 } from "@/services/user-actions";
 import { showThemedSuccess } from "@/services/themed-success";
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
+import LoadingScreen from "./LoadingScreen";
 
 dayjs.extend(relativeTime);
 dayjs.extend(utc);
 
 const TimeAgo = ({ date }: { date?: string }) => {
   const [timeText, setTimeText] = useState("");
-
   useEffect(() => {
     const updateTime = () => {
       if (!date) return;
       let d = date.endsWith("Z") ? dayjs(date) : dayjs.utc(date).local();
-
       if (d.isAfter(dayjs())) d = dayjs();
-
       setTimeText(d.fromNow());
     };
-
     updateTime();
     const interval = setInterval(updateTime, 30000);
     return () => clearInterval(interval);
   }, [date]);
-
   return <Text className="text-gray-500 font-regular text-sm">{timeText}</Text>;
 };
 
@@ -58,6 +58,7 @@ interface ConversationsListProps {
   extraData?: any;
   onLoadMore?: () => void;
   loadingMore?: boolean;
+  hasMore?: boolean;
 }
 
 export default function ConversationsList({
@@ -69,6 +70,7 @@ export default function ConversationsList({
   extraData,
   onLoadMore,
   loadingMore,
+  hasMore,
 }: ConversationsListProps) {
   const { user } = useContext(AuthContext)!;
   const { themeColors } = useTheme();
@@ -77,6 +79,18 @@ export default function ConversationsList({
   const [reportMenuVisible, setReportMenuVisible] = useState(false);
   const [confirmBlockMenuVisible, setConfirmBlockMenuVisible] = useState(false);
   const [longPressedUser, setLongPressedUser] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (
+      !loading &&
+      !loadingMore &&
+      hasMore &&
+      conversations.length > 0 &&
+      conversations.length < 10
+    ) {
+      onLoadMore?.();
+    }
+  }, [conversations.length, loadingMore, loading, hasMore]);
 
   const handleSwipeBack = async () => {
     if (!longPressedUser) return;
@@ -111,18 +125,6 @@ export default function ConversationsList({
     }
   };
 
-  const handleReportSubmit = async (reason: ReportReason, details: string) => {
-    if (!longPressedUser) return;
-    try {
-      await reportUser(longPressedUser, reason, details);
-      setReportMenuVisible(false);
-      setMenuVisible(false);
-      showThemedSuccess("User has been reported to our team.", themeColors);
-    } catch (e: any) {
-      showThemedError(e.message, themeColors);
-    }
-  };
-
   return (
     <>
       <DataLoader
@@ -132,17 +134,18 @@ export default function ConversationsList({
         {(conversations, refreshing, onRefresh) => (
           <FlashList
             data={conversations}
-            extraData={extraData}
+            extraData={[extraData, loadingMore]}
             keyExtractor={(item) => item.other_user_id}
             onRefresh={onRefresh}
             refreshing={refreshing ?? false}
             onEndReached={onLoadMore}
-            onEndReachedThreshold={0.5}
+            onEndReachedThreshold={0.2}
+            maintainVisibleContentPosition={{ disabled: true }}
             contentContainerClassName="px-7"
             ListEmptyComponent={
               <View className="flex-row justify-center py-10">
-                <Entypo
-                  name="emoji-sad"
+                <MaterialCommunityIcons
+                  name="emoticon-sad-outline"
                   size={64}
                   color={themeColors.textPrimary}
                 />
@@ -151,7 +154,22 @@ export default function ConversationsList({
                 </Text>
               </View>
             }
-            ListFooterComponent={<View className="w-full h-20" />}
+            ListFooterComponent={
+              loadingMore ? (
+                <LoadingScreen hasBackground={false} className="p-4" />
+              ) : (
+                <>
+                  {hasMore && (
+                    <TouchableOpacity onPress={onLoadMore}>
+                      <Text className="text-center m-2 text-gray-500 font-light">
+                        Load more...
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                  <View className="w-full h-20 flex-1" />
+                </>
+              )
+            }
             renderItem={({ item, index }) => (
               <Link
                 onLongPress={() => {
@@ -247,7 +265,16 @@ export default function ConversationsList({
       <ReportModal
         visible={reportMenuVisible}
         onDismiss={() => setReportMenuVisible(false)}
-        onSubmit={handleReportSubmit}
+        onSubmit={async (r, d) => {
+          try {
+            await reportUser(longPressedUser!, r, d);
+            setReportMenuVisible(false);
+            setMenuVisible(false);
+            showThemedSuccess("User has been reported.", themeColors);
+          } catch (e: any) {
+            showThemedError(e.message, themeColors);
+          }
+        }}
       />
       <ConfirmModal
         visible={confirmBlockMenuVisible}

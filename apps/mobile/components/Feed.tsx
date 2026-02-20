@@ -4,7 +4,7 @@ import { FeedUser } from "@/types/FeedUser";
 import Card from "@/components/Card";
 import DataLoader from "@/components/DataLoader";
 import { useTheme } from "@/contexts/ThemeContext";
-import { Entypo } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 const MemoizedCard = memo(Card);
 
@@ -34,11 +34,30 @@ export default function Feed({ data, loading, error, refetch }: FeedProps) {
         <View className="flex-1 relative">
           {cards.length === 0 && !loading ? (
             <ScrollView
-              contentContainerStyle={{ flex: 1, justifyContent: "center", alignItems: "center" }}
-              refreshControl={<RefreshControl refreshing={refreshing ?? false} onRefresh={onRefresh} tintColor={themeColors.textPrimary} />}
+              contentContainerStyle={{
+                flex: 1,
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing ?? false}
+                  onRefresh={onRefresh}
+                  tintColor={themeColors.textPrimary}
+                />
+              }
             >
-              <Entypo name="emoji-neutral" size={64} color={themeColors.textPrimary} />
-              <Text className="text-textPrimaryLight dark:text-textPrimaryDark font-bold text-2xl mt-5">No one new!</Text>
+              <MaterialCommunityIcons
+                name="emoticon-sad-outline"
+                size={64}
+                color={themeColors.textPrimary}
+              />
+              <Text className="text-textPrimaryLight dark:text-textPrimaryDark font-bold text-2xl mt-5">
+                No one new!
+              </Text>
+              <Text className="text-gray-500 font-regular text-base mt-2">
+                Pull down to refresh
+              </Text>
             </ScrollView>
           ) : (
             cards.map((item, index) => {
