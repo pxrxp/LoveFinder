@@ -50,15 +50,9 @@ export class LiveChatGateway implements OnGatewayConnection, OnGatewayDisconnect
   handleConnection(socket: Socket) {
     const user = getSocketUser(socket);
     if (!user) {
-      console.log('Unauthorized socket connection, disconnecting', socket.id);
       socket.disconnect();
       return;
     }
-    console.log(`User ${user.user_id} connected on socket ${socket.id}`);
-  }
-
-  handleDisconnect(socket: Socket) {
-    console.log(getSocketUser(socket)?.user_id || socket.id, 'disconnected');
   }
 
   @SubscribeMessage('join_room')

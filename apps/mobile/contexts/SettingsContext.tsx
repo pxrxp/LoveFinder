@@ -4,9 +4,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 export interface Settings {
   sendReceipts: boolean;
   getNotifications: boolean;
-  showOnlineStatus: boolean;
-  soundOnMessage: boolean;
-  vibrationOnMessage: boolean;
   [key: string]: any;
 }
 
@@ -18,9 +15,6 @@ interface SettingsContextValue {
 const defaultSettings: Settings = {
   sendReceipts: true,
   getNotifications: true,
-  showOnlineStatus: true,
-  soundOnMessage: true,
-  vibrationOnMessage: true,
 };
 
 const SettingsContext = createContext<SettingsContextValue | null>(null);
