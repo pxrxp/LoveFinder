@@ -14,5 +14,7 @@ export class UserDto {
   pref_max_age!: number;
   pref_distance_radius_km!: number;
   is_active!: boolean;
+  is_onboarded!: boolean;
+  is_verified!: boolean;
   allow_messages_from_strangers!: boolean;
 };
