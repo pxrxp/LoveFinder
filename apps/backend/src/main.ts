@@ -1,3 +1,12 @@
+/**
+ * Entry point for the backend server.
+ * 
+ * This file sets up the NestJS app and plugs in the essential middleware:
+ * - Redis: Used to store user sessions so they persist even if the server restarts.
+ * - Helmet: Adds standard security headers to protect against common web vulnerabilities.
+ * - Passport: Handles our login sessions and integrates with the Redis store.
+ * - ValidationPipe: Ensures that data coming from the mobile app matches our expected formats (DTOs).
+ */
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 

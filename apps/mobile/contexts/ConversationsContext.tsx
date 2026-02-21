@@ -1,3 +1,12 @@
+/**
+ * Live Conversations and Chat Synchronizer.
+ * 
+ * This is the most complex state in the app. It:
+ * 1. Fetches: Loads "Matches", "You Liked", and "They Liked" lists.
+ * 2. Sockets: Listens for 'new_message' or 'new_match' to update lists instantly 
+ *    without the user needing to pull-to-refresh.
+ * 3. Deduplication: Ensures users don't appear twice if they send multiple messages.
+ */
 import {
   createContext,
   useContext,

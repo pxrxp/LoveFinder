@@ -1,3 +1,12 @@
+/**
+ * Database Seeding Script
+ * 
+ * This script wipes the database and fills it with fresh data for testing.
+ * It creates:
+ * - 3 "Hero" users (Demo, Alice, Bob) for easy login.
+ * - 100 random users spread across New York.
+ * - Mutual likes (matches) and messages for the Demo user so you can test chat immediately.
+ */
 import * as argon2 from 'argon2';
 
 // Manually interpolate DATABASE_URL if it's a template (Bun's --env-file doesn't do it)

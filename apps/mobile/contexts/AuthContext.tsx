@@ -1,3 +1,11 @@
+/**
+ * Global User Authentication Store.
+ * 
+ * This provider tracks the 'user' object and 'loading' state.
+ * - On startup: It calls the backend to see if the user has an active session.
+ * - Login/Logout: Exports simple functions to sign in or sign out, 
+ *   which automatically update the 'user' state across the whole app.
+ */
 import React, { createContext, ReactNode, useEffect, useState } from "react";
 import { getMyProfile } from "@/services/users";
 import * as Auth from "@/services/auth";

@@ -1,3 +1,12 @@
+/**
+ * Service for generating the discovery feed (the "swipe deck").
+ * 
+ * The 'getFeed' method runs a single, complex SQL query that:
+ * 1. Finds the current user's location and preferences.
+ * 2. Filters out people you've already swiped on, blocked, or reported.
+ * 3. Filters by gender preference, age range, and distance (max 50km default).
+ * 4. Ranks results based on shared interests (high score first) and then distance.
+ */
 import { Injectable } from '@nestjs/common';
 import { FeedDto } from './dto/feed.dto';
 

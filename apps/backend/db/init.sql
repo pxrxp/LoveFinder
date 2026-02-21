@@ -1,3 +1,14 @@
+/**
+ * Database Schema Setup
+ * 
+ * This script creates our custom types (like gender and orientation), tables, 
+ * and triggers. We use Postgres 'earthdistance' for location searching.
+ * 
+ * Triggers are used to automatically:
+ * - Enforce age limits (must be 18+).
+ * - Trim whitespace from emails and names.
+ * - Ensure every user has at least one primary photo.
+ */
 create extension if not exists citext;
 create extension if not exists cube;
 create extension if not exists earthdistance;

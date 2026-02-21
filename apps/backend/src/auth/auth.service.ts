@@ -1,10 +1,16 @@
+/**
+ * Authentication Service
+ * 
+ * Encapsulates identity verification logic, password hashing 
+ * validation, and OAuth provider integration.
+ */
 import { Injectable } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import * as argon2 from 'argon2';
 
 @Injectable()
 export class AuthService {
-  constructor(private usersService: UsersService) {}
+  constructor(private usersService: UsersService) { }
 
   async validateUser(email: string, plain_password: string): Promise<any> {
     const user = await this.usersService.findByEmail(email, { unsafe: true });

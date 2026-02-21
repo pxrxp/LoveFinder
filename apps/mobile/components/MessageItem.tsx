@@ -1,3 +1,11 @@
+/**
+ * Individual Chat Message Bubble.
+ * 
+ * Each message knows if it was sent by "Me" or "Them" to switch side/colors.
+ * - Text: Standard bubbles with double-checkmark for read receipts.
+ * - Image: Renders images with custom sizing.
+ * - Audio: (Implementation pending) Shows a waveform/play button.
+ */
 import {
   View,
   Text,
@@ -43,15 +51,15 @@ export default function MessageItem({
     <View
       style={{ minWidth: 60 }}
       className={`max-w-[260px] rounded-2xl ${isMine
-          ? "bg-accent shadow-sm"
-          : "bg-bgPrimaryDark dark:bg-bgPrimaryLight"
+        ? "bg-accent shadow-sm"
+        : "bg-bgPrimaryDark dark:bg-bgPrimaryLight"
         }`}
     >
       <View className="px-4 py-3">
         <Text
           className={`text-[16px] leading-6 ${isMine
-              ? "text-white"
-              : "text-textPrimaryDark dark:text-textPrimaryLight"
+            ? "text-white"
+            : "text-textPrimaryDark dark:text-textPrimaryLight"
             }`}
         >
           {item.message_content}

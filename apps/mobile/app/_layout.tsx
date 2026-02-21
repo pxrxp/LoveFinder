@@ -1,3 +1,12 @@
+/**
+ * Root Layout for the entire Mobile App.
+ * 
+ * This file is the "wrapper" that stays active throughout the app session.
+ * 1. Fonts: Loads our custom typography during the splash screen.
+ * 2. Theme: Sets up the light/dark mode provider.
+ * 3. Auth: Wraps everything in 'AuthProvider' so we know if a user is logged in.
+ * 4. Contexts: Pulls in multiple global state managers (Settings, FlashMessages, etc.).
+ */
 import "@/global.css";
 import { Slot } from "expo-router";
 import { AuthProvider } from "@/contexts/AuthContext";

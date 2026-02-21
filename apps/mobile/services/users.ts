@@ -1,3 +1,11 @@
+/**
+ * Profile and Identity Network Requests.
+ * 
+ * Handles all actions related to user data:
+ * - creating an account (POST /users)
+ * - fetching my private profile (GET /users/me)
+ * - updating bio or distance preferences (PATCH /users)
+ */
 import { apiFetch } from "@/services/api";
 import { UserPrivate } from "@/types/User";
 

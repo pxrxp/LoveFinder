@@ -1,3 +1,15 @@
+/**
+ * Service for sending and fetching chat messages.
+ * 
+ * Logic highlights:
+ * - getMessages: Uses a timestamp cursor (sent_at) for efficient pagination.
+ * - sendMessage: Implements a database-level safety check. It will fail if 
+ *   there isn't a mutual match (unless the recipient allows strangers).
+ * - deleteMessage: Instead of hard-deleting, we set 'is_deleted = true' to 
+ *   protect conversation history while hiding it from the UI.
+ * - getRoomId: Simple utility to ensure UserA -> UserB and UserB -> UserA 
+ *   always map to the same consistent room name.
+ */
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { MessageDto } from './dto/message.dto';
 

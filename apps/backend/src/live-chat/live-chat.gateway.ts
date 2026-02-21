@@ -1,3 +1,11 @@
+/**
+ * WebSocket Gateway for real-time chat and notifications.
+ * 
+ * This file handles the live socket connections from the mobile app.
+ * - Connection: Authenticates users using their session cookie and puts them in a personal room.
+ * - Messages: Saves messages to the DB via 'ChatService' and then broadcasts them to the recipient.
+ * - Notifications: Sends real-time 'new_match' or 'new_like' events to update the mobile UI instantly.
+ */
 import {
   ConnectedSocket,
   MessageBody,
