@@ -11,6 +11,10 @@ RUN bun install
 # Copy source
 COPY . .
 
+# Build the app
+RUN cd apps/backend && bun run build
+
 EXPOSE 3000
 
-CMD ["bun", "run", "--cwd", "apps/backend", "start:dev"]
+# Use production start command
+CMD ["bun", "run", "--cwd", "apps/backend", "start"]

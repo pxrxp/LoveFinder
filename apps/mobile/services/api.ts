@@ -4,8 +4,7 @@
  * This adds the base URL and handles session cookies so
  * the server knows who is making the request.
  */
-const BACKEND_BASE_URL = "http://192.168.1.70:3000/api/v1/";
-// const BACKEND_BASE_URL = 'http://172.25.140.84:3000/api/v1/'
+const BACKEND_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
 export const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
   const isFormData = options.body instanceof FormData;
@@ -25,7 +24,7 @@ export const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
     try {
       const text = await res.json();
       if (text) message = text;
-    } catch {}
+    } catch { }
 
     const errorMsg = message.message
       ? `${message.statusCode}: ${message.error}\n${message.message}`
