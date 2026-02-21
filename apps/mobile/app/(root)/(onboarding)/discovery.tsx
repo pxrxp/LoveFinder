@@ -37,7 +37,7 @@ export default function StepDiscovery() {
               {minAge} - {maxAge}
             </Text>
           </View>
-          <Text className="text-xs text-gray-500 mb-4">Min Age: {minAge}</Text>
+          <Text className="text-sm text-gray-500 mb-4">Min Age: {minAge}</Text>
           <Slider
             style={{ width: "100%", height: 40 }}
             minimumValue={18}
@@ -49,7 +49,7 @@ export default function StepDiscovery() {
             maximumTrackTintColor={themeColors.textPrimary + "20"}
             thumbTintColor="#FD267D"
           />
-          <Text className="text-xs text-gray-500 mt-2 mb-4">
+          <Text className="text-sm text-gray-500 mt-2 mb-4">
             Max Age: {maxAge}
           </Text>
           <Slider
@@ -70,7 +70,7 @@ export default function StepDiscovery() {
             <Text className="text-gray-400 font-bold uppercase">
               Max Distance
             </Text>
-            <Text className="text-[#FD267D] font-bold">{distance} km</Text>
+            <Text className="text-accent font-bold">{distance} km</Text>
           </View>
           <Slider
             style={{ width: "100%", height: 40 }}
