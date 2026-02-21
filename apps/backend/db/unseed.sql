@@ -3,7 +3,7 @@
  *
  * This script deletes all demo and bulk test users created by the seeding script.
  * It will remove:
- * - Demo accounts: demo, Alice, Bob
+ * - Demo accounts: demo, Alice, Bob, pending
  * - Bulk users: user1@test.com → user200@test.com
  */
 if (process.env.DATABASE_URL?.includes('${')) {
@@ -16,7 +16,7 @@ async function unseed() {
   console.log('Starting unseed...');
 
   // List of demo emails
-  const demoEmails = ['demo@example.com', 'alice@example.com', 'bob@example.com'];
+  const demoEmails = ['demo@example.com', 'alice@example.com', 'bob@example.com', 'pending@example.com'];
 
   // Bulk user emails
   for (let i = 1; i <= 200; i++) {

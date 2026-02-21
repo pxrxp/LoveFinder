@@ -206,6 +206,12 @@ async function seed() {
     // The rest (40-100) will be "new" and appear in the feed
   }
 
+  // Add a user with onboarding left
+  await sql`
+    INSERT INTO USERS ( EMAIL, PASSWORD_HASH)
+    VALUES ( 'pending@example.com', ${hashedPw} )
+  `;
+
   console.log('✅ Seed complete!');
   console.log('Demo Login: demo@example.com / 123456');
   console.log('Alice Login: alice@example.com / 123456');
