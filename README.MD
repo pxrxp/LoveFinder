@@ -103,9 +103,7 @@ bun start
 
 ---
 
-## 🗺 Database Schema (Normalized)
-
-The project uses a strict **lowercase snake_case** convention for all database identifiers.
+## 🗺 Database Schema
 
 *   **Custom Domains:** `t_email` with regex validation.
 *   **Custom Enums:** `t_gender`, `t_orientation`, `t_swipe_type`, `t_message_type`.
