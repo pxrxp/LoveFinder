@@ -15,7 +15,7 @@ export default function StepBio() {
       onNext={() => {
         Keyboard.dismiss();
         router.push({
-          pathname: "/(root)/(onboarding)/location",
+          pathname: "/(root)/(onboarding)/discovery",
           params: { ...params, bio },
         });
         }

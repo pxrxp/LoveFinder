@@ -32,7 +32,7 @@ export default function Feed({ data, loading, error, refetch }: FeedProps) {
     <DataLoader fetchResult={{ data, loading, error, refetch }} pullToRefresh>
       {(_, refreshing, onRefresh) => (
         <View className="flex-1 relative">
-          {cards.length === 0 && !loading ? (
+          {(cards.length === 0 || error) && !loading ? (
             <ScrollView
               contentContainerStyle={{
                 flex: 1,

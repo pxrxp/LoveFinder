@@ -34,10 +34,11 @@ export default function LoginScreen() {
 
   return (
     <KeyboardAvoidingView
+      keyboardVerticalOffset={120}
       behavior="padding"
       className="flex-1 bg-bgPrimaryLight dark:bg-bgPrimaryDark px-8 justify-center"
     >
-      <View className="items-center mb-12">
+      <View className="items-center my-8">
         <MaskedView
           style={{ marginBottom: 12 }}
           maskElement={
@@ -55,11 +56,11 @@ export default function LoginScreen() {
           LoveFinder
         </Text>
         <Text className="text-gray-500 font-regular text-lg my-5">
-          Sign in to continue
+          Sign in to continue.
         </Text>
       </View>
 
-      <View className="mt-5">
+      <View>
         <View>
           <Text className="font-bold uppercase tracking-widest mb-2 ml-1 text-gray-400">
             Email Address

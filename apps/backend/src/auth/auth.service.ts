@@ -9,20 +9,20 @@ export class AuthService {
   async validateUser(email: string, plain_password: string): Promise<any> {
     const user = await this.usersService.findByEmail(email, { unsafe: true });
 
-    if (!user) {
-      return null;
-    }
+    if (!user) return null;
 
-    const isMatch = await argon2.verify(user.password_hash, plain_password);
+    const hash = user.password_hash || user.PASSWORD_HASH;
+    if (!hash) return null;
+
+    const isMatch = await argon2.verify(hash, plain_password);
 
     if (isMatch) {
-      const { password_hash, ...stripped_user } = user;
+      const { password_hash, PASSWORD_HASH, ...stripped_user } = user;
       return stripped_user;
     }
 
     return null;
   }
-
   async validateResetToken(token: string) {
     const result = await Bun.sql`
       SELECT U.* 

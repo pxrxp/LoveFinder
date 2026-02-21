@@ -38,6 +38,11 @@ export default function StepLocation() {
         sexual_orientation: params.sexual_orientation as any,
         pref_genders: prefGenders,
         bio: (params.bio as string) || "",
+        pref_min_age: Number(params.pref_min_age),
+        pref_max_age: Number(params.pref_max_age),
+        pref_distance_radius_km: Number(params.pref_distance_radius_km),
+        allow_messages_from_strangers:
+          params.allow_messages_from_strangers === "true",
         latitude: coords.latitude,
         longitude: coords.longitude,
         is_onboarded: true,
