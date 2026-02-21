@@ -9,7 +9,7 @@ type AudioPlayerProps = {
   color?: "white" | "black";
 };
 
-export default function AudioPlayer({ uri }: AudioPlayerProps) {
+export default function AudioPlayer({ uri, color = "white" }: AudioPlayerProps) {
   const player = useAudioPlayer(uri, { updateInterval: 100 });
   const status = useAudioPlayerStatus(player);
 
@@ -28,23 +28,28 @@ export default function AudioPlayer({ uri }: AudioPlayerProps) {
     return dayjs.duration(seconds * 1000).format("m:ss");
   };
 
+  const textColorClass = color === "black" ? "text-black" : "text-white";
+  const borderColor = color === "black" ? "border-black" : "border-white";
+
   return (
     <View className="flex-row items-center min-w-[140px]">
       <TouchableOpacity
         onPress={togglePlayback}
-        className={`p-2 rounded-full mr-3 items-center justify-center w-9 h-9 border-2 border-white`}
+        className={`p-2 rounded-full mr-3 items-center justify-center w-9 h-9 border-2 ${borderColor}`}
       >
         <FontAwesome5
           name={status.playing ? "pause" : "play"}
           size={12}
-          color="white"
+          color={color}
           style={{ marginLeft: status.playing ? 0 : 2 }}
         />
       </TouchableOpacity>
 
       <View>
-        <Text className="font-bold text-regular text-white">Audio Message</Text>
-        <Text className="text-white text-xs font-regular tabular-nums">
+        <Text className={`font-bold text-regular ${textColorClass}`}>
+          Audio Message
+        </Text>
+        <Text className={`${textColorClass} text-xs font-regular tabular-nums`}>
           {formatTime(status.currentTime)} / {formatTime(status.duration)}
         </Text>
       </View>

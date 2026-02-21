@@ -15,92 +15,64 @@ export class FeedService {
     limit: number,
     offset: number = 0,
   ): Promise<FeedDto[]> {
-    return Array.from(
-      await Bun.sql`
-      with
-      me as (
-        select *
-        from users
-        where user_id = ${user_id}
-      ),
+    return (await Bun.sql`
+      SELECT
+        u.user_id,
+        u.full_name,
+        extract(year from age(u.birth_date)) as age,
+        u.bio,
+        p.image_url as profile_picture_url,
+        u.allow_messages_from_strangers,
+        -- Calculate distance directly
+        (
+          earth_distance(
+            ll_to_earth(u.latitude::float8, u.longitude::float8),
+            ll_to_earth(me.latitude::float8, me.longitude::float8)
+          ) / 1000
+        )::float as distance_km,
+        -- Match score
+        (
+          select count(*)
+          from user_interests ui1
+          join user_interests ui2 on ui1.interest_id = ui2.interest_id
+          where ui1.user_id = u.user_id and ui2.user_id = me.user_id
+        ) as match_score
 
-      distances as (
-        select
-          u.user_id,
-          case 
-            when u.latitude is null or me.latitude is null then 0
-            else (
-              earth_distance(
-                ll_to_earth(u.latitude, u.longitude),
-                ll_to_earth(me.latitude, me.longitude)
-              ) / 1000
-            )
-          end::float as distance_km
-        from users u, me
-      ),
+      FROM users u
+      JOIN users me ON me.user_id = ${user_id}
+      LEFT JOIN photos p ON p.uploader_id = u.user_id AND p.is_primary = true
 
-      interest_match as (
-        select
-          a.user_id,
-          count(*) as match_score
-        from user_interests a
-        join user_interests b
-          on a.interest_id = b.interest_id
-        join me
-          on b.user_id = me.user_id
-        group by a.user_id
-      )
-
-      select
-        other.user_id,
-        other.full_name,
-        extract(year from age(other.birth_date)) as age,
-        other.bio,
-        photos.image_url as profile_picture_url,
-        other.allow_messages_from_strangers
-
-      from users other
-      join me on true
-      left join photos
-        on photos.uploader_id = other.user_id
-       and photos.is_primary = true
-      join distances
-        on distances.user_id = other.user_id
-      left join interest_match
-        on interest_match.user_id = other.user_id
-
-      where
-        other.user_id <> me.user_id
-        and other.is_active = true
-        and other.is_onboarded = true
-        and (me.pref_genders is null or other.gender = any (me.pref_genders))
-        and extract(year from age(other.birth_date)) between coalesce(me.pref_min_age, 18) and coalesce(me.pref_max_age, 100)
-        and (
-            (other.latitude is null or me.latitude is null) 
-            or distances.distance_km <= greatest(coalesce(me.pref_distance_radius_km, 50), 50)
+      WHERE
+        u.user_id <> me.user_id
+        AND u.is_active = true
+        AND u.is_onboarded = true
+        -- Gender check
+        AND (
+          me.pref_genders IS NULL OR 
+          cardinality(me.pref_genders) = 0 OR 
+          u.gender = ANY(me.pref_genders)
         )
-        and not exists (
-          select 1 from swipes s 
-          where s.swiper_id = me.user_id and s.receiver_id = other.user_id
+        -- Age check
+        AND extract(year from age(u.birth_date)) BETWEEN coalesce(me.pref_min_age, 18) AND coalesce(me.pref_max_age, 100)
+        -- Distance check
+        AND (
+          u.latitude IS NULL OR me.latitude IS NULL OR
+          earth_distance(
+            ll_to_earth(u.latitude::float8, u.longitude::float8),
+            ll_to_earth(me.latitude::float8, me.longitude::float8)
+          ) / 1000 <= greatest(coalesce(me.pref_distance_radius_km, 50), 50)
         )
-        and not exists (
-          select 1 from blocks b 
-          where (b.blocker_id = me.user_id and b.blocked_id = other.user_id)
-             or (b.blocker_id = other.user_id and b.blocked_id = me.user_id)
-        )
-        and not exists (
-          select 1 from reports r 
-          where (r.reporter_id = me.user_id and r.reported_id = other.user_id)
-             or (r.reporter_id = other.user_id and r.reported_id = me.user_id)
-        )
+        -- Interaction exclusions
+        AND NOT EXISTS (SELECT 1 FROM swipes s WHERE s.swiper_id = me.user_id AND s.receiver_id = u.user_id)
+        AND NOT EXISTS (SELECT 1 FROM blocks b WHERE (b.blocker_id = me.user_id AND b.blocked_id = u.user_id) OR (b.blocked_id = me.user_id AND b.blocker_id = u.user_id))
+        AND NOT EXISTS (SELECT 1 FROM reports r WHERE (r.reporter_id = me.user_id AND r.reported_id = u.user_id) OR (r.reported_id = me.user_id AND r.reporter_id = u.user_id))
 
-      order by
-        coalesce(interest_match.match_score, 0) desc,
-        distances.distance_km asc
+      ORDER BY
+        match_score DESC,
+        distance_km ASC
 
-      limit ${limit}
-      offset ${offset}
-    `,
-    );
+      LIMIT ${limit}
+      OFFSET ${offset}
+    `) as unknown as FeedDto[];
   }
 }

@@ -95,12 +95,12 @@ async function seed() {
     const [user] = await sql`
       INSERT INTO USERS (
         EMAIL, PASSWORD_HASH, FULL_NAME, GENDER, SEXUAL_ORIENTATION, BIRTH_DATE, BIO, 
-        LATITUDE, LONGITUDE, PREF_GENDERS, IS_ONBOARDED, PREF_DISTANCE_RADIUS_KM
+        LATITUDE, LONGITUDE, PREF_GENDERS, IS_ONBOARDED, PREF_DISTANCE_RADIUS_KM, IS_ACTIVE
       )
       VALUES (
         ${u.email}, ${hashedPw}, ${u.name}, ${u.gender}::T_GENDER, ${u.orient}::T_ORIENTATION, 
         '1995-01-01', 'Demo user for LoveFinder. Swiping, matching, and chatting!', 
-        ${u.lat}, ${u.long}, ${u.pref}::T_GENDER[], TRUE, 100
+        ${u.lat}, ${u.long}, ${u.pref}::T_GENDER[], TRUE, 100, TRUE
       )
       RETURNING USER_ID
     `;
@@ -118,31 +118,43 @@ async function seed() {
     }
   }
 
-  // 4. BULK GENERATE 100 USERS
-  console.log('👥 Generating bulk users...');
+  // 4. BULK GENERATE 200 USERS
+  console.log('👥 Generating 200 bulk users...');
   const genders = ['male', 'female', 'nonbinary'];
-  const orients = ['straight', 'gay', 'bisexual', 'pansexual'];
+  const orients = [
+    'straight',
+    'straight',
+    'bisexual',
+    'pansexual',
+    'bisexual',
+    'pansexual',
+  ]; // Weighted towards multi-gender attraction for better feed density
 
-  for (let i = 1; i <= 100; i++) {
+  for (let i = 1; i <= 200; i++) {
     const gender = genders[Math.floor(Math.random() * genders.length)];
     const orient = orients[Math.floor(Math.random() * orients.length)];
-    const lat = 40.7 + (Math.random() * 0.2 - 0.1);
-    const long = -74.0 + (Math.random() * 0.2 - 0.1);
+    // Keep them closer to New York center to ensure they are within range
+    const lat = 40.7128 + (Math.random() * 0.1 - 0.05);
+    const long = -74.006 + (Math.random() * 0.1 - 0.05);
 
     let pref = '{male,female,nonbinary}';
     if (orient === 'straight') pref = gender === 'male' ? '{female}' : '{male}';
 
     const [user] = await sql`
-      INSERT INTO USERS (EMAIL, PASSWORD_HASH, FULL_NAME, GENDER, SEXUAL_ORIENTATION, BIRTH_DATE, BIO, LATITUDE, LONGITUDE, PREF_GENDERS, IS_ONBOARDED, ALLOW_MESSAGES_FROM_STRANGERS)
+      INSERT INTO USERS (
+        EMAIL, PASSWORD_HASH, FULL_NAME, GENDER, SEXUAL_ORIENTATION, BIRTH_DATE, BIO, 
+        LATITUDE, LONGITUDE, PREF_GENDERS, IS_ONBOARDED, ALLOW_MESSAGES_FROM_STRANGERS,
+        PREF_DISTANCE_RADIUS_KM, PREF_MIN_AGE, PREF_MAX_AGE, IS_ACTIVE
+      )
       VALUES (
         ${`user${i}@test.com`}, ${hashedPw}, ${`User ${i}`}, ${gender}::T_GENDER, 
         ${orient}::T_ORIENTATION, '1998-05-20', 'Looking for someone special!', ${lat}, ${long}, ${pref}::T_GENDER[], TRUE,
-        ${i % 10 === 0}
+        ${i % 5 === 0}, 200, 18, 100, TRUE
       ) RETURNING USER_ID
     `;
 
     const shuffled = [...allInterests].sort(() => 0.5 - Math.random());
-    for (const int of shuffled.slice(0, 3)) {
+    for (const int of shuffled.slice(0, 4)) {
       await sql`INSERT INTO USER_INTERESTS (USER_ID, INTEREST_ID) VALUES (${user.user_id}, ${int.interest_id})`;
     }
 
@@ -164,6 +176,9 @@ async function seed() {
     await sql`SELECT USER_ID FROM USERS WHERE EMAIL = 'bob@example.com'`
   )[0].user_id;
 
+  // Ensure Demo User has broad preferences to see everyone
+  await sql`UPDATE USERS SET PREF_GENDERS = '{male,female,nonbinary}', PREF_DISTANCE_RADIUS_KM = 500 WHERE USER_ID = ${demoId}`;
+
   // Make Alice and Bob match with Demo
   await sql`INSERT INTO SWIPES (SWIPER_ID, RECEIVER_ID, SWIPE_TYPE) VALUES (${demoId}, ${aliceId}, 'like'), (${aliceId}, ${demoId}, 'like') ON CONFLICT DO NOTHING`;
   await sql`INSERT INTO SWIPES (SWIPER_ID, RECEIVER_ID, SWIPE_TYPE) VALUES (${demoId}, ${bobId}, 'like'), (${bobId}, ${demoId}, 'like') ON CONFLICT DO NOTHING`;
@@ -171,27 +186,25 @@ async function seed() {
   await sql`INSERT INTO MESSAGES (SENDER_ID, RECEIVER_ID, MESSAGE_CONTENT) VALUES (${aliceId}, ${demoId}, 'Hey! I am Alice. How is it going?')`;
   await sql`INSERT INTO MESSAGES (SENDER_ID, RECEIVER_ID, MESSAGE_CONTENT) VALUES (${bobId}, ${demoId}, 'Yo! Nice profile.')`;
 
-  const females =
-    await sql`SELECT USER_ID FROM USERS WHERE GENDER = 'female' AND EMAIL NOT IN ('demo@example.com', 'alice@example.com') LIMIT 30`;
+  // Get a pool of users to interact with
+  const pool = await sql`SELECT USER_ID FROM USERS WHERE EMAIL NOT IN ('demo@example.com', 'alice@example.com', 'bob@example.com') LIMIT 100`;
 
-  for (let i = 0; i < females.length; i++) {
-    const otherId = females[i].user_id;
-    if (i < 5) {
-      // "Both Liked" (Match)
+  for (let i = 0; i < pool.length; i++) {
+    const otherId = pool[i].user_id;
+    if (i < 20) {
+      // 20 Matches (Mutual likes)
       await sql`INSERT INTO SWIPES (SWIPER_ID, RECEIVER_ID, SWIPE_TYPE) VALUES (${demoId}, ${otherId}, 'like'), (${otherId}, ${demoId}, 'like') ON CONFLICT DO NOTHING`;
-
-      // Add a message
-      await sql`
-        INSERT INTO MESSAGES (SENDER_ID, RECEIVER_ID, MESSAGE_CONTENT)
-        VALUES (${otherId}, ${demoId}, 'Hey! I saw your profile and loved it.')
-      `;
-    } else if (i < 10) {
-      // "You Liked"
-      await sql`INSERT INTO SWIPES (SWIPER_ID, RECEIVER_ID, SWIPE_TYPE) VALUES (${demoId}, ${otherId}, 'like') ON CONFLICT DO NOTHING`;
-    } else if (i < 15) {
-      // "They Liked"
+      if (i % 3 === 0) {
+        await sql`INSERT INTO MESSAGES (SENDER_ID, RECEIVER_ID, MESSAGE_CONTENT) VALUES (${otherId}, ${demoId}, 'Hey there! We matched!')`;
+      }
+    } else if (i < 40) {
+      // 20 Incoming Likes (They liked you)
       await sql`INSERT INTO SWIPES (SWIPER_ID, RECEIVER_ID, SWIPE_TYPE) VALUES (${otherId}, ${demoId}, 'like') ON CONFLICT DO NOTHING`;
+    } else if (i < 60) {
+      // 20 Outgoing Likes (You liked them)
+      await sql`INSERT INTO SWIPES (SWIPER_ID, RECEIVER_ID, SWIPE_TYPE) VALUES (${demoId}, ${otherId}, 'like') ON CONFLICT DO NOTHING`;
     }
+    // The rest (40-100) will be "new" and appear in the feed
   }
 
   console.log('✅ Seed complete!');

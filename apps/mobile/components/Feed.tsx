@@ -62,7 +62,7 @@ export default function Feed({ data, loading, error, refetch }: FeedProps) {
                 No one new!
               </Text>
               <Text className="text-gray-500 font-regular text-base mt-2">
-                Pull down to refresh
+                {"Pull down to refresh "}
               </Text>
             </ScrollView>
           ) : (

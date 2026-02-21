@@ -48,19 +48,17 @@ export default function MessageItem({
   const renderText = () => (
     <View
       style={{ minWidth: 60 }}
-      className={`max-w-[260px] rounded-2xl ${
-        isMine
+      className={`max-w-[260px] rounded-2xl ${isMine
           ? "bg-accent shadow-sm"
           : "bg-bgPrimaryDark dark:bg-bgPrimaryLight"
-      }`}
+        }`}
     >
       <View className="px-4 py-3">
         <Text
-          className={`text-[16px] leading-6 ${
-            isMine
+          className={`text-[16px] leading-6 ${isMine
               ? "text-white"
               : "text-textPrimaryDark dark:text-textPrimaryLight"
-          }`}
+            }`}
         >
           {item.message_content}
         </Text>
@@ -107,13 +105,12 @@ export default function MessageItem({
 
   const renderAudio = () => (
     <View
-      className={`p-3 rounded-2xl w-52 ${
-        isMine ? "bg-accent" : "bg-bgPrimaryDark dark:bg-bgPrimaryLight"
-      }`}
+      className={`p-3 rounded-2xl w-52 ${isMine ? "bg-accent" : "bg-bgPrimaryDark dark:bg-bgPrimaryLight"
+        }`}
     >
       <AudioPlayer
         uri={item.message_content}
-        color={isMine ? "white" : theme === "dark" ? "white" : "black"}
+        color={isMine ? "white" : theme === "dark" ? "black" : "white"}
       />
     </View>
   );
