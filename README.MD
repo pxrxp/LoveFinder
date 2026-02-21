@@ -133,4 +133,4 @@ Use these to test matching and chat:
 | **Bob** | `bob@example.com` | `123456` |
 
 ---
-*LoveFinder.*
+Built with ❤️ — LoveFinder
