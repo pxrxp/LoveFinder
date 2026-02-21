@@ -2,6 +2,6 @@ import { Module } from '@nestjs/common';
 import { ChatMediaController } from './chat-media.controller';
 
 @Module({
-  controllers: [ChatMediaController]
+  controllers: [ChatMediaController],
 })
 export class ChatMediaModule {}

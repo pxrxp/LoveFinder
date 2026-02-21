@@ -1,4 +1,8 @@
-import { GestureResponderEvent, TouchableOpacity, ViewStyle } from "react-native";
+import {
+  GestureResponderEvent,
+  TouchableOpacity,
+  ViewStyle,
+} from "react-native";
 import { ImageBackground } from "expo-image";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import { useVideoThumbnail } from "@/hooks/useVideoThumbnail";

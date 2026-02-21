@@ -16,7 +16,7 @@ export class CursorPaginationPipe implements PipeTransform {
 
     return {
       limit,
-      cursor
+      cursor,
     };
   }
 }

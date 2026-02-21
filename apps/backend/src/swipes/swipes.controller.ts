@@ -1,4 +1,11 @@
-import { Controller, Delete, Get, Param, ParseUUIDPipe, Post } from '@nestjs/common';
+import {
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Post,
+} from '@nestjs/common';
 import { SwipesService } from './swipes.service';
 import { GetUser } from '../auth/decorators/get-user.decorator';
 import { UserDto } from '../users/dto/user.dto';
@@ -11,7 +18,7 @@ export class SwipesController {
   swipe(
     @GetUser() user: UserDto,
     @Param('receiverId', ParseUUIDPipe) receiverId: string,
-    @Param('type') type: 'like' | 'dislike'
+    @Param('type') type: 'like' | 'dislike',
   ) {
     return this.swipesService.swipe(user.user_id, receiverId, type);
   }
@@ -19,7 +26,7 @@ export class SwipesController {
   @Delete(':receiver_id')
   remove(
     @GetUser() user: UserDto,
-    @Param('receiver_id', ParseUUIDPipe) receiver_id: string
+    @Param('receiver_id', ParseUUIDPipe) receiver_id: string,
   ) {
     return this.swipesService.remove(user.user_id, receiver_id);
   }

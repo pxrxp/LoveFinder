@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class AdminReportsService {
-    async updateStatus(report_id: string, status: string) {
+  async updateStatus(report_id: string, status: string) {
     return (
       await Bun.sql`
         UPDATE REPORTS

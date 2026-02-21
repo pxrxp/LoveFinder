@@ -14,7 +14,9 @@ export default function StepName() {
         Keyboard.dismiss();
         router.push({
           pathname: "/(root)/(onboarding)/birthday",
-          params: { name: name.trim().replace(/^./, char => char.toUpperCase()) },
+          params: {
+            name: name.trim().replace(/^./, (char) => char.toUpperCase()),
+          },
         });
       }}
       disabled={name.length < 2}

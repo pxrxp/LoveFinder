@@ -41,7 +41,7 @@ export const blockUser = async (targetId: string) => {
 export const reportUser = async (
   targetId: string,
   reason: ReportReason,
-  details: string
+  details: string,
 ) => {
   return await apiFetch(`reports/${targetId}`, {
     method: "POST",

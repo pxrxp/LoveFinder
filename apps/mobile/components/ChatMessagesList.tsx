@@ -41,7 +41,7 @@ export default function ChatMessagesList({
       className="px-4"
       ListHeaderComponent={
         loadingOlderMessages ? (
-          <LoadingScreen hasBackground={false} className="p-4"/>
+          <LoadingScreen hasBackground={false} className="p-4" />
         ) : (
           <View className="h-12 w-full" />
         )

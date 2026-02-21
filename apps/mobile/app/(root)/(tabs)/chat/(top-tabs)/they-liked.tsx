@@ -3,7 +3,8 @@ import ConversationsList from "@/components/ConversationsList";
 import { useConversations } from "@/contexts/ConversationsContext";
 
 export default function TheyLikedScreen() {
-  const { conversations, loading, refetch, loadingMore, loadMore } = useConversations("they");
+  const { conversations, loading, refetch, loadingMore, loadMore } =
+    useConversations("they");
 
   return (
     <SafeAreaView

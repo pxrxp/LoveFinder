@@ -34,8 +34,10 @@ export function useChatSocket({
     }
 
     const handleNewMessage = (msg: Message) => stateRef.current.onMessage(msg);
-    const handleDelete = (payload: any) => stateRef.current.onDelete(payload?.message_id);
-    const handleError = (payload: any) => stateRef.current.onError(`${payload?.action}\n${payload?.error}`);
+    const handleDelete = (payload: any) =>
+      stateRef.current.onDelete(payload?.message_id);
+    const handleError = (payload: any) =>
+      stateRef.current.onError(`${payload?.action}\n${payload?.error}`);
 
     socket.on("new_message", handleNewMessage);
     socket.on("delete_message", handleDelete);

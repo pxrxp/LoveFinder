@@ -1,4 +1,10 @@
-import React, { createContext, useContext, ReactNode, useState, useCallback } from "react";
+import React, {
+  createContext,
+  useContext,
+  ReactNode,
+  useState,
+  useCallback,
+} from "react";
 
 type AudioRecorderContextValue = {
   audioModuleVisible: boolean;
@@ -9,9 +15,15 @@ type AudioRecorderContextValue = {
   onAudioRecordComplete: (uri: string | null) => void;
 };
 
-const AudioRecorderContext = createContext<AudioRecorderContextValue | undefined>(undefined);
+const AudioRecorderContext = createContext<
+  AudioRecorderContextValue | undefined
+>(undefined);
 
-export const AudioRecorderProvider = ({ children }: { children: ReactNode }) => {
+export const AudioRecorderProvider = ({
+  children,
+}: {
+  children: ReactNode;
+}) => {
   const [audioModuleVisible, setAudioModuleVisible] = useState(false);
   const [audioRecordComplete, setAudioRecordComplete] = useState(false);
   const [audioUri, setAudioUri] = useState<string | null>(null);
@@ -49,7 +61,9 @@ export const AudioRecorderProvider = ({ children }: { children: ReactNode }) => 
 
 export const useAudioRecorderContext = () => {
   const context = useContext(AudioRecorderContext);
-  if (!context) throw new Error("useAudioRecorderContext must be used inside AudioRecorderProvider");
+  if (!context)
+    throw new Error(
+      "useAudioRecorderContext must be used inside AudioRecorderProvider",
+    );
   return context;
 };
-;

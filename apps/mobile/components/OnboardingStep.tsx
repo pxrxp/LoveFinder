@@ -33,7 +33,7 @@ export default function OnboardingStep({
     >
       <KeyboardAvoidingView
         behavior="padding"
-        style={{flex:1, paddingHorizontal: 32 }}
+        style={{ flex: 1, paddingHorizontal: 32 }}
         keyboardVerticalOffset={100}
       >
         <View className="flex-1 items-center w-full">
@@ -61,7 +61,9 @@ export default function OnboardingStep({
               {loading ? (
                 <ActivityIndicator color="white" />
               ) : (
-                <Text className="text-white font-regular text-lg">Continue</Text>
+                <Text className="text-white font-regular text-lg">
+                  Continue
+                </Text>
               )}
             </TouchableOpacity>
           </View>

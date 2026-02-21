@@ -16,4 +16,3 @@ export const colors = {
     tabIconInactive: "#d1d1d1",
   },
 };
-

@@ -1,4 +1,15 @@
-import { BadRequestException, Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common';
 import { PhotosService } from './photos.service';
 import { UserDto } from '../users/dto/user.dto';
 import { GetUser } from '../auth/decorators/get-user.decorator';
@@ -9,7 +20,7 @@ import { extname } from 'path';
 
 @Controller('photos')
 export class PhotosController {
-  constructor(private readonly photosService: PhotosService) { }
+  constructor(private readonly photosService: PhotosService) {}
 
   @Post('upload')
   @UseInterceptors(
@@ -43,15 +54,18 @@ export class PhotosController {
     const isPrimaryBool = is_primary === 'true';
 
     return this.photosService.create(
-      user.user_id, 
-      url, 
-      isPrimaryBool, 
-      replace_photo_id !== 'undefined' ? replace_photo_id : undefined
+      user.user_id,
+      url,
+      isPrimaryBool,
+      replace_photo_id !== 'undefined' ? replace_photo_id : undefined,
     );
   }
 
   @Post(':photo_id/primary')
-  setPrimary(@GetUser() user: UserDto, @Param('photo_id', ParseUUIDPipe) photo_id: string) {
+  setPrimary(
+    @GetUser() user: UserDto,
+    @Param('photo_id', ParseUUIDPipe) photo_id: string,
+  ) {
     return this.photosService.setPrimary(user.user_id, photo_id);
   }
 
@@ -66,7 +80,10 @@ export class PhotosController {
   }
 
   @Delete(':photo_id')
-  delete(@GetUser() user: UserDto, @Param('photo_id', ParseUUIDPipe) photo_id: string) {
+  delete(
+    @GetUser() user: UserDto,
+    @Param('photo_id', ParseUUIDPipe) photo_id: string,
+  ) {
     return this.photosService.delete(user.user_id, photo_id);
   }
 }

@@ -47,9 +47,7 @@ export default function SettingsModal({ visible, onDismiss }: Props) {
       style={{ borderColor: themeColors.textPrimary + "10" }}
     >
       <View className="flex-row items-center">
-        <View className="w-10 items-center justify-center mr-3">
-          {icon}
-        </View>
+        <View className="w-10 items-center justify-center mr-3">{icon}</View>
         <Text
           className="text-base font-semibold"
           style={{ color: themeColors.textPrimary }}
@@ -57,7 +55,7 @@ export default function SettingsModal({ visible, onDismiss }: Props) {
           {label}
         </Text>
       </View>
-      
+
       {isSwitch ? (
         <Switch
           value={value}
@@ -102,7 +100,7 @@ export default function SettingsModal({ visible, onDismiss }: Props) {
             </TouchableOpacity>
           </View>
 
-          <ScrollView 
+          <ScrollView
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 30 }}
           >
@@ -154,17 +152,14 @@ export default function SettingsModal({ visible, onDismiss }: Props) {
               className="mt-8 bg-red-500 rounded-2xl py-3.5 flex-row items-center justify-center shadow-sm"
               activeOpacity={0.8}
             >
-              <MaterialIcons 
-                name="logout" 
-                size={20} 
-                color="white" 
-                style={{ marginRight: 8 }} 
+              <MaterialIcons
+                name="logout"
+                size={20}
+                color="white"
+                style={{ marginRight: 8 }}
               />
-              <Text className="text-white font-bold text-base">
-                Log Out
-              </Text>
+              <Text className="text-white font-bold text-base">Log Out</Text>
             </TouchableOpacity>
-            
           </ScrollView>
         </Pressable>
       </Pressable>

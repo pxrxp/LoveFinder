@@ -8,7 +8,11 @@ type Props = {
   onDelete: () => void;
 };
 
-export default function DeleteMenuModal({ visible, onDismiss, onDelete }: Props) {
+export default function DeleteMenuModal({
+  visible,
+  onDismiss,
+  onDelete,
+}: Props) {
   return (
     <ModalMenu
       visible={visible}
@@ -17,7 +21,13 @@ export default function DeleteMenuModal({ visible, onDismiss, onDelete }: Props)
         {
           label: "Delete",
           color: "red",
-          icon: <MaterialCommunityIcons name="delete-outline" size={24} color="red" />,
+          icon: (
+            <MaterialCommunityIcons
+              name="delete-outline"
+              size={24}
+              color="red"
+            />
+          ),
           onPress: onDelete,
         },
       ]}

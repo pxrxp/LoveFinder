@@ -1,4 +1,11 @@
-import { Controller, Get, Patch, Param, ParseUUIDPipe, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Patch,
+  Param,
+  ParseUUIDPipe,
+  UseGuards,
+} from '@nestjs/common';
 import { AdminGuard } from '../../auth/guards/admin.guard';
 import { UsersService } from '../../users/users.service';
 

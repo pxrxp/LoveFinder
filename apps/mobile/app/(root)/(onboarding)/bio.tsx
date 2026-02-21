@@ -18,8 +18,7 @@ export default function StepBio() {
           pathname: "/(root)/(onboarding)/discovery",
           params: { ...params, bio },
         });
-        }
-      }
+      }}
     >
       <TextInput
         placeholder="Tell us about yourself..."

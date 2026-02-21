@@ -3,7 +3,8 @@ import ConversationsList from "@/components/ConversationsList";
 import { useConversations } from "@/contexts/ConversationsContext";
 
 export default function BothLikedScreen() {
-  const { conversations, loading, refetch, loadingMore, loadMore } = useConversations("both");
+  const { conversations, loading, refetch, loadingMore, loadMore } =
+    useConversations("both");
 
   return (
     <SafeAreaView

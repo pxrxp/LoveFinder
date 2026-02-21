@@ -28,7 +28,9 @@ interface ConversationsContextValue {
   loadMore: (category: SwipeCategory) => Promise<void>;
 }
 
-const ConversationsContext = createContext<ConversationsContextValue | undefined>(undefined);
+const ConversationsContext = createContext<
+  ConversationsContextValue | undefined
+>(undefined);
 
 const getTime = (date?: string | Date) => {
   if (!date) return 0;
@@ -58,7 +60,8 @@ export function ConversationsProvider({ children }: { children: ReactNode }) {
   const fetchCategory = useCallback(
     async (category: SwipeCategory, isLoadMore = false) => {
       const currentState = statesRef.current[category];
-      if (isLoadMore && (!currentState.hasMore || currentState.loadingMore)) return;
+      if (isLoadMore && (!currentState.hasMore || currentState.loadingMore))
+        return;
 
       const offset = isLoadMore ? currentState.offset : 0;
 
@@ -71,17 +74,20 @@ export function ConversationsProvider({ children }: { children: ReactNode }) {
       }));
 
       try {
-        const res = await fetchConversations(category, offset)
+        const res = await fetchConversations(category, offset);
         const newData: Conversation[] = await res.json();
 
         setStates((prev) => {
           const currentData = isLoadMore ? prev[category].data : [];
           const combined = [...currentData, ...newData];
           const unique = Array.from(
-            new Map(combined.map((item) => [item.other_user_id, item])).values()
+            new Map(
+              combined.map((item) => [item.other_user_id, item]),
+            ).values(),
           );
           const sorted = unique.sort(
-            (a, b) => getTime(b.last_message_sent_at) - getTime(a.last_message_sent_at)
+            (a, b) =>
+              getTime(b.last_message_sent_at) - getTime(a.last_message_sent_at),
           );
 
           return {
@@ -107,17 +113,17 @@ export function ConversationsProvider({ children }: { children: ReactNode }) {
         }));
       }
     },
-    []
+    [],
   );
 
   const refetch = useCallback(
     async (category: SwipeCategory) => fetchCategory(category, false),
-    [fetchCategory]
+    [fetchCategory],
   );
 
   const loadMore = useCallback(
     async (category: SwipeCategory) => fetchCategory(category, true),
-    [fetchCategory]
+    [fetchCategory],
   );
 
   useEffect(() => {
@@ -142,14 +148,17 @@ export function ConversationsProvider({ children }: { children: ReactNode }) {
         (["both", "you", "they"] as SwipeCategory[]).forEach((cat) => {
           const list = prev[cat].data;
           const isExisting = list.some(
-            (c) => c.other_user_id === msg.sender_id || c.other_user_id === msg.receiver_id
+            (c) =>
+              c.other_user_id === msg.sender_id ||
+              c.other_user_id === msg.receiver_id,
           );
 
           if (isExisting) {
             updatedExisting = true;
             const updatedList = list
               .map((c) =>
-                c.other_user_id === msg.sender_id || c.other_user_id === msg.receiver_id
+                c.other_user_id === msg.sender_id ||
+                c.other_user_id === msg.receiver_id
                   ? {
                       ...c,
                       last_message: msg.message_content,
@@ -157,10 +166,12 @@ export function ConversationsProvider({ children }: { children: ReactNode }) {
                       last_message_sent_at: msg.sent_at,
                       last_message_sender_id: msg.sender_id,
                     }
-                  : c
+                  : c,
               )
               .sort(
-                (a, b) => getTime(b.last_message_sent_at) - getTime(a.last_message_sent_at)
+                (a, b) =>
+                  getTime(b.last_message_sent_at) -
+                  getTime(a.last_message_sent_at),
               );
 
             newStates[cat] = { ...prev[cat], data: updatedList };
@@ -201,7 +212,9 @@ export function ConversationsProvider({ children }: { children: ReactNode }) {
 export function useConversations(category: SwipeCategory) {
   const context = useContext(ConversationsContext);
   if (!context) {
-    throw new Error("useConversations must be used within ConversationsContext");
+    throw new Error(
+      "useConversations must be used within ConversationsContext",
+    );
   }
 
   const state = context.states[category];

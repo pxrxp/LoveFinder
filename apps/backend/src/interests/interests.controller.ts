@@ -1,11 +1,19 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+} from '@nestjs/common';
 import { InterestsService } from './interests.service';
 import { GetUser } from '../auth/decorators/get-user.decorator';
 import { UserDto } from '../users/dto/user.dto';
 
 @Controller('interests')
 export class InterestsController {
-  constructor(private readonly interestsService: InterestsService) { }
+  constructor(private readonly interestsService: InterestsService) {}
 
   @Post('request')
   requestNew(@Body('interest_name') interest_name: string) {
@@ -15,22 +23,22 @@ export class InterestsController {
   @Post(':interest_id')
   add(
     @GetUser() user: UserDto,
-    @Param('interest_id', ParseIntPipe) interest_id: number
+    @Param('interest_id', ParseIntPipe) interest_id: number,
   ) {
     return this.interestsService.addInterestToUser(
       user.user_id,
-      Number(interest_id)
+      Number(interest_id),
     );
   }
 
   @Delete(':interest_id')
   remove(
     @GetUser() user: UserDto,
-    @Param('interest_id', ParseIntPipe) interest_id: number
+    @Param('interest_id', ParseIntPipe) interest_id: number,
   ) {
     return this.interestsService.removeInterestFromUser(
       user.user_id,
-      Number(interest_id)
+      Number(interest_id),
     );
   }
 

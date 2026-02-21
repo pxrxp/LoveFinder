@@ -1,9 +1,21 @@
 import React from "react";
-import { Modal, View, Text, TouchableOpacity, Pressable, ScrollView } from "react-native";
+import {
+  Modal,
+  View,
+  Text,
+  TouchableOpacity,
+  Pressable,
+  ScrollView,
+} from "react-native";
 import { useTheme } from "@/contexts/ThemeContext";
 import { AntDesign } from "@expo/vector-icons";
 
-type InterestType = { id?: number; interest_id?: number; interest_name?: string; name?: string };
+type InterestType = {
+  id?: number;
+  interest_id?: number;
+  interest_name?: string;
+  name?: string;
+};
 
 type Props = {
   visible: boolean;
@@ -34,33 +46,55 @@ export default function SelectInterestsModal({
           onPress={(e) => e.stopPropagation()}
         >
           <View className="flex-row justify-between items-center mb-6">
-            <Text className="text-xl font-bold" style={{ color: themeColors.textPrimary }}>
+            <Text
+              className="text-xl font-bold"
+              style={{ color: themeColors.textPrimary }}
+            >
               Select Interests
             </Text>
             <TouchableOpacity onPress={onDismiss} className="p-2 -mr-2">
-              <AntDesign name="close" size={24} color={themeColors.textPrimary} />
+              <AntDesign
+                name="close"
+                size={24}
+                color={themeColors.textPrimary}
+              />
             </TouchableOpacity>
           </View>
 
           <ScrollView showsVerticalScrollIndicator={false}>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, paddingBottom: 40 }}>
+            <View
+              style={{
+                flexDirection: "row",
+                flexWrap: "wrap",
+                gap: 10,
+                paddingBottom: 40,
+              }}
+            >
               {allInterests.map((interest, index) => {
                 const iId = getIntId(interest);
-                const isSelected = selectedInterests.some((i) => getIntId(i) === iId);
+                const isSelected = selectedInterests.some(
+                  (i) => getIntId(i) === iId,
+                );
                 const name = getIntName(interest);
-                
+
                 return (
                   <TouchableOpacity
                     key={`modal-int-${iId ?? index}`}
                     onPress={() => toggleInterest(interest)}
                     className="px-6 py-3 rounded-full"
                     style={{
-                      backgroundColor: isSelected ? themeColors.textPrimary : themeColors.textPrimary + "15",
+                      backgroundColor: isSelected
+                        ? themeColors.textPrimary
+                        : themeColors.textPrimary + "15",
                     }}
                   >
-                    <Text 
+                    <Text
                       className="font-semibold text-sm"
-                      style={{ color: isSelected ? themeColors.bgPrimary : themeColors.textPrimary }}
+                      style={{
+                        color: isSelected
+                          ? themeColors.bgPrimary
+                          : themeColors.textPrimary,
+                      }}
                     >
                       {name}
                     </Text>

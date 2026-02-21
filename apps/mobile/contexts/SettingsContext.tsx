@@ -19,7 +19,9 @@ const defaultSettings: Settings = {
 
 const SettingsContext = createContext<SettingsContextValue | null>(null);
 
-export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [settings, setSettingsState] = useState<Settings>(defaultSettings);
 
   useEffect(() => {
@@ -37,7 +39,10 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     })();
   }, []);
 
-  const setSetting = async <K extends keyof Settings>(key: K, value: Settings[K]) => {
+  const setSetting = async <K extends keyof Settings>(
+    key: K,
+    value: Settings[K],
+  ) => {
     setSettingsState((prev) => ({ ...prev, [key]: value }));
     try {
       await AsyncStorage.setItem(key as string, JSON.stringify(value));
@@ -53,7 +58,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
 export const useSettings = () => {
   const ctx = useContext(SettingsContext);
-  if (!ctx) throw new Error("useSettings must be used within a SettingsProvider");
+  if (!ctx)
+    throw new Error("useSettings must be used within a SettingsProvider");
   return ctx;
 };
-

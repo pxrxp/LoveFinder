@@ -4,6 +4,6 @@ import { SwipesService } from './swipes.service';
 
 @Module({
   controllers: [SwipesController],
-  providers: [SwipesService]
+  providers: [SwipesService],
 })
 export class SwipesModule {}

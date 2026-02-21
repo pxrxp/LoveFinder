@@ -27,16 +27,21 @@ export default function StepPhotos() {
         title="Add your photos"
         description="Add at least 2 photos to continue."
         disabled={count < 2}
-        onNext={() => router.push({ 
-          pathname: "/(root)/(onboarding)/bio", 
-          params: { ...params, uris: uris.filter(Boolean).join("|") } 
-        })}
+        onNext={() =>
+          router.push({
+            pathname: "/(root)/(onboarding)/bio",
+            params: { ...params, uris: uris.filter(Boolean).join("|") },
+          })
+        }
       >
         <View className="flex-row flex-wrap justify-between">
           {uris.map((uri, i) => (
             <TouchableOpacity
               key={i}
-              onPress={() => { setActiveIndex(i); setMediaMenuVisible(true); }}
+              onPress={() => {
+                setActiveIndex(i);
+                setMediaMenuVisible(true);
+              }}
               style={{ width: "31%", aspectRatio: 0.75 }}
               className="bg-gray-100 dark:bg-white/5 rounded-2xl mb-4 border-2 border-dashed border-gray-300 dark:border-white/10 overflow-hidden items-center justify-center"
             >

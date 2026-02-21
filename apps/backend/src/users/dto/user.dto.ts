@@ -17,4 +17,4 @@ export class UserDto {
   is_onboarded!: boolean;
   is_verified!: boolean;
   allow_messages_from_strangers!: boolean;
-};
+}

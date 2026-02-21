@@ -3,7 +3,7 @@ import { apiFetch } from "@/services/api";
 export async function uploadFile(
   media: { uri: string; type: string },
   endpoint: string,
-  extraFields?: Record<string, any>
+  extraFields?: Record<string, any>,
 ) {
   const uriParts = media.uri.split(".");
   const fileType = uriParts[uriParts.length - 1];

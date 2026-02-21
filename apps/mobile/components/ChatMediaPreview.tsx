@@ -20,7 +20,6 @@ export default function ChatMediaPreview({
   onPlayVideo,
   onRecordAudio,
 }: Props) {
-
   if (!mediaPreview) return null;
 
   return (

@@ -7,7 +7,11 @@ import { AdminUsersController } from './users/users.controller';
 import { UsersService } from '../users/users.service';
 
 @Module({
-  controllers: [AdminInterestsController, AdminReportsController, AdminUsersController],
-  providers: [AdminReportsService, AdminInterestsService, UsersService]
+  controllers: [
+    AdminInterestsController,
+    AdminReportsController,
+    AdminUsersController,
+  ],
+  providers: [AdminReportsService, AdminInterestsService, UsersService],
 })
 export class AdminModule {}

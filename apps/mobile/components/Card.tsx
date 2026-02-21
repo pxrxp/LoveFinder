@@ -248,7 +248,8 @@ export default function Card({
                 <View className="flex-1 mr-4" pointerEvents="none">
                   <View className="flex-row items-baseline">
                     <Text className="text-white text-3xl font-bold">
-                      {item.full_name}{"  "}
+                      {item.full_name}
+                      {"  "}
                     </Text>
                     <Text className="text-white text-2xl font-regular">
                       {item.age}

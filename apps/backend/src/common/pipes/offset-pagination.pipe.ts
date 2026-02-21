@@ -16,4 +16,3 @@ export class OffsetPaginationPipe implements PipeTransform {
     return { limit, offset };
   }
 }
-

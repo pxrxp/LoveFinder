@@ -12,8 +12,12 @@ export class FeedController {
   @Get()
   async getFeed(
     @GetUser() user: UserDto,
-    @Query(OffsetPaginationPipe) pagination: { limit: number, offset?: number },
+    @Query(OffsetPaginationPipe) pagination: { limit: number; offset?: number },
   ): Promise<FeedDto[]> {
-    return this.feedService.getFeed(user.user_id, pagination.limit, pagination.offset);
+    return this.feedService.getFeed(
+      user.user_id,
+      pagination.limit,
+      pagination.offset,
+    );
   }
 }

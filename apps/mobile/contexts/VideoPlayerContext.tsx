@@ -73,7 +73,9 @@ export const VideoPlayerProvider = ({ children }: { children: ReactNode }) => {
   }, [visible, thumbnail]);
 
   return (
-    <VideoPlayerContext.Provider value={{ openVideoPlayer, thumbnail, loading }}>
+    <VideoPlayerContext.Provider
+      value={{ openVideoPlayer, thumbnail, loading }}
+    >
       {children}
       <FullScreenVideo
         player={player}

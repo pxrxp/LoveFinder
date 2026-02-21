@@ -2,8 +2,12 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class PhotosService {
-
-  async create(userId: string, url: string, isPrimary: boolean, replacePhotoId?: string) {
+  async create(
+    userId: string,
+    url: string,
+    isPrimary: boolean,
+    replacePhotoId?: string,
+  ) {
     if (replacePhotoId) {
       await Bun.sql`
         DELETE FROM PHOTOS 

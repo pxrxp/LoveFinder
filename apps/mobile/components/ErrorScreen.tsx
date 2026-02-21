@@ -4,7 +4,7 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 export default function ErrorScreen({
   error,
   hasBackground = true,
-  className
+  className,
 }: {
   error: string | null;
   hasBackground?: boolean;

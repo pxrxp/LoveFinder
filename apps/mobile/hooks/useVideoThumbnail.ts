@@ -6,10 +6,9 @@ import {
 import { useVideoPlayer } from "expo-video";
 
 export function useVideoThumbnail(uri?: string) {
-  const [thumbnail, setThumbnail] =
-    useState<VideoThumbnailsResult | null>(
-      null
-    );
+  const [thumbnail, setThumbnail] = useState<VideoThumbnailsResult | null>(
+    null,
+  );
 
   useEffect(() => {
     if (!uri) return;
@@ -17,10 +16,7 @@ export function useVideoThumbnail(uri?: string) {
     getThumbnailAsync(uri).then(setThumbnail);
   }, [uri]);
 
-  const player = useVideoPlayer(
-    thumbnail,
-    (player) => player.play()
-  );
+  const player = useVideoPlayer(thumbnail, (player) => player.play());
 
   return {
     thumbnail,

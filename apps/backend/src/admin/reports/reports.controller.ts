@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Param, Patch, ParseUUIDPipe, UseGuards, ParseEnumPipe } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  ParseUUIDPipe,
+  UseGuards,
+  ParseEnumPipe,
+} from '@nestjs/common';
 import { AdminReportsService } from './reports.service';
 import { AdminGuard } from '../../auth/guards/admin.guard';
 
@@ -21,7 +30,8 @@ export class AdminReportsController {
   @Patch(':report_id/status')
   updateStatus(
     @Param('report_id', ParseUUIDPipe) report_id: string,
-    @Body('status', new ParseEnumPipe(ReportStatus)) body: { status: ReportStatus }
+    @Body('status', new ParseEnumPipe(ReportStatus))
+    body: { status: ReportStatus },
   ) {
     return this.reportsService.updateStatus(report_id, body.status);
   }

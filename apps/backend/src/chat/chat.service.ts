@@ -7,9 +7,10 @@ export class ChatService {
     userId: string,
     otherUserId: string,
     cursor: string | null,
-    limit: number
+    limit: number,
   ): Promise<MessageDto[]> {
-    return Array.from(await Bun.sql`
+    return Array.from(
+      await Bun.sql`
       SELECT MESSAGE_ID, SENDER_ID, RECEIVER_ID, MESSAGE_TYPE, MESSAGE_CONTENT, IS_READ, SENT_AT 
       FROM MESSAGES 
       WHERE ( 
@@ -19,14 +20,15 @@ export class ChatService {
       AND ( ${cursor}::timestamptz IS NULL OR SENT_AT < ${cursor} ) 
       ORDER BY SENT_AT DESC 
       LIMIT ${limit}
-    `);
+    `,
+    );
   }
 
   async sendMessage(
     senderId: string,
     receiverId: string,
     content: string,
-    type: 'text' | 'image' = 'text'
+    type: 'text' | 'image' = 'text',
   ) {
     const [msg] = await Bun.sql`
       WITH inserted AS (

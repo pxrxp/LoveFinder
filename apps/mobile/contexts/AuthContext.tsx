@@ -1,19 +1,21 @@
-import React, { createContext, ReactNode, useEffect, useState } from 'react';
-import { getMyProfile } from '@/services/users';
+import React, { createContext, ReactNode, useEffect, useState } from "react";
+import { getMyProfile } from "@/services/users";
 import * as Auth from "@/services/auth";
-import { UserPrivate } from '@/types/User';
+import { UserPrivate } from "@/types/User";
 
-export const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+export const AuthContext = createContext<AuthContextValue | undefined>(
+  undefined,
+);
 
 interface AuthContextValue {
-  user: UserPrivate | null,
-  login: (email: string, password: string) => void,
-  logout: () => void,
-  loading: boolean,
-  refreshUser: () => void
-};
+  user: UserPrivate | null;
+  login: (email: string, password: string) => void;
+  logout: () => void;
+  loading: boolean;
+  refreshUser: () => void;
+}
 
-export const AuthProvider = ({ children }: {children: ReactNode}) => {
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<UserPrivate | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -28,7 +30,6 @@ export const AuthProvider = ({ children }: {children: ReactNode}) => {
       setLoading(false);
     }
   };
-
 
   const login = async (email: string, password: string) => {
     await Auth.login(email, password);
@@ -50,4 +51,3 @@ export const AuthProvider = ({ children }: {children: ReactNode}) => {
     </AuthContext.Provider>
   );
 };
-

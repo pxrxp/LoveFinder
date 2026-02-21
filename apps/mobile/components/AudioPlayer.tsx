@@ -43,14 +43,8 @@ export default function AudioPlayer({ uri }: AudioPlayerProps) {
       </TouchableOpacity>
 
       <View>
-        <Text
-          className="font-bold text-regular text-white"
-        >
-          Audio Message
-        </Text>
-        <Text
-          className="text-white text-xs font-regular tabular-nums"
-        >
+        <Text className="font-bold text-regular text-white">Audio Message</Text>
+        <Text className="text-white text-xs font-regular tabular-nums">
           {formatTime(status.currentTime)} / {formatTime(status.duration)}
         </Text>
       </View>

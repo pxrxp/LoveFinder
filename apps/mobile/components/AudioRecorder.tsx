@@ -103,7 +103,12 @@ export default function AudioRecorder({
               pauseRecording();
             }}
           >
-            <Fontisto name="pause" size={24} color={themeColors.textPrimary} style={{opacity: 0.65}} />
+            <Fontisto
+              name="pause"
+              size={24}
+              color={themeColors.textPrimary}
+              style={{ opacity: 0.65 }}
+            />
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -111,7 +116,12 @@ export default function AudioRecorder({
               stopRecording();
             }}
           >
-            <Fontisto name="stop" size={24} color={themeColors.textPrimary} style={{opacity: 0.65}} />
+            <Fontisto
+              name="stop"
+              size={24}
+              color={themeColors.textPrimary}
+              style={{ opacity: 0.65 }}
+            />
           </TouchableOpacity>
         </View>
       )}

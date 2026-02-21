@@ -28,4 +28,3 @@ export class CreateReportDto {
   @MinLength(10)
   details!: string;
 }
-

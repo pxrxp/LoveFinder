@@ -20,10 +20,25 @@ import { join } from 'path';
 import { ConversationsModule } from './conversations/conversations.module';
 
 @Module({
-  imports: [ChatModule, FeedModule, LiveChatModule, AuthModule, UsersModule, PhotosModule, SwipesModule, BlocksModule, ReportsModule, InterestsModule, ServeStaticModule.forRoot({
-    rootPath: join(__dirname, '..', 'uploads'),
-    serveRoot: '/static',
-  }), ChatMediaModule, AdminModule, ConversationsModule],
+  imports: [
+    ChatModule,
+    FeedModule,
+    LiveChatModule,
+    AuthModule,
+    UsersModule,
+    PhotosModule,
+    SwipesModule,
+    BlocksModule,
+    ReportsModule,
+    InterestsModule,
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads'),
+      serveRoot: '/static',
+    }),
+    ChatMediaModule,
+    AdminModule,
+    ConversationsModule,
+  ],
   controllers: [AppController],
   providers: [
     AppService,
@@ -31,6 +46,6 @@ import { ConversationsModule } from './conversations/conversations.module';
       provide: APP_GUARD,
       useClass: AuthenticatedGuard,
     },
-  ]
+  ],
 })
-export class AppModule { }
+export class AppModule {}

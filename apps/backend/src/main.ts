@@ -10,23 +10,25 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   const redisClient = createClient({
-    url: process.env.REDIS_URL
+    url: process.env.REDIS_URL,
   });
   redisClient.connect().catch(console.error);
 
-  const { RedisStore } = require("connect-redis");
+  const { RedisStore } = require('connect-redis');
   const redisStore = new RedisStore({
     client: redisClient,
-    prefix: 'nestjs-auth:'
+    prefix: 'nestjs-auth:',
   });
 
   app.setGlobalPrefix('api/v1');
 
-  app.useGlobalPipes(new ValidationPipe({
-    whitelist: true,
-    forbidNonWhitelisted: true,
-    transform: true,
-  }));
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
 
   app.use(
     session({
@@ -35,7 +37,7 @@ async function bootstrap() {
       resave: false,
       saveUninitialized: false,
       cookie: {
-        maxAge: 3600000*24*10,
+        maxAge: 3600000 * 24 * 10,
         secure: process.env.NODE_ENV === 'production',
       },
     }),

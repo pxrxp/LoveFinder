@@ -35,13 +35,7 @@ export default function MediaMenuModal({
   if (!hideCameraAction && launchCamera) {
     actions.push({
       label: "Open camera",
-      icon: (
-        <Entypo
-          name="camera"
-          size={20}
-          color={themeColors.textPrimary}
-        />
-      ),
+      icon: <Entypo name="camera" size={20} color={themeColors.textPrimary} />,
       onPress: launchCamera,
     });
   }
@@ -75,10 +69,6 @@ export default function MediaMenuModal({
   }
 
   return (
-    <ModalMenu
-      visible={visible}
-      onDismiss={onDismiss}
-      actions={actions}
-    />
+    <ModalMenu visible={visible} onDismiss={onDismiss} actions={actions} />
   );
 }

@@ -3,10 +3,10 @@ import { UserPrivate } from "@/types/User";
 
 export const createUser = async (email: string, password: string) => {
   return await apiFetch(`users`, {
-    method: 'POST',
+    method: "POST",
     body: JSON.stringify({ email, password }),
   });
-}
+};
 
 export const updateProfile = async (data: UserPrivate) => {
   return await apiFetch(`users`, {

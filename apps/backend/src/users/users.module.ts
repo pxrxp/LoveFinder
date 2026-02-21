@@ -6,6 +6,6 @@ import { SwipesService } from '../swipes/swipes.service';
 @Module({
   controllers: [UsersController],
   providers: [UsersService, SwipesService],
-  exports: [UsersService]
+  exports: [UsersService],
 })
 export class UsersModule {}

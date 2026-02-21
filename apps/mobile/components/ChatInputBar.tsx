@@ -22,7 +22,6 @@ export default function ChatInputBar({
   openMediaMenu,
   mediaPreview,
 }: Props) {
-
   return (
     <View className="flex-row w-11/12 self-center mt-3 overflow-hidden rounded-3xl border-2 bg-chatBgDark/60 border-gray-500">
       <TouchableOpacity

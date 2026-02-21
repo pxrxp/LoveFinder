@@ -14,7 +14,11 @@ export class ConversationsController {
     @GetUser() user: UserDto,
     @Query(OffsetPaginationPipe) pagination: { limit: number; offset: number },
   ): Promise<ConversationDto[]> {
-    return this.conversationsService.getConversationsBoth(user.user_id, pagination.limit, pagination.offset);
+    return this.conversationsService.getConversationsBoth(
+      user.user_id,
+      pagination.limit,
+      pagination.offset,
+    );
   }
 
   @Get('you')
@@ -22,7 +26,11 @@ export class ConversationsController {
     @GetUser() user: UserDto,
     @Query(OffsetPaginationPipe) pagination: { limit: number; offset: number },
   ): Promise<ConversationDto[]> {
-    return this.conversationsService.getConversationsYou(user.user_id, pagination.limit, pagination.offset);
+    return this.conversationsService.getConversationsYou(
+      user.user_id,
+      pagination.limit,
+      pagination.offset,
+    );
   }
 
   @Get('they')
@@ -30,6 +38,10 @@ export class ConversationsController {
     @GetUser() user: UserDto,
     @Query(OffsetPaginationPipe) pagination: { limit: number; offset: number },
   ): Promise<ConversationDto[]> {
-    return this.conversationsService.getConversationsThey(user.user_id, pagination.limit, pagination.offset);
+    return this.conversationsService.getConversationsThey(
+      user.user_id,
+      pagination.limit,
+      pagination.offset,
+    );
   }
 }

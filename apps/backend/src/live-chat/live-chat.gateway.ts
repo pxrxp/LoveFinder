@@ -5,7 +5,7 @@ import {
   OnGatewayDisconnect,
   SubscribeMessage,
   WebSocketGateway,
-  WebSocketServer
+  WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { sessionMiddleware } from '../common/middlwares/session.middleware';
@@ -23,13 +23,14 @@ function getSocketUser(socket: Socket): UserDto | null {
 }
 
 @WebSocketGateway({
-  cors: { origin: '*' }
+  cors: { origin: '*' },
 })
-export class LiveChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class LiveChatGateway
+  implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(
     private readonly chatService: ChatService,
-    private readonly usersService: UsersService
-  ) {}
+    private readonly usersService: UsersService,
+  ) { }
 
   @WebSocketServer()
   server!: Server;
@@ -55,10 +56,14 @@ export class LiveChatGateway implements OnGatewayConnection, OnGatewayDisconnect
     }
   }
 
+  handleDisconnect(socket: Socket) {
+    const _user = getSocketUser(socket);
+  }
+
   @SubscribeMessage('join_room')
   async handleJoinRoom(
     @ConnectedSocket() socket: Socket,
-    @MessageBody('other_user_id') otherUserId: string
+    @MessageBody('other_user_id') otherUserId: string,
   ) {
     const user = getSocketUser(socket);
     if (!user) return;
@@ -75,7 +80,7 @@ export class LiveChatGateway implements OnGatewayConnection, OnGatewayDisconnect
   @SubscribeMessage('leave_room')
   async handleLeaveRoom(
     @ConnectedSocket() socket: Socket,
-    @MessageBody('other_user_id') otherUserId: string
+    @MessageBody('other_user_id') otherUserId: string,
   ) {
     const user = getSocketUser(socket);
     if (!user) return;
@@ -94,7 +99,7 @@ export class LiveChatGateway implements OnGatewayConnection, OnGatewayDisconnect
     @ConnectedSocket() socket: Socket,
     @MessageBody('other_user_id') otherUserId: string,
     @MessageBody('message') message: string,
-    @MessageBody('message_type') messageType: 'text' | 'image'
+    @MessageBody('message_type') messageType: 'text' | 'image',
   ) {
     const user = getSocketUser(socket);
     if (!user) return;
@@ -105,7 +110,7 @@ export class LiveChatGateway implements OnGatewayConnection, OnGatewayDisconnect
         user.user_id,
         otherUserId,
         message,
-        messageType
+        messageType,
       );
       this.server.to(roomId).emit('new_message', msg);
     } catch (err: any) {
@@ -117,7 +122,7 @@ export class LiveChatGateway implements OnGatewayConnection, OnGatewayDisconnect
   async handleDeleteMessage(
     @ConnectedSocket() socket: Socket,
     @MessageBody('other_user_id') otherUserId: string,
-    @MessageBody('message_id') messageId: string
+    @MessageBody('message_id') messageId: string,
   ) {
     const user = getSocketUser(socket);
     if (!user) return;
@@ -127,14 +132,18 @@ export class LiveChatGateway implements OnGatewayConnection, OnGatewayDisconnect
       const roomId = this.chatService.getRoomId(user.user_id, otherUserId);
       this.server.to(roomId).emit('delete_message', { message_id: messageId });
     } catch (err: any) {
-      socket.emit('ws_error', { action: 'delete_message', message_id: messageId, error: err.message });
+      socket.emit('ws_error', {
+        action: 'delete_message',
+        message_id: messageId,
+        error: err.message,
+      });
     }
   }
 
   @SubscribeMessage('mark_as_read')
   async handleMarkAsRead(
     @ConnectedSocket() socket: Socket,
-    @MessageBody('other_user_id') otherUserId: string
+    @MessageBody('other_user_id') otherUserId: string,
   ) {
     const user = getSocketUser(socket);
     if (!user) return;

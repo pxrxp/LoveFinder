@@ -1,4 +1,13 @@
-import { Controller, Get, Patch, Delete, Post, Param, Body, ParseUUIDPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Patch,
+  Delete,
+  Post,
+  Param,
+  Body,
+  ParseUUIDPipe,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -9,7 +18,10 @@ import { SwipesService } from '../swipes/swipes.service';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService, private readonly swipesService: SwipesService) { }
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly swipesService: SwipesService,
+  ) {}
 
   @Public()
   @Post()
@@ -25,14 +37,17 @@ export class UsersController {
   @Get(':id')
   async get(
     @Param('id', ParseUUIDPipe) id: string,
-    @GetUser() viewer: UserDto
+    @GetUser() viewer: UserDto,
   ): Promise<(UserDto & { swipe_category?: string }) | null> {
     const user = await this.usersService.findById(id);
     if (!user) return null;
 
     let swipe_category: string | undefined = undefined;
     if (viewer) {
-      const status = await this.swipesService.getSwipeStatus(viewer.user_id, id);
+      const status = await this.swipesService.getSwipeStatus(
+        viewer.user_id,
+        id,
+      );
       swipe_category = status.status;
     }
 
@@ -40,7 +55,10 @@ export class UsersController {
   }
 
   @Patch()
-  async update(@GetUser() user: UserDto, @Body() dto: UpdateUserDto): Promise<UserDto | null> {
+  async update(
+    @GetUser() user: UserDto,
+    @Body() dto: UpdateUserDto,
+  ): Promise<UserDto | null> {
     return this.usersService.update(user.user_id, dto);
   }
 

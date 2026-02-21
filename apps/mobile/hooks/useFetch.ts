@@ -8,7 +8,10 @@ interface FetchState<T> {
   refetch: () => Promise<void>;
 }
 
-export function useFetch<T = any>(endpoint: string, options?: RequestInit): FetchState<T> {
+export function useFetch<T = any>(
+  endpoint: string,
+  options?: RequestInit,
+): FetchState<T> {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -19,7 +22,9 @@ export function useFetch<T = any>(endpoint: string, options?: RequestInit): Fetc
       const response = await apiFetch(endpoint, options);
       if (!response.ok) {
         const text = await response.text();
-        throw new Error(`HTTP ${response.status}: ${text || response.statusText}`);
+        throw new Error(
+          `HTTP ${response.status}: ${text || response.statusText}`,
+        );
       }
       const json: T = await response.json();
       setData(json);

@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class InterestsService {
-
   async addInterestToUser(user_id: string, interest_id: number) {
     return (
       await Bun.sql`

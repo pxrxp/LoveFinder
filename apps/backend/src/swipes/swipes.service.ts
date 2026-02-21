@@ -2,46 +2,49 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class SwipesService {
-
-  async swipe(swiper_id: string, receiver_id: string, type: 'like' | 'dislike') {
+  async swipe(
+    swiper_id: string,
+    receiver_id: string,
+    type: 'like' | 'dislike',
+  ) {
     return (
       await Bun.sql`
-        INSERT INTO SWIPES (SWIPER_ID, RECEIVER_ID, SWIPE_TYPE)
-        VALUES (${swiper_id}, ${receiver_id}, ${type}::T_SWIPE_TYPE)
-        ON CONFLICT (SWIPER_ID, RECEIVER_ID)
-        DO UPDATE SET SWIPE_TYPE = EXCLUDED.SWIPE_TYPE
-        RETURNING *
+        insert into swipes (swiper_id, receiver_id, swipe_type)
+        values (${swiper_id}, ${receiver_id}, ${type}::t_swipe_type)
+        on conflict (swiper_id, receiver_id)
+        do update set swipe_type = excluded.swipe_type
+        returning *
       `
     )[0];
   }
 
   async remove(swiper_id: string, receiver_id: string) {
     await Bun.sql`
-      DELETE FROM SWIPES
-      WHERE SWIPER_ID = ${swiper_id}
-        AND RECEIVER_ID = ${receiver_id}
+      delete from swipes
+      where swiper_id = ${swiper_id}
+        and receiver_id = ${receiver_id}
     `;
   }
 
   async findByUser(user_id: string) {
     return Bun.sql`
-      SELECT *
-      FROM SWIPES
-      WHERE SWIPER_ID = ${user_id}
+      select *
+      from swipes
+      where swiper_id = ${user_id}
     `;
   }
 
   async getSwipeStatus(userId: string, otherUserId: string) {
     const [result] = await Bun.sql`
-      SELECT
-        EXISTS(
-          SELECT 1 FROM SWIPES
-          WHERE SWIPER_ID = ${userId} AND RECEIVER_ID = ${otherUserId}
-        ) AS you_swiped,
-        EXISTS(
-          SELECT 1 FROM SWIPES
-          WHERE SWIPER_ID = ${otherUserId} AND RECEIVER_ID = ${userId}
-        ) AS they_swiped
+      select
+        exists(
+          select 1 from swipes
+          where swiper_id = ${userId} and receiver_id = ${otherUserId}
+        ) as you_swiped,
+        exists(
+          select 1 from swipes
+          where swiper_id = ${otherUserId} and receiver_id = ${userId}
+        ) as they_swiped
     `;
 
     if (!result) return { status: 'none' };

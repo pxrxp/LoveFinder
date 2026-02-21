@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class BlocksService {
-
   async block(blocker_id: string, blocked_id: string) {
     return (
       await Bun.sql`

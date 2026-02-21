@@ -24,21 +24,24 @@ export default function ConfirmModal({
 
   return (
     <Modal visible={visible} transparent animationType="fade">
-      <Pressable onPress={onDismiss} className="flex-1 bg-black/60 justify-center p-8">
+      <Pressable
+        onPress={onDismiss}
+        className="flex-1 bg-black/60 justify-center p-8"
+      >
         <Pressable
           className="rounded-3xl p-6 shadow-2xl"
           style={{ backgroundColor: themeColors.bgPrimary }}
           onPress={(e) => e.stopPropagation()}
         >
-          <Text 
-            className="text-xl font-bold mb-2" 
+          <Text
+            className="text-xl font-bold mb-2"
             style={{ color: themeColors.textPrimary }}
           >
             {title}
           </Text>
-          
-          <Text 
-            className="text-sm mb-8 leading-5" 
+
+          <Text
+            className="text-sm mb-8 leading-5"
             style={{ color: themeColors.textPrimary, opacity: 0.7 }}
           >
             {description}
@@ -48,7 +51,7 @@ export default function ConfirmModal({
             <TouchableOpacity onPress={onDismiss} className="px-4 py-2">
               <Text className="text-gray-400 font-semiBold">Cancel</Text>
             </TouchableOpacity>
-            
+
             <TouchableOpacity
               onPress={() => {
                 onConfirm();

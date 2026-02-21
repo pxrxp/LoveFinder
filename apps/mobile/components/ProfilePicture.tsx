@@ -4,11 +4,11 @@ import { Image } from "expo-image";
 export default function ProfilePicture({
   url,
   size,
-  color = "black"
+  color = "black",
 }: {
   url: string | null | undefined;
   size: number;
-  color?: string
+  color?: string;
 }) {
   if (url) {
     return (

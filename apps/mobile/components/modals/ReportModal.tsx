@@ -72,7 +72,8 @@ export default function ReportModal({ visible, onDismiss, onSubmit }: Props) {
                   <Text
                     className="capitalize"
                     style={{
-                      color: reason === value ? "white" : themeColors.textPrimary,
+                      color:
+                        reason === value ? "white" : themeColors.textPrimary,
                     }}
                   >
                     {value.replace(/_/g, " ")}

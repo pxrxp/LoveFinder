@@ -3,8 +3,11 @@ import { ConversationDto } from '../chat/dto/conversation.dto';
 
 @Injectable()
 export class ConversationsService {
-  
-  async getConversationsBoth(user_id: string, limit: number, offset: number): Promise<ConversationDto[]> {
+  async getConversationsBoth(
+    user_id: string,
+    limit: number,
+    offset: number,
+  ): Promise<ConversationDto[]> {
     return Array.from(
       await Bun.sql`
         WITH conversation_users AS (
@@ -33,11 +36,15 @@ export class ConversationsService {
           AND S1.SWIPE_TYPE = 'like' AND S2.SWIPE_TYPE = 'like'
         ORDER BY COALESCE(LM.SENT_AT, S1.SWIPED_AT, S2.SWIPED_AT) DESC 
         OFFSET ${offset} LIMIT ${limit}
-      `
+      `,
     );
   }
 
-  async getConversationsYou(user_id: string, limit: number, offset: number): Promise<ConversationDto[]> {
+  async getConversationsYou(
+    user_id: string,
+    limit: number,
+    offset: number,
+  ): Promise<ConversationDto[]> {
     return Array.from(
       await Bun.sql`
         WITH conversation_users AS (
@@ -67,11 +74,15 @@ export class ConversationsService {
           AND NOT (S1.SWIPE_TYPE = 'like' AND S2.SWIPE_TYPE IS NULL AND U.ALLOW_MESSAGES_FROM_STRANGERS = FALSE)
         ORDER BY COALESCE(LM.SENT_AT, S1.SWIPED_AT, S2.SWIPED_AT) DESC 
         OFFSET ${offset} LIMIT ${limit}
-      `
+      `,
     );
   }
 
-  async getConversationsThey(user_id: string, limit: number, offset: number): Promise<ConversationDto[]> {
+  async getConversationsThey(
+    user_id: string,
+    limit: number,
+    offset: number,
+  ): Promise<ConversationDto[]> {
     return Array.from(
       await Bun.sql`
         WITH conversation_users AS (
@@ -100,7 +111,7 @@ export class ConversationsService {
           AND S2.SWIPE_TYPE = 'like' AND (S1.SWIPE_TYPE IS NULL OR S1.SWIPE_TYPE != 'like')
         ORDER BY COALESCE(LM.SENT_AT, S1.SWIPED_AT, S2.SWIPED_AT) DESC 
         OFFSET ${offset} LIMIT ${limit}
-      `
+      `,
     );
   }
 }

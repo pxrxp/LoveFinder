@@ -1,4 +1,10 @@
-import { BadRequestException, Controller, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
+import {
+  BadRequestException,
+  Controller,
+  Post,
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { randomUUID } from 'crypto';
 import { diskStorage } from 'multer';
@@ -29,9 +35,7 @@ export class ChatMediaController {
       limits: { fileSize: 5 * 1024 * 1024 },
     }),
   )
-  uploadChatMedia(
-    @UploadedFile() file: Express.Multer.File,
-  ) {
+  uploadChatMedia(@UploadedFile() file: Express.Multer.File) {
     if (!file) throw new BadRequestException('No file');
 
     return {
@@ -41,5 +45,4 @@ export class ChatMediaController {
       size: file.size,
     };
   }
-
 }

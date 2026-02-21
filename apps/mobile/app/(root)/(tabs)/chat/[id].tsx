@@ -56,12 +56,15 @@ export default function OtherUserScreen() {
   const otherUserFetch = useFetch<SwipedUser>(`users/${id}`);
   const { setActiveChatUserId, markAsRead } = useMessageTracker();
 
-  const { mediaPreview, setMediaPreview, clearMediaPreview } = useMediaPreview();
+  const { mediaPreview, setMediaPreview, clearMediaPreview } =
+    useMediaPreview();
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [messageToSend, setMessageToSend] = useState("");
   const [pressedMessage, setPressedMessage] = useState<string | null>(null);
-  const [longPressedMessage, setLongPressedMessage] = useState<string | null>(null);
+  const [longPressedMessage, setLongPressedMessage] = useState<string | null>(
+    null,
+  );
   const [loadingOlderMessages, setLoadingOlderMessages] = useState(false);
 
   const [mediaMenuVisible, setMediaMenuVisible] = useState(false);
@@ -72,8 +75,10 @@ export default function OtherUserScreen() {
   const handleNewMessage = useCallback((msg: Message) => {
     const serverDate = dayjs(msg.sent_at);
     const safeMsg = {
-        ...msg,
-        sent_at: serverDate.isAfter(dayjs()) ? dayjs().toISOString() : msg.sent_at
+      ...msg,
+      sent_at: serverDate.isAfter(dayjs())
+        ? dayjs().toISOString()
+        : msg.sent_at,
     };
 
     setMessages((prev) => {
@@ -84,11 +89,13 @@ export default function OtherUserScreen() {
           m.message_content === safeMsg.message_content &&
           m.message_type === safeMsg.message_type &&
           m.sender_id === safeMsg.sender_id &&
-          m.message_id.length < 20
+          m.message_id.length < 20,
       );
 
       if (tempMatch) {
-        return prev.map((m) => (m.message_id === tempMatch.message_id ? safeMsg : m));
+        return prev.map((m) =>
+          m.message_id === tempMatch.message_id ? safeMsg : m,
+        );
       }
 
       return [...prev, safeMsg];
@@ -109,15 +116,20 @@ export default function OtherUserScreen() {
 
   useEffect(() => {
     if (chat.data) {
-        setMessages((prev) => {
-            const serverMsgs = chat.data || [];
-            const optimisticMsgs = prev.filter(m => m.message_id.length < 20);
-            
-            const combined = [...optimisticMsgs, ...serverMsgs];
-            const unique = Array.from(new Map(combined.map(m => [m.message_id, m])).values());
-            
-            return unique.sort((a, b) => new Date(a.sent_at).getTime() - new Date(b.sent_at).getTime());
-        });
+      setMessages((prev) => {
+        const serverMsgs = chat.data || [];
+        const optimisticMsgs = prev.filter((m) => m.message_id.length < 20);
+
+        const combined = [...optimisticMsgs, ...serverMsgs];
+        const unique = Array.from(
+          new Map(combined.map((m) => [m.message_id, m])).values(),
+        );
+
+        return unique.sort(
+          (a, b) =>
+            new Date(a.sent_at).getTime() - new Date(b.sent_at).getTime(),
+        );
+      });
     }
   }, [chat.data]);
 
@@ -129,7 +141,7 @@ export default function OtherUserScreen() {
 
   const loadOlderMessages = async () => {
     if (loadingOlderMessages || messages.length === 0) return;
-    
+
     setLoadingOlderMessages(true);
     const cursor = messages[0].sent_at;
 
@@ -140,8 +152,13 @@ export default function OtherUserScreen() {
       if (older.length > 0) {
         setMessages((prev) => {
           const combined = [...older, ...prev];
-          const unique = Array.from(new Map(combined.map((m) => [m.message_id, m])).values());
-          return unique.sort((a, b) => new Date(a.sent_at).getTime() - new Date(b.sent_at).getTime());
+          const unique = Array.from(
+            new Map(combined.map((m) => [m.message_id, m])).values(),
+          );
+          return unique.sort(
+            (a, b) =>
+              new Date(a.sent_at).getTime() - new Date(b.sent_at).getTime(),
+          );
         });
       }
     } catch (e: any) {
@@ -168,7 +185,7 @@ export default function OtherUserScreen() {
           sent_at: new Date().toISOString(),
           is_read: false,
         };
-        
+
         setMessages((prev) => [...prev, tempMsg]);
         setMessageToSend("");
 
@@ -182,11 +199,14 @@ export default function OtherUserScreen() {
       if (mediaPreview) {
         const type = mediaPreview.type;
         const uploadUri = mediaPreview.uri;
-        
+
         clearMediaPreview();
 
-        const data = await uploadFile({ uri: uploadUri, type: "image" }, "chat-media/upload");
-        
+        const data = await uploadFile(
+          { uri: uploadUri, type: "image" },
+          "chat-media/upload",
+        );
+
         const tempMsg: Message = {
           message_id: Date.now().toString(),
           sender_id: user!.user_id,
@@ -291,8 +311,8 @@ export default function OtherUserScreen() {
                         setPressedMessage={setPressedMessage}
                         setSelectedMessage={setLongPressedMessage}
                         openDeleteMenu={() => setDeleteMenuVisible(true)}
-                        loadOlderMessages = {loadOlderMessages}
-                        loadingOlderMessages = {loadingOlderMessages}
+                        loadOlderMessages={loadOlderMessages}
+                        loadingOlderMessages={loadingOlderMessages}
                       />
                     </>
                   )}

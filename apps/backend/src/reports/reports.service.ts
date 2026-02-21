@@ -2,12 +2,11 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class ReportsService {
-
   async create(
     reporter_id: string,
     reported_id: string,
     reason: string,
-    details: string
+    details: string,
   ) {
     return (
       await Bun.sql`

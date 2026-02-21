@@ -1,4 +1,18 @@
-import { IsOptional, IsString, Length, IsArray, ArrayNotEmpty, IsBoolean, IsInt, Min, Max, IsDateString, IsLatitude, isLongitude, IsLongitude } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  Length,
+  IsArray,
+  ArrayNotEmpty,
+  IsBoolean,
+  IsInt,
+  Min,
+  Max,
+  IsDateString,
+  IsLatitude,
+  isLongitude,
+  IsLongitude,
+} from 'class-validator';
 
 export class UpdateUserDto {
   @IsOptional()
@@ -62,5 +76,4 @@ export class UpdateUserDto {
   @IsOptional()
   @IsLongitude()
   longitude?: number;
-
 }

@@ -9,7 +9,6 @@ interface AuthRequest extends Request {}
 
 @Controller('auth')
 export class AuthController {
-
   @Public()
   @UseGuards(LocalAuthGuard)
   @Post('login')
