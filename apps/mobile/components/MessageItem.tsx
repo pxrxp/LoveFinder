@@ -38,7 +38,7 @@ export default function MessageItem({
 }: MessageItemProps) {
   const isMine = item.sender_id !== other_user?.user_id;
   const [failed, setFailed] = useState(false);
-  const { theme } = useTheme();
+  const { theme, themeColors } = useTheme();
 
   const { openImageViewer } = useImageViewerContext();
   const { openVideoPlayer } = useVideoPlayerContext();
@@ -48,26 +48,28 @@ export default function MessageItem({
   const renderText = () => (
     <View
       style={{ minWidth: 60 }}
-      className={`max-w-[260px] rounded-2xl ${isMine
+      className={`max-w-[260px] rounded-2xl ${
+        isMine
           ? "bg-accent shadow-sm"
           : "bg-bgPrimaryDark dark:bg-bgPrimaryLight"
-        }`}
+      }`}
     >
-      <View className="px-4 py-3">
+      <View className="px-2">
         <Text
-          className={`text-[16px] leading-6 ${isMine
+          className={`font-regular text-[16px] leading-6 ${item.is_read ? "mr-7" : "mr-2"} ml-1 my-2 ${
+            isMine
               ? "text-white"
               : "text-textPrimaryDark dark:text-textPrimaryLight"
-            }`}
+          }`}
         >
           {item.message_content}
         </Text>
-        {isMine && item.is_read && (
-          <View className="flex-row justify-end mt-1 -mr-1">
+        {item.is_read && (
+          <View className="flex-row justify-end -mt-5 -mr-1 p-1">
             <Ionicons
               name="checkmark-done-sharp"
-              size={14}
-              color="white"
+              size={18}
+              color={isMine ? "white" : themeColors.bgPrimary}
               style={{ opacity: 0.9 }}
             />
           </View>
@@ -105,8 +107,9 @@ export default function MessageItem({
 
   const renderAudio = () => (
     <View
-      className={`p-3 rounded-2xl w-52 ${isMine ? "bg-accent" : "bg-bgPrimaryDark dark:bg-bgPrimaryLight"
-        }`}
+      className={`p-3 rounded-2xl w-52 ${
+        isMine ? "bg-accent" : "bg-bgPrimaryDark dark:bg-bgPrimaryLight"
+      }`}
     >
       <AudioPlayer
         uri={item.message_content}

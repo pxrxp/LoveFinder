@@ -31,6 +31,8 @@ interface ConversationsContextValue {
   states: Record<SwipeCategory, CategoryState>;
   refetch: (category: SwipeCategory) => Promise<void>;
   loadMore: (category: SwipeCategory) => Promise<void>;
+  unreadCount: number;
+  clearUnread: () => void;
 }
 
 const ConversationsContext = createContext<
@@ -56,6 +58,8 @@ export function ConversationsProvider({ children }: { children: ReactNode }) {
     you: { ...initialCategoryState },
     they: { ...initialCategoryState },
   });
+  const [unreadCount, setUnreadCount] = useState(0);
+  const clearUnread = useCallback(() => setUnreadCount(0), []);
 
   const statesRef = useRef(states);
   useEffect(() => {
@@ -185,6 +189,8 @@ export function ConversationsProvider({ children }: { children: ReactNode }) {
 
         return newStates;
       });
+      // Increment unread count for incoming messages (not sent by us)
+      setUnreadCount((prev) => prev + 1);
     };
 
     const handleDeleteMessage = () => {
@@ -217,7 +223,7 @@ export function ConversationsProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <ConversationsContext.Provider value={{ states, refetch, loadMore }}>
+    <ConversationsContext.Provider value={{ states, refetch, loadMore, unreadCount, clearUnread }}>
       {children}
     </ConversationsContext.Provider>
   );
@@ -241,4 +247,14 @@ export function useConversations(category: SwipeCategory) {
     refetch: () => context.refetch(category),
     loadMore: () => context.loadMore(category),
   };
+}
+
+export function useUnreadCount() {
+  const context = useContext(ConversationsContext);
+  if (!context) {
+    throw new Error(
+      "useUnreadCount must be used within ConversationsContext",
+    );
+  }
+  return { unreadCount: context.unreadCount, clearUnread: context.clearUnread };
 }

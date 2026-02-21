@@ -7,13 +7,15 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useMessageNotifications } from "@/hooks/useMessageNotifications";
+import { useUnreadCount, ConversationsProvider } from "@/contexts/ConversationsContext";
 
-export default function TabsLayout() {
+function TabsContent() {
   const insets = useSafeAreaInsets();
   const isAndroid = Platform.OS === "android";
   const { themeColors } = useTheme();
 
   useMessageNotifications();
+  const { unreadCount } = useUnreadCount();
 
   const renderLabel = (label: string, focused: boolean) => (
     <Text
@@ -83,13 +85,28 @@ export default function TabsLayout() {
         options={{
           tabBarLabel: ({ focused }) => renderLabel("Chat", focused),
           tabBarIcon: ({ focused }) => (
-            <Ionicons
-              name={focused ? "chatbubble" : "chatbubble-outline"}
-              size={focused ? 27 : 24}
-              color={
-                focused ? themeColors.textPrimary : themeColors.tabIconInactive
-              }
-            />
+            <View>
+              <Ionicons
+                name={focused ? "chatbubble" : "chatbubble-outline"}
+                size={focused ? 27 : 24}
+                color={
+                  focused ? themeColors.textPrimary : themeColors.tabIconInactive
+                }
+              />
+              {unreadCount > 0 && !focused && (
+                <View
+                  style={{
+                    position: "absolute",
+                    top: -2,
+                    right: -4,
+                    width: 9,
+                    height: 9,
+                    borderRadius: 5,
+                    backgroundColor: "#c0010f",
+                  }}
+                />
+              )}
+            </View>
           ),
         }}
       />
@@ -109,5 +126,13 @@ export default function TabsLayout() {
         }}
       />
     </Tabs>
+  );
+}
+
+export default function TabsLayout() {
+  return (
+    <ConversationsProvider>
+      <TabsContent />
+    </ConversationsProvider>
   );
 }
