@@ -11,7 +11,6 @@
  */
 import * as argon2 from 'argon2';
 
-// Manually interpolate DATABASE_URL if it's a template (Bun's --env-file doesn't do it)
 if (process.env.DATABASE_URL?.includes('${')) {
   process.env.DATABASE_URL = `postgres://${process.env.POSTGRES_USER || 'app'}:${process.env.POSTGRES_PASSWORD || ''}@localhost:${process.env.DB_PORT || '5430'}/${process.env.POSTGRES_DB || 'app'}`;
 }
