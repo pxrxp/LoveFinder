@@ -8,7 +8,7 @@ import {
 import { ImageBackground } from "expo-image";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
-import { useState, useEffect, useCallback, useContext } from "react";
+import { useState, useEffect, useCallback, useContext, useRef } from "react";
 
 import { useFetch } from "@/hooks/useFetch";
 import { useChatSocket } from "@/hooks/useChatSocket";
@@ -72,6 +72,9 @@ export default function OtherUserScreen() {
   const [audioRecorderVisible, setAudioRecorderVisible] = useState(false);
   const [sending, setSending] = useState(false);
 
+  // Ref so handleNewMessage can emit mark_as_read without a circular dep on socket
+  const socketRef = useRef<ReturnType<typeof useChatSocket> | null>(null);
+
   const handleNewMessage = useCallback((msg: Message) => {
     const serverDate = dayjs(msg.sent_at);
     const safeMsg = {
@@ -100,19 +103,34 @@ export default function OtherUserScreen() {
 
       return [...prev, safeMsg];
     });
-  }, []);
+
+    // If this message came from the other person and receipts are enabled, acknowledge it immediately
+    if (msg.sender_id !== user?.user_id && settings.sendReceipts) {
+      socketRef.current?.emit("mark_as_read", { other_user_id: id });
+    }
+  }, [user?.user_id, id, settings.sendReceipts]);
 
   const handleDeleteMessage = useCallback((messageId: string) => {
     setMessages((prev) => prev.filter((m) => m.message_id !== messageId));
   }, []);
 
+  const handleMessagesRead = useCallback(() => {
+    setMessages((prev) =>
+      prev.map((m) =>
+        m.sender_id === user?.user_id ? { ...m, is_read: true } : m,
+      ),
+    );
+  }, [user?.user_id]);
+
   const socket = useChatSocket({
     otherUserId: id,
     onMessage: handleNewMessage,
     onDelete: handleDeleteMessage,
+    onRead: handleMessagesRead,
     onError: (msg) => showThemedError(msg, themeColors),
     sendReceipts: settings.sendReceipts,
   });
+  socketRef.current = socket;
 
   useEffect(() => {
     if (chat.data) {

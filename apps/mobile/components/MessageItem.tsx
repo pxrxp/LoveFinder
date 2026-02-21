@@ -56,7 +56,7 @@ export default function MessageItem({
     >
       <View className="px-2">
         <Text
-          className={`font-regular text-[16px] leading-6 ${item.is_read ? "mr-7" : "mr-2"} ml-1 my-2 ${
+          className={`font-regular text-[15px] leading-6 ${item.is_read ? "mr-7" : "mr-2"} ml-1 my-2 ${
             isMine
               ? "text-white"
               : "text-textPrimaryDark dark:text-textPrimaryLight"

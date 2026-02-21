@@ -52,7 +52,7 @@ function TabsContent() {
       <Tabs.Screen
         name="index"
         options={{
-          tabBarLabel: ({ focused }) => renderLabel("Swipe", focused),
+          tabBarLabel: ({ focused }) => renderLabel("Swipe ", focused),
           tabBarIcon: ({ focused }) =>
             focused ? (
               <MaskedView
@@ -83,7 +83,7 @@ function TabsContent() {
       <Tabs.Screen
         name="chat"
         options={{
-          tabBarLabel: ({ focused }) => renderLabel("Chat", focused),
+          tabBarLabel: ({ focused }) => renderLabel("Chat ", focused),
           tabBarIcon: ({ focused }) => (
             <View>
               <Ionicons
@@ -113,7 +113,7 @@ function TabsContent() {
       <Tabs.Screen
         name="profile"
         options={{
-          tabBarLabel: ({ focused }) => renderLabel("Profile", focused),
+          tabBarLabel: ({ focused }) => renderLabel("Profile ", focused),
           tabBarIcon: ({ focused }) => (
             <Ionicons
               name={focused ? "person" : "person-outline"}
