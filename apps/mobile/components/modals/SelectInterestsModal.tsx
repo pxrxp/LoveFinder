@@ -14,7 +14,6 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
   Easing,
-  runOnJS,
 } from "react-native-reanimated";
 
 type InterestType = {
@@ -48,7 +47,10 @@ export default function SelectInterestsModal({
 
   React.useEffect(() => {
     if (visible) {
-      scale.value = withTiming(1, { duration: 250, easing: Easing.out(Easing.cubic) });
+      scale.value = withTiming(1, {
+        duration: 250,
+        easing: Easing.out(Easing.cubic),
+      });
       opacity.value = withTiming(1, { duration: 200 });
     } else {
       scale.value = withTiming(0.85, { duration: 200 });
@@ -63,7 +65,10 @@ export default function SelectInterestsModal({
 
   return (
     <Modal visible={visible} transparent animationType="fade">
-      <Pressable onPress={onDismiss} className="flex-1 bg-black/60 justify-center items-center px-6">
+      <Pressable
+        onPress={onDismiss}
+        className="flex-1 bg-black/60 justify-center items-center px-6"
+      >
         <Animated.View
           className="rounded-3xl p-6 shadow-2xl w-full max-h-[80%]"
           style={[{ backgroundColor: themeColors.bgPrimary }, animatedStyle]}

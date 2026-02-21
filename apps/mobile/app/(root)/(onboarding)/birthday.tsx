@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text } from "react-native";
 import OnboardingStep from "@/components/OnboardingStep";
 import { WheelPicker, WheelPickerWrapper } from "@/components/WheelPicker";
 import dayjs from "dayjs";

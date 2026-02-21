@@ -1,10 +1,8 @@
 /**
- * Global User Authentication Store.
- * 
- * This provider tracks the 'user' object and 'loading' state.
- * - On startup: It calls the backend to see if the user has an active session.
- * - Login/Logout: Exports simple functions to sign in or sign out, 
- *   which automatically update the 'user' state across the whole app.
+ * This file keeps track of the logged-in user.
+ *
+ * It provides the 'user' data to the rest of the app and handles the
+ * logic for logging in, logging out, and checking if a session is still active.
  */
 import React, { createContext, ReactNode, useEffect, useState } from "react";
 import { getMyProfile } from "@/services/users";
@@ -40,18 +38,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const login = async (email: string, password: string) => {
-    try {
-      await Auth.login(email, password);
-      await refreshUser();
-    } catch (e: any) {
-      throw e;
-    }
+    await Auth.login(email, password);
+    await refreshUser();
   };
 
   const logout = async () => {
     try {
       await Auth.logout();
-    } catch (e) {
+    } catch {
+      // Ignore errors on logout
     } finally {
       setUser(null);
     }

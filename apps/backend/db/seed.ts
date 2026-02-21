@@ -1,11 +1,13 @@
 /**
  * Database Seeding Script
- * 
+ *
  * This script wipes the database and fills it with fresh data for testing.
+ * IMPORTANT: These accounts are for DEMO and TESTING purposes only.
+ *
  * It creates:
- * - 3 "Hero" users (Demo, Alice, Bob) for easy login.
- * - 100 random users spread across New York.
- * - Mutual likes (matches) and messages for the Demo user so you can test chat immediately.
+ * - 3 Demo accounts (Demo, Alice, Bob) which have pre-set passwords.
+ * - 100 random profiles with locations in New York to test the feed.
+ * - Initial matches and messages for the Demo user so you can test the chat right away.
  */
 import * as argon2 from 'argon2';
 
@@ -22,7 +24,7 @@ async function seed() {
   // 1. CLEAN SLATE
   await sql`TRUNCATE TABLE USERS, INTERESTS, PHOTOS, SWIPES, MESSAGES, REPORTS, BLOCKS, LOGINS CASCADE`;
 
-  // 2. INTERESTS (Gen Z focus)
+  // 2. INTERESTS
   const interestList = [
     'Anime',
     'Thrifting',
@@ -152,9 +154,15 @@ async function seed() {
 
   // 5. GENERATE SWIPES & MATCHES for Demo User
   console.log('🔥 Populating Demo User data...');
-  const demoId = (await sql`SELECT USER_ID FROM USERS WHERE EMAIL = 'demo@example.com'`)[0].user_id;
-  const aliceId = (await sql`SELECT USER_ID FROM USERS WHERE EMAIL = 'alice@example.com'`)[0].user_id;
-  const bobId = (await sql`SELECT USER_ID FROM USERS WHERE EMAIL = 'bob@example.com'`)[0].user_id;
+  const demoId = (
+    await sql`SELECT USER_ID FROM USERS WHERE EMAIL = 'demo@example.com'`
+  )[0].user_id;
+  const aliceId = (
+    await sql`SELECT USER_ID FROM USERS WHERE EMAIL = 'alice@example.com'`
+  )[0].user_id;
+  const bobId = (
+    await sql`SELECT USER_ID FROM USERS WHERE EMAIL = 'bob@example.com'`
+  )[0].user_id;
 
   // Make Alice and Bob match with Demo
   await sql`INSERT INTO SWIPES (SWIPER_ID, RECEIVER_ID, SWIPE_TYPE) VALUES (${demoId}, ${aliceId}, 'like'), (${aliceId}, ${demoId}, 'like') ON CONFLICT DO NOTHING`;
@@ -163,7 +171,8 @@ async function seed() {
   await sql`INSERT INTO MESSAGES (SENDER_ID, RECEIVER_ID, MESSAGE_CONTENT) VALUES (${aliceId}, ${demoId}, 'Hey! I am Alice. How is it going?')`;
   await sql`INSERT INTO MESSAGES (SENDER_ID, RECEIVER_ID, MESSAGE_CONTENT) VALUES (${bobId}, ${demoId}, 'Yo! Nice profile.')`;
 
-  const females = await sql`SELECT USER_ID FROM USERS WHERE GENDER = 'female' AND EMAIL NOT IN ('demo@example.com', 'alice@example.com') LIMIT 30`;
+  const females =
+    await sql`SELECT USER_ID FROM USERS WHERE GENDER = 'female' AND EMAIL NOT IN ('demo@example.com', 'alice@example.com') LIMIT 30`;
 
   for (let i = 0; i < females.length; i++) {
     const otherId = females[i].user_id;

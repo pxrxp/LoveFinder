@@ -82,7 +82,7 @@ export function WheelPicker({
           paddingVertical: ITEM_HEIGHT,
         }}
       >
-        {options.map((item, index) => (
+        {options.map((item, _index) => (
           <View
             key={`wheel-opt-${item.value.toString()}`}
             style={{ height: ITEM_HEIGHT }}

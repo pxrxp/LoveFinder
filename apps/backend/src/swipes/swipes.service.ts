@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, Inject, forwardRef } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Inject,
+  forwardRef,
+} from '@nestjs/common';
 import { LiveChatGateway } from '../live-chat/live-chat.gateway';
 
 @Injectable()
@@ -6,7 +11,7 @@ export class SwipesService {
   constructor(
     @Inject(forwardRef(() => LiveChatGateway))
     private readonly liveChatGateway: LiveChatGateway,
-  ) { }
+  ) {}
 
   async swipe(
     swiper_id: string,
@@ -31,11 +36,17 @@ export class SwipesService {
       const matchStatus = await this.getSwipeStatus(swiper_id, receiver_id);
       if (matchStatus.status === 'both') {
         // It's a match! Notify both users
-        this.liveChatGateway.server.to(swiper_id).emit('new_match', { other_user_id: receiver_id });
-        this.liveChatGateway.server.to(receiver_id).emit('new_match', { other_user_id: swiper_id });
+        this.liveChatGateway.server
+          .to(swiper_id)
+          .emit('new_match', { other_user_id: receiver_id });
+        this.liveChatGateway.server
+          .to(receiver_id)
+          .emit('new_match', { other_user_id: swiper_id });
       } else {
         // Notify the receiver that they were liked (for "They Liked" tab)
-        this.liveChatGateway.server.to(receiver_id).emit('new_like', { from_user_id: swiper_id });
+        this.liveChatGateway.server
+          .to(receiver_id)
+          .emit('new_like', { from_user_id: swiper_id });
       }
     }
 

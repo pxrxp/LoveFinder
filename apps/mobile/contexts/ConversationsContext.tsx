@@ -1,11 +1,8 @@
 /**
- * Live Conversations and Chat Synchronizer.
- * 
- * This is the most complex state in the app. It:
- * 1. Fetches: Loads "Matches", "You Liked", and "They Liked" lists.
- * 2. Sockets: Listens for 'new_message' or 'new_match' to update lists instantly 
- *    without the user needing to pull-to-refresh.
- * 3. Deduplication: Ensures users don't appear twice if they send multiple messages.
+ * This file manages your chat lists and matches.
+ *
+ * It fetches the latest conversations from the server and uses
+ * WebSockets to update them instantly when you get a new message or match.
  */
 import {
   createContext,
@@ -109,7 +106,7 @@ export function ConversationsProvider({ children }: { children: ReactNode }) {
             },
           };
         });
-      } catch (e) {
+      } catch {
         setStates((prev) => ({
           ...prev,
           [category]: {

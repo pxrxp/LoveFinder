@@ -9,4 +9,4 @@ import { LiveChatModule } from '../live-chat/live-chat.module';
   providers: [SwipesService],
   exports: [SwipesService],
 })
-export class SwipesModule { }
+export class SwipesModule {}

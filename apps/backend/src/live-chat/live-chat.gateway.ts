@@ -1,10 +1,9 @@
 /**
- * WebSocket Gateway for real-time chat and notifications.
- * 
- * This file handles the live socket connections from the mobile app.
- * - Connection: Authenticates users using their session cookie and puts them in a personal room.
- * - Messages: Saves messages to the DB via 'ChatService' and then broadcasts them to the recipient.
- * - Notifications: Sends real-time 'new_match' or 'new_like' events to update the mobile UI instantly.
+ * This handles real-time chat connections.
+ *
+ * When a user connects their phone, they join a "room" so they can
+ * get messages instantly. It also sends out real-time alerts when
+ * you get a new match or a new like.
  */
 import {
   ConnectedSocket,
@@ -34,11 +33,12 @@ function getSocketUser(socket: Socket): UserDto | null {
   cors: { origin: '*' },
 })
 export class LiveChatGateway
-  implements OnGatewayConnection, OnGatewayDisconnect {
+  implements OnGatewayConnection, OnGatewayDisconnect
+{
   constructor(
     private readonly chatService: ChatService,
     private readonly usersService: UsersService,
-  ) { }
+  ) {}
 
   @WebSocketServer()
   server!: Server;
@@ -66,8 +66,8 @@ export class LiveChatGateway
     console.log(`User ${user.user_id} connected and joined global room`);
   }
 
-  handleDisconnect(socket: Socket) {
-    const _user = getSocketUser(socket);
+  handleDisconnect(_socket: Socket) {
+    // console.log('Socket disconnected');
   }
 
   @SubscribeMessage('join_room')

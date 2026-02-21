@@ -4,8 +4,10 @@ import Entypo from "@expo/vector-icons/Entypo";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useTheme } from "@/contexts/ThemeContext";
-import { useEffect } from "react";
 
+/**
+ * Menu for choosing media types (Camera, Library, Audio).
+ */
 type Props = {
   visible: boolean;
   onDismiss: () => void;

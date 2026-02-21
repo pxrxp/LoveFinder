@@ -8,4 +8,4 @@ import { UsersModule } from '../users/users.module';
   providers: [LiveChatGateway],
   exports: [LiveChatGateway],
 })
-export class LiveChatModule { }
+export class LiveChatModule {}

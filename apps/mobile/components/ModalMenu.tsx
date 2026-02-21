@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { Modal, Pressable, Text, View, TouchableOpacity } from "react-native";
-import { AntDesign } from "@expo/vector-icons";
 import { useTheme } from "@/contexts/ThemeContext";
 import Animated, {
   useSharedValue,
@@ -39,7 +38,10 @@ export default function ModalMenu({
   useEffect(() => {
     if (visible) {
       setRendered(true);
-      scale.value = withTiming(1, { duration: 200, easing: Easing.out(Easing.cubic) });
+      scale.value = withTiming(1, {
+        duration: 200,
+        easing: Easing.out(Easing.cubic),
+      });
       opacity.value = withTiming(1, { duration: 150 });
     } else {
       scale.value = withTiming(0.85, { duration: 150 }, (finished) => {
@@ -64,13 +66,25 @@ export default function ModalMenu({
       >
         <Animated.View
           style={[
-            { backgroundColor: themeColors.bgPrimary, width: '100%', maxWidth: 300 },
+            {
+              backgroundColor: themeColors.bgPrimary,
+              width: "100%",
+              maxWidth: 300,
+            },
             animatedStyle,
           ]}
           className="rounded-3xl p-4 shadow-2xl"
         >
           <Pressable onPress={(e) => e.stopPropagation()}>
             <View>
+              {title ? (
+                <Text
+                  className="text-center font-bold text-lg mb-4"
+                  style={{ color: themeColors.textPrimary }}
+                >
+                  {title}
+                </Text>
+              ) : null}
               {actions.map((action, index) => (
                 <TouchableOpacity
                   key={index}

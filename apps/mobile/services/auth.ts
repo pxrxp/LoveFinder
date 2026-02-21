@@ -1,8 +1,5 @@
 /**
- * Login and Logout Network Requests.
- * 
- * These simple wrappers call our 'apiFetch' utility to hit the 
- * authentication endpoints on the backend server.
+ * Network requests for logging in and out.
  */
 import { apiFetch } from "@/services/api";
 

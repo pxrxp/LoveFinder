@@ -27,7 +27,7 @@ export default function LoginScreen() {
     }
     try {
       await login(email, password);
-    } catch (e: any) {
+    } catch {
       showThemedError("Invalid email or password", themeColors);
     }
   };

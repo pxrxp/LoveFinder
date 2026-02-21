@@ -1,4 +1,4 @@
-import { Text, View, TouchableOpacity, ActivityIndicator } from "react-native";
+import { Text, View, TouchableOpacity } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import { Link } from "expo-router";
 import { useTheme } from "@/contexts/ThemeContext";

@@ -14,7 +14,6 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
   Easing,
-  runOnJS,
 } from "react-native-reanimated";
 import {
   AntDesign,
@@ -88,7 +87,10 @@ export default function SettingsModal({ visible, onDismiss }: Props) {
 
   useEffect(() => {
     if (visible) {
-      scale.value = withTiming(1, { duration: 250, easing: Easing.out(Easing.cubic) });
+      scale.value = withTiming(1, {
+        duration: 250,
+        easing: Easing.out(Easing.cubic),
+      });
       opacity.value = withTiming(1, { duration: 200 });
     } else {
       scale.value = withTiming(0.85, { duration: 200 });
@@ -103,7 +105,10 @@ export default function SettingsModal({ visible, onDismiss }: Props) {
 
   return (
     <Modal visible={visible} transparent animationType="fade">
-      <Pressable onPress={onDismiss} className="flex-1 bg-black/60 justify-center items-center px-6">
+      <Pressable
+        onPress={onDismiss}
+        className="flex-1 bg-black/60 justify-center items-center px-6"
+      >
         <Animated.View
           className="rounded-3xl p-6 shadow-2xl w-full max-h-[85%]"
           style={[{ backgroundColor: themeColors.bgPrimary }, animatedStyle]}
@@ -181,7 +186,9 @@ export default function SettingsModal({ visible, onDismiss }: Props) {
                     color="white"
                     style={{ marginRight: 8 }}
                   />
-                  <Text className="text-white font-bold text-base">Log Out</Text>
+                  <Text className="text-white font-bold text-base">
+                    Log Out
+                  </Text>
                 </TouchableOpacity>
               </View>
             </ScrollView>

@@ -1,9 +1,9 @@
 /**
- * The root module that ties everything together.
- * 
- * It imports all the feature modules (like Chat, Feed, and Auth) and sets up 
- * the global 'AuthenticatedGuard'. This guard makes sure that by default, 
- * every API endpoint requires a logged-in user unless specifically marked otherwise.
+ * Root module for the whole app.
+ *
+ * This file lists all the parts of the app (like Chat, Feed, and Auth) so
+ * NestJS knows how to load them. It also sets up global rules like
+ * requiring a login for every page by default.
  */
 import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
@@ -55,4 +55,4 @@ import { ConversationsModule } from './conversations/conversations.module';
     },
   ],
 })
-export class AppModule { }
+export class AppModule {}

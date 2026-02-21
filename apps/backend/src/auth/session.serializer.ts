@@ -9,11 +9,14 @@ export class SessionSerializer extends PassportSerializer {
     super();
   }
 
-  serializeUser(user: UserDto, done: Function) {
+  serializeUser(user: UserDto, done: (err: any, id?: any) => void) {
     done(null, user.user_id);
   }
 
-  async deserializeUser(userId: string, done: Function) {
+  async deserializeUser(
+    userId: string,
+    done: (err: any, user?: UserDto | null) => void,
+  ) {
     const user = await this.usersService.findById(userId, { private: true });
     done(null, user || null);
   }

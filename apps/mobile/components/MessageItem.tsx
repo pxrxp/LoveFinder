@@ -1,10 +1,9 @@
 /**
- * Individual Chat Message Bubble.
- * 
- * Each message knows if it was sent by "Me" or "Them" to switch side/colors.
- * - Text: Standard bubbles with double-checkmark for read receipts.
- * - Image: Renders images with custom sizing.
- * - Audio: (Implementation pending) Shows a waveform/play button.
+ * A single chat bubble.
+ *
+ * It shows the message text (or image) and handles the side
+ * it's on (left for "Them", right for "Me"). It also shows
+ * read receipts when a message is seen.
  */
 import {
   View,
@@ -17,7 +16,6 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useEffect, useState } from "react";
 import { useTheme } from "@/contexts/ThemeContext";
-import { colors } from "@/constants/colors";
 import { useVideoPlayerContext } from "@/contexts/VideoPlayerContext";
 import VideoThumbnailPreview from "@/components/VideoThumbnailPreview";
 import AudioPlayer from "@/components/AudioPlayer";
@@ -50,17 +48,19 @@ export default function MessageItem({
   const renderText = () => (
     <View
       style={{ minWidth: 60 }}
-      className={`max-w-[260px] rounded-2xl ${isMine
-        ? "bg-accent shadow-sm"
-        : "bg-bgPrimaryDark dark:bg-bgPrimaryLight"
-        }`}
+      className={`max-w-[260px] rounded-2xl ${
+        isMine
+          ? "bg-accent shadow-sm"
+          : "bg-bgPrimaryDark dark:bg-bgPrimaryLight"
+      }`}
     >
       <View className="px-4 py-3">
         <Text
-          className={`text-[16px] leading-6 ${isMine
-            ? "text-white"
-            : "text-textPrimaryDark dark:text-textPrimaryLight"
-            }`}
+          className={`text-[16px] leading-6 ${
+            isMine
+              ? "text-white"
+              : "text-textPrimaryDark dark:text-textPrimaryLight"
+          }`}
         >
           {item.message_content}
         </Text>
@@ -107,8 +107,9 @@ export default function MessageItem({
 
   const renderAudio = () => (
     <View
-      className={`p-3 rounded-2xl w-52 ${isMine ? "bg-accent" : "bg-bgPrimaryDark dark:bg-bgPrimaryLight"
-        }`}
+      className={`p-3 rounded-2xl w-52 ${
+        isMine ? "bg-accent" : "bg-bgPrimaryDark dark:bg-bgPrimaryLight"
+      }`}
     >
       <AudioPlayer
         uri={item.message_content}

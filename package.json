@@ -62,7 +62,7 @@
     "start:mobile": "bun run --cwd apps/mobile start",
     "build-ts:backend": "bun run --cwd apps/backend build",
     "start:backend": "bun run --cwd apps/backend start:dev",
-    "reseed": "bun run --cwd apps/backend db/seed.ts",
+    "reseed": "bun --env-file=.env apps/backend/db/seed.ts",
     "setup": "bun install && docker compose up -d db redis && sleep 5 && bun run reseed"
   }
 }

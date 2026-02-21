@@ -29,7 +29,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
     const message =
       typeof exceptionResponse === 'object' &&
-        (exceptionResponse as any).message
+      (exceptionResponse as any).message
         ? (exceptionResponse as any).message
         : exceptionResponse;
 

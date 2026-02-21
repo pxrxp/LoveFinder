@@ -9,4 +9,4 @@ import { SwipesModule } from '../swipes/swipes.module';
   providers: [UsersService],
   exports: [UsersService],
 })
-export class UsersModule { }
+export class UsersModule {}

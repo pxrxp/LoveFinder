@@ -1,11 +1,8 @@
 import { Controller, Post, Req, UseGuards } from '@nestjs/common';
-import { Request } from 'express';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { UserDto } from '../users/dto/user.dto';
 import { GetUser } from './decorators/get-user.decorator';
 import { Public } from './decorators/public.decorator';
-
-interface AuthRequest extends Request {}
 
 @Controller('auth')
 export class AuthController {
@@ -17,9 +14,9 @@ export class AuthController {
   }
 
   @Post('logout')
-  logout(@Req() request: AuthRequest) {
-    request.logout(() => {});
-    request.session.destroy(() => {});
+  logout(@Req() request: any) {
+    request.logout(() => { });
+    request.session.destroy(() => { });
     return { message: 'Logged out' };
   }
 }

@@ -1,8 +1,9 @@
 /**
- * Authentication Service
- * 
- * Encapsulates identity verification logic, password hashing 
- * validation, and OAuth provider integration.
+ * Logic for checking user logins.
+ *
+ * This service takes an email and password, finds the user in the
+ * database, and checks if the password matches using 'argon2'.
+ * It also handles external logins like Google.
  */
 import { Injectable } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
@@ -24,7 +25,7 @@ export class AuthService {
       const isMatch = await argon2.verify(hash, plain_password);
 
       if (isMatch) {
-        const { password_hash, ...stripped_user } = user;
+        const { password_hash: _, ...stripped_user } = user;
         return stripped_user;
       }
     } catch (err) {

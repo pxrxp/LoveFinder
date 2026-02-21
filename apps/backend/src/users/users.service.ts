@@ -1,11 +1,9 @@
 /**
- * Service for managing user accounts and profiles.
- * 
- * This service handles basic CRUD operations for users. It uses 'Bun.sql' for 
- * raw performance. Key features:
- * - findByEmail/findById: These support switching between 'safe' views 
- *   (which hide sensitive data) and raw 'users' table access.
- * - update: Handles the complex mapping of gender preferences into Postgres arrays.
+ * Logic for handling user profiles and accounts.
+ *
+ * This file connects to the database to create users, update bios,
+ * and fetch profiles. It uses "safe" database views to make sure
+ * we don't accidentally send passwords or birthdays to other users.
  */
 import { Injectable } from '@nestjs/common';
 import { UserDto } from './dto/user.dto';

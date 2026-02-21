@@ -5,11 +5,9 @@ import {
   TextInput,
   TouchableOpacity,
   KeyboardAvoidingView,
-  Platform,
 } from "react-native";
 import { router } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
-import { apiFetch } from "@/services/api";
 import { showThemedError } from "@/services/themed-error";
 import { useTheme } from "@/contexts/ThemeContext";
 import { createUser } from "@/services/users";

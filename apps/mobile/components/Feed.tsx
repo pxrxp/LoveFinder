@@ -1,11 +1,8 @@
 /**
- * The "Discovery" (Swiping) Feed screen.
- * 
- * This component manages the stack of user cards.
- * 1. Stack: It renders cards from bottom to top so the "top" card is swiped first.
- * 2. Gestures: When a user swipes (handled inside 'Card.tsx'), this component
- *    triggers 'removeCard' to show the next person in the deck.
- * 3. Empty State: Shows a nice "No one new" message when you've swiped on everyone.
+ * The main screen where you swipe on people.
+ *
+ * It shows a stack of profiles. When you swipe a card away, it
+ * updates the list and shows the next person underneath.
  */
 import { View, Text, ScrollView, RefreshControl } from "react-native";
 import { useEffect, useState, memo, useCallback } from "react";
