@@ -24,8 +24,8 @@
   "private": true,
   "scripts": {
     "build": "nest build",
-    "start": "bun run dist/main.js",
-    "start:dev": "bun --watch src/main.ts",
+    "start": "bun --env-file=../../.env run dist/main.js",
+    "start:dev": "bun --env-file=../../.env --watch src/main.ts",
     "lint": "eslint \"src/**/*.ts\" --fix",
     "test": "jest"
   },

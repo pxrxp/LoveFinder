@@ -30,6 +30,7 @@ module.exports = {
         chatBgLight: colorMap.light.chatBg,
         chatBgDark: colorMap.dark.chatBg,
         accent: colorMap.light.accent,
+        heart: colorMap.light.heart,
       },
     },
   },

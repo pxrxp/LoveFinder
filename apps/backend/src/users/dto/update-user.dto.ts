@@ -1,4 +1,4 @@
-import { IsOptional, IsString, Length, IsArray, ArrayNotEmpty, IsBoolean, IsInt, Min, Max, IsDateString } from 'class-validator';
+import { IsOptional, IsString, Length, IsArray, ArrayNotEmpty, IsBoolean, IsInt, Min, Max, IsDateString, IsLatitude, isLongitude, IsLongitude } from 'class-validator';
 
 export class UpdateUserDto {
   @IsOptional()
@@ -50,4 +50,17 @@ export class UpdateUserDto {
   @IsOptional()
   @IsBoolean()
   allow_messages_from_strangers?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  is_onboarded?: boolean;
+
+  @IsOptional()
+  @IsLatitude()
+  latitude?: number;
+
+  @IsOptional()
+  @IsLongitude()
+  longitude?: number;
+
 }

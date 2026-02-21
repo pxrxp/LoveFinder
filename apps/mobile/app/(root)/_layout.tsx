@@ -18,7 +18,7 @@ export default function AppLayout() {
   if (loading) return <LoadingScreen />;
 
   const authenticated = !!user;
-  const onboarded = true;
+  const onboarded = user?.is_onboarded ?? false;
 
   return (
     <Stack

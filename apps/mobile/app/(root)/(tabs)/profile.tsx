@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState, useMemo } from "react";
 import {
   View,
   ScrollView,
@@ -7,7 +7,6 @@ import {
   Text,
   TextInput,
   ActivityIndicator,
-  Platform,
 } from "react-native";
 import {
   AntDesign,
@@ -20,7 +19,6 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
-import DateTimePicker from "@react-native-community/datetimepicker";
 import dayjs from "dayjs";
 
 import { useTheme } from "@/contexts/ThemeContext";
@@ -30,6 +28,7 @@ import { useImageViewerContext } from "@/contexts/ImageViewerContext";
 import LoadingScreen from "@/components/LoadingScreen";
 import MediaMenuModal from "@/components/modals/MediaMenuModal";
 import SelectInterestsModal from "@/components/modals/SelectInterestsModal";
+import { WheelPicker, WheelPickerWrapper } from "@/components/WheelPicker";
 
 import { pickMedia, launchCamera } from "@/services/media-picker";
 import { uploadFile } from "@/services/upload-media";
@@ -71,7 +70,7 @@ export default function ProfileScreen() {
 
   const [nameInput, setNameInput] = useState("");
   const [bioInput, setBioInput] = useState("");
-  const [dobInput, setDobInput] = useState<Date>(new Date());
+  const [dobInput, setDobInput] = useState<dayjs.Dayjs>(dayjs());
   const [bioExpanded, setBioExpanded] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
 
@@ -92,6 +91,42 @@ export default function ProfileScreen() {
   const [settingsModalVisible, setSettingsModalVisible] = useState(false);
   const [currentlyUploadingPhotoIndex, setCurrentlyUploadingPhotoIndex] =
     useState(0);
+
+  const months = useMemo(
+    () =>
+      [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+      ].map((m, i) => ({ label: m, value: i })),
+    [],
+  );
+
+  const years = useMemo(
+    () =>
+      Array.from({ length: 100 }, (_, i) => {
+        const y = dayjs().year() - i;
+        return { label: y.toString(), value: y };
+      }),
+    [],
+  );
+
+  const days = useMemo(() => {
+    const count = dobInput.daysInMonth();
+    return Array.from({ length: count }, (_, i) => ({
+      label: (i + 1).toString(),
+      value: i + 1,
+    }));
+  }, [dobInput.month(), dobInput.year()]);
 
   useEffect(() => {
     fetchData();
@@ -116,9 +151,9 @@ export default function ProfileScreen() {
       setNameInput(profileData.full_name || "");
       setBioInput(profileData.bio || "");
       if (profileData.birth_date) {
-        setDobInput(new Date(profileData.birth_date));
+        setDobInput(dayjs(profileData.birth_date));
       } else {
-        setDobInput(dayjs().subtract(18, "year").toDate());
+        setDobInput(dayjs());
       }
 
       const initialPhotos = Array(MAX_PHOTOS).fill(null);
@@ -200,7 +235,7 @@ export default function ProfileScreen() {
       await updateProfile({
         full_name: nameInput.trim(),
         bio: bioInput.trim(),
-        birth_date: dayjs(dobInput).format("YYYY-MM-DD"),
+        birth_date: dobInput.format("YYYY-MM-DD"),
       });
 
       const initialIds = new Set(userInterests.map(getIntId));
@@ -224,6 +259,12 @@ export default function ProfileScreen() {
     }
   };
 
+  const updateDob = (type: "d" | "m" | "y", val: number) => {
+    if (type === "m") setDobInput(dobInput.month(val));
+    if (type === "y") setDobInput(dobInput.year(val));
+    if (type === "d") setDobInput(dobInput.date(val));
+  };
+
   const discardEdits = () => {
     setEditingMode(false);
     fetchData();
@@ -232,7 +273,7 @@ export default function ProfileScreen() {
   if (authLoading || isLoading) return <LoadingScreen />;
 
   const avatarUri = uploads[0]?.uri ?? photos[0]?.image_url;
-  const age = dayjs().diff(dayjs(dobInput), "year");
+  const age = dayjs().diff(dobInput, "year");
 
   return (
     <>
@@ -272,7 +313,7 @@ export default function ProfileScreen() {
                   {isSaving ? (
                     <ActivityIndicator
                       size="small"
-                      color={theme === "dark" ? "lightgreen" : "green"}
+                      color={themeColors.accent}
                     />
                   ) : (
                     <Feather
@@ -301,7 +342,6 @@ export default function ProfileScreen() {
                   />
                 </TouchableOpacity>
 
-                {/* Edit Button */}
                 <TouchableOpacity
                   className="p-2 -mr-2"
                   onPress={() => setEditingMode(true)}
@@ -375,38 +415,21 @@ export default function ProfileScreen() {
                     }}
                   />
                   <TouchableOpacity
-                    onPress={() => setShowDatePicker(true)}
+                    onPress={() => setShowDatePicker(!showDatePicker)}
                     className="flex-row items-center mt-1 gap-3"
                   >
                     <FontAwesome
                       name="calendar"
                       size={16}
-                      color={themeColors.textPrimary}
-                      style={{ opacity: 0.6 }}
+                      color={themeColors.accent}
                     />
                     <Text
                       className="font-semibold text-base"
-                      style={{ color: themeColors.textPrimary, opacity: 0.8 }}
+                      style={{ color: themeColors.textPrimary }}
                     >
-                      {dayjs(dobInput).format("MMM D, YYYY")} ({age})
+                      {dobInput.format("MMM D, YYYY")} ({age})
                     </Text>
                   </TouchableOpacity>
-
-                  {showDatePicker && (
-                    <DateTimePicker
-                      value={dobInput}
-                      mode="date"
-                      display={Platform.OS === "ios" ? "spinner" : "default"}
-                      themeVariant={theme === "dark" ? "dark" : "light"}
-                      textColor={themeColors.textPrimary}
-                      accentColor={themeColors.textPrimary}
-                      onChange={(_, selectedDate) => {
-                        setShowDatePicker(Platform.OS === "ios");
-                        if (selectedDate) setDobInput(selectedDate);
-                      }}
-                      maximumDate={dayjs().subtract(18, "years").toDate()}
-                    />
-                  )}
                 </>
               ) : (
                 <Text className="text-3xl font-bold text-textPrimaryLight dark:text-textPrimaryDark">
@@ -416,6 +439,38 @@ export default function ProfileScreen() {
               )}
             </View>
           </View>
+
+          {editingMode && showDatePicker && (
+            <View
+              className="mb-8 rounded-3xl overflow-hidden py-4 border border-gray-200 dark:border-white/5"
+              style={{ backgroundColor: themeColors.bgPrimary }}
+            >
+              <WheelPickerWrapper>
+                <WheelPicker
+                  options={months}
+                  value={dobInput.month()}
+                  onValueChange={(v) => updateDob("m", v)}
+                />
+                <WheelPicker
+                  options={days}
+                  value={dobInput.date()}
+                  onValueChange={(v) => updateDob("d", v)}
+                />
+                <WheelPicker
+                  options={years}
+                  value={dobInput.year()}
+                  onValueChange={(v) => updateDob("y", v)}
+                />
+              </WheelPickerWrapper>
+              <TouchableOpacity
+                onPress={() => setShowDatePicker(false)}
+                className="mt-4 self-center py-2 px-8 rounded-full"
+                style={{ backgroundColor: themeColors.accent }}
+              >
+                <Text className="text-white font-bold">Done</Text>
+              </TouchableOpacity>
+            </View>
+          )}
 
           <View className="mb-8">
             <Text className="text-base font-bold uppercase tracking-widest mb-3 opacity-40 text-textPrimaryLight dark:text-textPrimaryDark">

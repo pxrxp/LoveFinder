@@ -46,7 +46,19 @@
           "supportsPictureInPicture": false
         }
       ],
-      "@react-native-community/datetimepicker"
+      [
+        "@react-native-community/datetimepicker",
+        {
+          "android": {
+            "datePicker": {
+              "background": {
+                "light": "#eff0f1",
+                "dark": "#202124"
+              }
+            }
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

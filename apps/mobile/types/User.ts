@@ -24,4 +24,7 @@ export interface UserPrivate extends Partial<User> {
   pref_max_age?: number;
   pref_distance_radius_km?: number;
   allow_messages_from_strangers?: boolean;
+  is_onboarded?: boolean;
+  latitude?: number;
+  longitude?: number;
 }
