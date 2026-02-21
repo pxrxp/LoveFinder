@@ -14,11 +14,16 @@ export class AuthService {
     const hash = user.password_hash;
     if (!hash) return null;
 
-    const isMatch = await argon2.verify(hash, plain_password);
+    try {
+      const isMatch = await argon2.verify(hash, plain_password);
 
-    if (isMatch) {
-      const { password_hash, ...stripped_user } = user;
-      return stripped_user;
+      if (isMatch) {
+        const { password_hash, ...stripped_user } = user;
+        return stripped_user;
+      }
+    } catch (err) {
+      console.error('Password verification failed:', err);
+      return null;
     }
 
     return null;

@@ -10,7 +10,6 @@ import {
   Max,
   IsDateString,
   IsLatitude,
-  isLongitude,
   IsLongitude,
 } from 'class-validator';
 

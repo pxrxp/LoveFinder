@@ -5,6 +5,9 @@ import { createClient } from 'redis';
 import session from 'express-session';
 import passport from 'passport';
 import { ValidationPipe } from '@nestjs/common';
+import helmet from 'helmet';
+import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
+import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -20,6 +23,15 @@ async function bootstrap() {
     prefix: 'nestjs-auth:',
   });
 
+  // Security Headers
+  app.use(helmet());
+
+  // CORS
+  app.enableCors({
+    origin: process.env.FRONTEND_URL || true,
+    credentials: true,
+  });
+
   app.setGlobalPrefix('api/v1');
 
   app.useGlobalPipes(
@@ -30,6 +42,9 @@ async function bootstrap() {
     }),
   );
 
+  app.useGlobalFilters(new GlobalExceptionFilter());
+  app.useGlobalInterceptors(new LoggingInterceptor());
+
   app.use(
     session({
       store: redisStore,
@@ -39,6 +54,7 @@ async function bootstrap() {
       cookie: {
         maxAge: 3600000 * 24 * 10,
         secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
       },
     }),
   );

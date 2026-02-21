@@ -32,13 +32,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const login = async (email: string, password: string) => {
-    await Auth.login(email, password);
-    await refreshUser();
+    try {
+      await Auth.login(email, password);
+      await refreshUser();
+    } catch (e: any) {
+      throw e;
+    }
   };
 
   const logout = async () => {
-    await Auth.logout();
-    setUser(null);
+    try {
+      await Auth.logout();
+    } catch (e) {
+    } finally {
+      setUser(null);
+    }
   };
 
   useEffect(() => {

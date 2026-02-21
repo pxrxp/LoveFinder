@@ -9,7 +9,6 @@ import {
 } from "react";
 import { Conversation } from "@/types/Conversation";
 import { getSocket } from "@/services/socket";
-import { apiFetch } from "@/services/api";
 import { fetchConversations } from "@/services/chat";
 
 export type SwipeCategory = "both" | "you" | "they";
@@ -102,7 +101,6 @@ export function ConversationsProvider({ children }: { children: ReactNode }) {
           };
         });
       } catch (e) {
-        console.error(`Error fetching ${category}:`, e);
         setStates((prev) => ({
           ...prev,
           [category]: {
@@ -147,38 +145,34 @@ export function ConversationsProvider({ children }: { children: ReactNode }) {
 
         (["both", "you", "they"] as SwipeCategory[]).forEach((cat) => {
           const list = prev[cat].data;
-          const isExisting = list.some(
+          const index = list.findIndex(
             (c) =>
               c.other_user_id === msg.sender_id ||
               c.other_user_id === msg.receiver_id,
           );
 
-          if (isExisting) {
+          if (index !== -1) {
             updatedExisting = true;
-            const updatedList = list
-              .map((c) =>
-                c.other_user_id === msg.sender_id ||
-                c.other_user_id === msg.receiver_id
-                  ? {
-                      ...c,
-                      last_message: msg.message_content,
-                      last_message_type: msg.message_type,
-                      last_message_sent_at: msg.sent_at,
-                      last_message_sender_id: msg.sender_id,
-                    }
-                  : c,
-              )
-              .sort(
-                (a, b) =>
-                  getTime(b.last_message_sent_at) -
-                  getTime(a.last_message_sent_at),
-              );
+            const updatedItem = {
+              ...list[index],
+              last_message: msg.message_content,
+              last_message_type: msg.message_type,
+              last_message_sent_at: msg.sent_at,
+              last_message_sender_id: msg.sender_id,
+            };
+
+            const updatedList = [
+              updatedItem,
+              ...list.slice(0, index),
+              ...list.slice(index + 1),
+            ];
 
             newStates[cat] = { ...prev[cat], data: updatedList };
           }
         });
 
         if (!updatedExisting) {
+          // If it's a new conversation, we need to refetch to get the full object
           refetchRef.current("both");
           refetchRef.current("they");
         }
@@ -193,12 +187,26 @@ export function ConversationsProvider({ children }: { children: ReactNode }) {
       refetchRef.current("they");
     };
 
+    const handleNewMatch = () => {
+      refetchRef.current("both");
+      refetchRef.current("they");
+      refetchRef.current("you");
+    };
+
+    const handleNewLike = () => {
+      refetchRef.current("they");
+    };
+
     socket.on("new_message", handleNewMessage);
     socket.on("delete_message", handleDeleteMessage);
+    socket.on("new_match", handleNewMatch);
+    socket.on("new_like", handleNewLike);
 
     return () => {
       socket.off("new_message", handleNewMessage);
       socket.off("delete_message", handleDeleteMessage);
+      socket.off("new_match", handleNewMatch);
+      socket.off("new_like", handleNewLike);
     };
   }, []);
 

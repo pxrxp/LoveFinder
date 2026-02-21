@@ -1,5 +1,5 @@
 import React from "react";
-import { Text, View, TouchableOpacity, ScrollView } from "react-native";
+import { Text, View, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -63,7 +63,7 @@ export default function WelcomeScreen() {
         <Text
           className={`text-lg font-regular ${theme === "dark" ? "text-textSecondaryDark" : "text-textSecondaryLight"}`}
         >
-          Don't be too quick to give out personal information.
+          Don{"'"}t be too quick to give out personal information.
         </Text>
 
         <Text

@@ -99,7 +99,7 @@ export default function StepLocation() {
               color={theme === "light" ? "green" : "lightgreen"}
             />
             <Text className="text-green-500 font-bold ml-6 text-lg">
-              It won't be visible to others.
+              It won{"'"}t be visible to others.
             </Text>
           </View>
         </View>

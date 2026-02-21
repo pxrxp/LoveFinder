@@ -18,6 +18,7 @@ export default function TheyLikedScreen() {
         extraData={conversations}
         onLoadMore={loadMore}
         loadingMore={loadingMore}
+        unswipeVisible={false}
       />
     </SafeAreaView>
   );

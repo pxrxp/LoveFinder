@@ -1,5 +1,10 @@
 import * as argon2 from 'argon2';
 
+// Manually interpolate DATABASE_URL if it's a template (Bun's --env-file doesn't do it)
+if (process.env.DATABASE_URL?.includes('${')) {
+  process.env.DATABASE_URL = `postgres://${process.env.POSTGRES_USER || 'app'}:${process.env.POSTGRES_PASSWORD || ''}@localhost:${process.env.DB_PORT || '5430'}/${process.env.POSTGRES_DB || 'app'}`;
+}
+
 const sql = Bun.sql;
 
 async function seed() {
@@ -8,43 +13,53 @@ async function seed() {
   // 1. CLEAN SLATE
   await sql`TRUNCATE TABLE USERS, INTERESTS, PHOTOS, SWIPES, MESSAGES, REPORTS, BLOCKS, LOGINS CASCADE`;
 
-  // 2. INTERESTS
+  // 2. INTERESTS (Gen Z focus)
   const interestList = [
-    'Hiking',
-    'Photography',
+    'Anime',
+    'Thrifting',
+    'Gaming',
+    'K-Pop',
+    'Streetwear',
+    'Mental Health',
+    'Sustainability',
     'Coding',
+    'Photography',
+    'Skateboarding',
+    'Vinyl Records',
+    'Astrology',
+    'Web3',
+    'Climate Action',
+    'Concerts',
+    'Hiking',
+    'Yoga',
+    'Art',
     'Coffee',
     'Travel',
-    'Yoga',
-    'Gaming',
-    'Cooking',
-    'Music',
-    'Art',
-    'Surfing',
-    'Politics',
-    'Reading',
-    'Dancing',
-    'Wine',
+    'Baking',
+    'Podcasts',
+    'TikTok',
+    'Memes',
     'Dogs',
     'Cats',
-    'Fitness',
-    'Fashion',
-    'Movies',
-    'Netflix',
-    'Tattoos',
-    'Spirituality',
-    'Board Games',
-    'Sushi',
   ];
 
   for (const name of interestList) {
-    await sql`INSERT INTO INTERESTS (INTEREST_NAME) VALUES (${name}) ON CONFLICT DO NOTHING`;
+    await sql`INSERT INTO INTERESTS (INTEREST_NAME, IS_APPROVED) VALUES (${name}, TRUE) ON CONFLICT (INTEREST_NAME) DO UPDATE SET IS_APPROVED = TRUE`;
   }
   const allInterests = await sql`SELECT INTEREST_ID FROM INTERESTS`;
 
   // 3. GENERATE HERO USERS
-  const hashedPw = await argon2.hash('password123');
+  const hashedPw = await argon2.hash('123456');
   const heroUsers = [
+    {
+      email: 'demo@example.com',
+      name: 'Demo User',
+      gender: 'male',
+      orient: 'straight',
+      pref: '{female}',
+      lat: 40.7128,
+      long: -74.006,
+    },
     {
       email: 'alice@example.com',
       name: 'Alice Smith',
@@ -63,25 +78,36 @@ async function seed() {
       lat: 40.73,
       long: -73.99,
     },
-    {
-      email: 'charlie@example.com',
-      name: 'Charlie Day',
-      gender: 'nonbinary',
-      orient: 'pansexual',
-      pref: '{male,female,nonbinary}',
-      lat: 40.75,
-      long: -73.98,
-    },
   ];
 
   for (const u of heroUsers) {
-    await sql`
-      INSERT INTO USERS (EMAIL, PASSWORD_HASH, FULL_NAME, GENDER, SEXUAL_ORIENTATION, BIRTH_DATE, BIO, LATITUDE, LONGITUDE, PREF_GENDERS, IS_ONBOARDED)
-      VALUES (${u.email}, ${hashedPw}, ${u.name}, ${u.gender}::T_GENDER, ${u.orient}::T_ORIENTATION, '1995-01-01', 'Hero user bio', ${u.lat}, ${u.long}, ${u.pref}::T_GENDER[], TRUE)
+    const [user] = await sql`
+      INSERT INTO USERS (
+        EMAIL, PASSWORD_HASH, FULL_NAME, GENDER, SEXUAL_ORIENTATION, BIRTH_DATE, BIO, 
+        LATITUDE, LONGITUDE, PREF_GENDERS, IS_ONBOARDED, PREF_DISTANCE_RADIUS_KM
+      )
+      VALUES (
+        ${u.email}, ${hashedPw}, ${u.name}, ${u.gender}::T_GENDER, ${u.orient}::T_ORIENTATION, 
+        '1995-01-01', 'Demo user for LoveFinder. Swiping, matching, and chatting!', 
+        ${u.lat}, ${u.long}, ${u.pref}::T_GENDER[], TRUE, 100
+      )
+      RETURNING USER_ID
     `;
+
+    // Add Photo for Hero
+    await sql`
+      INSERT INTO PHOTOS (UPLOADER_ID, IMAGE_URL, IS_PRIMARY) 
+      VALUES (${user.user_id}, ${`https://picsum.photos/seed/${u.email}/600/800`}, TRUE)
+    `;
+
+    // Add 5 random interests
+    const shuffled = [...allInterests].sort(() => 0.5 - Math.random());
+    for (const int of shuffled.slice(0, 5)) {
+      await sql`INSERT INTO USER_INTERESTS (USER_ID, INTEREST_ID) VALUES (${user.user_id}, ${int.interest_id})`;
+    }
   }
 
-  // 4. BULK GENERATE 100 USERS (Keep it fast for demo)
+  // 4. BULK GENERATE 100 USERS
   console.log('👥 Generating bulk users...');
   const genders = ['male', 'female', 'nonbinary'];
   const orients = ['straight', 'gay', 'bisexual', 'pansexual'];
@@ -96,59 +122,64 @@ async function seed() {
     if (orient === 'straight') pref = gender === 'male' ? '{female}' : '{male}';
 
     const [user] = await sql`
-      INSERT INTO USERS (EMAIL, PASSWORD_HASH, FULL_NAME, GENDER, SEXUAL_ORIENTATION, BIRTH_DATE, BIO, LATITUDE, LONGITUDE, PREF_GENDERS, IS_ONBOARDED)
+      INSERT INTO USERS (EMAIL, PASSWORD_HASH, FULL_NAME, GENDER, SEXUAL_ORIENTATION, BIRTH_DATE, BIO, LATITUDE, LONGITUDE, PREF_GENDERS, IS_ONBOARDED, ALLOW_MESSAGES_FROM_STRANGERS)
       VALUES (
         ${`user${i}@test.com`}, ${hashedPw}, ${`User ${i}`}, ${gender}::T_GENDER, 
-        ${orient}::T_ORIENTATION, '1998-05-20', 'Bulk generated bio', ${lat}, ${long}, ${pref}::T_GENDER[], TRUE
+        ${orient}::T_ORIENTATION, '1998-05-20', 'Looking for someone special!', ${lat}, ${long}, ${pref}::T_GENDER[], TRUE,
+        ${i % 10 === 0}
       ) RETURNING USER_ID
     `;
 
-    // Add 3 random interests
     const shuffled = [...allInterests].sort(() => 0.5 - Math.random());
     for (const int of shuffled.slice(0, 3)) {
       await sql`INSERT INTO USER_INTERESTS (USER_ID, INTEREST_ID) VALUES (${user.user_id}, ${int.interest_id})`;
     }
 
-    // Add Photo
     await sql`
       INSERT INTO PHOTOS (UPLOADER_ID, IMAGE_URL, IS_PRIMARY) 
-      VALUES (${user.user_id}, ${`https://picsum.photos/seed/${user.user_id}/600/800`}, TRUE)
+      VALUES (${user.user_id}, ${`https://picsum.photos/seed/user${i}/600/800`}, TRUE)
     `;
   }
 
-  // 5. GENERATE SWIPES & MATCHES
-  console.log('🔥 Generating swipes and matches...');
-  const users = await sql`SELECT USER_ID FROM USERS LIMIT 50`;
+  // 5. GENERATE SWIPES & MATCHES for Demo User
+  console.log('🔥 Populating Demo User data...');
+  const demoId = (await sql`SELECT USER_ID FROM USERS WHERE EMAIL = 'demo@example.com'`)[0].user_id;
+  const aliceId = (await sql`SELECT USER_ID FROM USERS WHERE EMAIL = 'alice@example.com'`)[0].user_id;
+  const bobId = (await sql`SELECT USER_ID FROM USERS WHERE EMAIL = 'bob@example.com'`)[0].user_id;
 
-  for (const me of users) {
-    const others =
-      await sql`SELECT USER_ID FROM USERS WHERE USER_ID != ${me.user_id} ORDER BY RANDOM() LIMIT 10`;
-    for (const other of others) {
-      const type = Math.random() > 0.3 ? 'like' : 'dislike';
+  // Make Alice and Bob match with Demo
+  await sql`INSERT INTO SWIPES (SWIPER_ID, RECEIVER_ID, SWIPE_TYPE) VALUES (${demoId}, ${aliceId}, 'like'), (${aliceId}, ${demoId}, 'like') ON CONFLICT DO NOTHING`;
+  await sql`INSERT INTO SWIPES (SWIPER_ID, RECEIVER_ID, SWIPE_TYPE) VALUES (${demoId}, ${bobId}, 'like'), (${bobId}, ${demoId}, 'like') ON CONFLICT DO NOTHING`;
+
+  await sql`INSERT INTO MESSAGES (SENDER_ID, RECEIVER_ID, MESSAGE_CONTENT) VALUES (${aliceId}, ${demoId}, 'Hey! I am Alice. How is it going?')`;
+  await sql`INSERT INTO MESSAGES (SENDER_ID, RECEIVER_ID, MESSAGE_CONTENT) VALUES (${bobId}, ${demoId}, 'Yo! Nice profile.')`;
+
+  const females = await sql`SELECT USER_ID FROM USERS WHERE GENDER = 'female' AND EMAIL NOT IN ('demo@example.com', 'alice@example.com') LIMIT 30`;
+
+  for (let i = 0; i < females.length; i++) {
+    const otherId = females[i].user_id;
+    if (i < 5) {
+      // "Both Liked" (Match)
+      await sql`INSERT INTO SWIPES (SWIPER_ID, RECEIVER_ID, SWIPE_TYPE) VALUES (${demoId}, ${otherId}, 'like'), (${otherId}, ${demoId}, 'like') ON CONFLICT DO NOTHING`;
+
+      // Add a message
       await sql`
-        INSERT INTO SWIPES (SWIPER_ID, RECEIVER_ID, SWIPE_TYPE) 
-        VALUES (${me.user_id}, ${other.user_id}, ${type}::T_SWIPE_TYPE)
-        ON CONFLICT DO NOTHING
+        INSERT INTO MESSAGES (SENDER_ID, RECEIVER_ID, MESSAGE_CONTENT)
+        VALUES (${otherId}, ${demoId}, 'Hey! I saw your profile and loved it.')
       `;
-
-      // Force a match 40% of the time if it was a like
-      if (type === 'like' && Math.random() > 0.6) {
-        await sql`
-          INSERT INTO SWIPES (SWIPER_ID, RECEIVER_ID, SWIPE_TYPE) 
-          VALUES (${other.user_id}, ${me.user_id}, 'like'::T_SWIPE_TYPE)
-          ON CONFLICT DO NOTHING
-        `;
-
-        // Add a message for the match
-        await sql`
-          INSERT INTO MESSAGES (SENDER_ID, RECEIVER_ID, MESSAGE_CONTENT) 
-          VALUES (${me.user_id}, ${other.user_id}, 'Hey! We matched on the seed script!')
-        `;
-      }
+    } else if (i < 10) {
+      // "You Liked"
+      await sql`INSERT INTO SWIPES (SWIPER_ID, RECEIVER_ID, SWIPE_TYPE) VALUES (${demoId}, ${otherId}, 'like') ON CONFLICT DO NOTHING`;
+    } else if (i < 15) {
+      // "They Liked"
+      await sql`INSERT INTO SWIPES (SWIPER_ID, RECEIVER_ID, SWIPE_TYPE) VALUES (${otherId}, ${demoId}, 'like') ON CONFLICT DO NOTHING`;
     }
   }
 
-  console.log('✅ Seed complete! Log in with alice@example.com / password123');
+  console.log('✅ Seed complete!');
+  console.log('Demo Login: demo@example.com / 123456');
+  console.log('Alice Login: alice@example.com / 123456');
+  console.log('Bob Login: bob@example.com / 123456');
   process.exit(0);
 }
 

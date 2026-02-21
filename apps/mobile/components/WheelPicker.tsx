@@ -2,7 +2,7 @@ import React, { useRef, useEffect } from "react";
 import {
   View,
   Text,
-  FlatList,
+  ScrollView,
   NativeSyntheticEvent,
   NativeScrollEvent,
   Platform,
@@ -39,18 +39,15 @@ export function WheelPicker({
   onValueChange: (v: any) => void;
 }) {
   const { themeColors } = useTheme();
-  const flatListRef = useRef<FlatList>(null);
-
-  const paddedOptions = [
-    { label: "", value: "p1" },
-    ...options,
-    { label: "", value: "p2" },
-  ];
+  const flatListRef = useRef<ScrollView>(null);
 
   useEffect(() => {
     const index = options.findIndex((o) => o.value === value);
     if (index !== -1) {
-      flatListRef.current?.scrollToIndex({ index, animated: false });
+      (flatListRef.current as any)?.scrollTo({
+        y: index * ITEM_HEIGHT,
+        animated: false,
+      });
     }
   }, [value]);
 
@@ -72,16 +69,27 @@ export function WheelPicker({
         style={{ height: ITEM_HEIGHT }}
       />
 
-      <FlatList
-        ref={flatListRef}
-        data={paddedOptions}
-        renderItem={({ item }) => (
+      <ScrollView
+        ref={flatListRef as any}
+        showsVerticalScrollIndicator={false}
+        nestedScrollEnabled={true}
+        snapToInterval={ITEM_HEIGHT}
+        decelerationRate="fast"
+        onMomentumScrollEnd={handleScroll}
+        onScrollEndDrag={handleScroll}
+        scrollEventThrottle={16}
+        contentContainerStyle={{
+          paddingVertical: ITEM_HEIGHT,
+        }}
+      >
+        {options.map((item, index) => (
           <View
+            key={`wheel-opt-${item.value.toString()}`}
             style={{ height: ITEM_HEIGHT }}
             className="justify-center items-center"
           >
             <Text
-              className={`text-xl font-bold ${item.value === value ? "text-accent" : "text-gray-400"}`}
+              className={`text-xl font-bold`}
               style={{
                 color:
                   item.value === value
@@ -92,18 +100,8 @@ export function WheelPicker({
               {item.label}
             </Text>
           </View>
-        )}
-        keyExtractor={(item) => item.value.toString()}
-        showsVerticalScrollIndicator={false}
-        snapToInterval={ITEM_HEIGHT}
-        decelerationRate="fast"
-        onMomentumScrollEnd={handleScroll}
-        getItemLayout={(_, index) => ({
-          length: ITEM_HEIGHT,
-          offset: ITEM_HEIGHT * index,
-          index,
-        })}
-      />
+        ))}
+      </ScrollView>
     </View>
   );
 }

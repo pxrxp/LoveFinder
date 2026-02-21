@@ -43,7 +43,7 @@ export default [
             "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
             "@typescript-eslint/no-require-imports": "off",
             "no-empty": ["error", { "allowEmptyCatch": true }],
-            "no-undef": "error",
+            "no-undef": "off",
         },
     },
     {

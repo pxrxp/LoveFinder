@@ -1,5 +1,7 @@
-import { JSX, useEffect, useState } from "react";
-import { Modal, Pressable, Text, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import { Modal, Pressable, Text, View, TouchableOpacity } from "react-native";
+import { AntDesign } from "@expo/vector-icons";
+import { useTheme } from "@/contexts/ThemeContext";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -10,23 +12,25 @@ import { scheduleOnRN } from "react-native-worklets";
 
 export interface MenuAction {
   label: string;
-  icon?: JSX.Element;
+  icon?: React.ReactNode;
   color?: string;
   onPress: () => void;
 }
 
 interface ModalMenuProps {
+  title?: string;
   visible: boolean;
   onDismiss: () => void;
   actions: MenuAction[];
-  width?: number;
 }
 
 export default function ModalMenu({
+  title = "Menu",
   visible,
   onDismiss,
   actions,
 }: ModalMenuProps) {
+  const { themeColors } = useTheme();
   const [rendered, setRendered] = useState(visible);
 
   const scale = useSharedValue(0.85);
@@ -35,37 +39,13 @@ export default function ModalMenu({
   useEffect(() => {
     if (visible) {
       setRendered(true);
-
-      scale.value = 0.85;
-      opacity.value = 0;
-
-      scale.value = withTiming(1, {
-        duration: 220,
-        easing: Easing.out(Easing.cubic),
-      });
-
-      opacity.value = withTiming(1, {
-        duration: 180,
-        easing: Easing.out(Easing.cubic),
-      });
+      scale.value = withTiming(1, { duration: 200, easing: Easing.out(Easing.cubic) });
+      opacity.value = withTiming(1, { duration: 150 });
     } else {
-      scale.value = withTiming(
-        0.85,
-        {
-          duration: 180,
-          easing: Easing.in(Easing.cubic),
-        },
-        (finished) => {
-          if (finished) {
-            scheduleOnRN(setRendered, false);
-          }
-        },
-      );
-
-      opacity.value = withTiming(0, {
-        duration: 160,
-        easing: Easing.in(Easing.cubic),
+      scale.value = withTiming(0.85, { duration: 150 }, (finished) => {
+        if (finished) scheduleOnRN(setRendered, false);
       });
+      opacity.value = withTiming(0, { duration: 120 });
     }
   }, [visible]);
 
@@ -80,39 +60,37 @@ export default function ModalMenu({
     <Modal transparent visible animationType="none">
       <Pressable
         onPress={onDismiss}
-        className="flex-1 justify-center items-center bg-black/30"
+        className="flex-1 justify-center items-center bg-black/40 px-10"
       >
         <Animated.View
-          style={[animatedStyle]}
-          className="bg-bgPrimaryLight dark:bg-bgPrimaryDark rounded-2xl py-2 shadow-lg"
+          style={[
+            { backgroundColor: themeColors.bgPrimary, width: '100%', maxWidth: 300 },
+            animatedStyle,
+          ]}
+          className="rounded-3xl p-4 shadow-2xl"
         >
           <Pressable onPress={(e) => e.stopPropagation()}>
-            {actions.map((action, index) => (
-              <View key={index}>
-                <Pressable
+            <View>
+              {actions.map((action, index) => (
+                <TouchableOpacity
+                  key={index}
                   onPress={() => {
-                    action.onPress();
                     onDismiss();
+                    action.onPress();
                   }}
-                  className="flex-row px-4 py-3.5 active:opacity-60"
+                  className="flex-row items-center p-4 rounded-2xl mb-1"
+                  style={{ backgroundColor: themeColors.textPrimary + "08" }}
                 >
-                  {action.icon && (
-                    <View className="mr-3 w-6 items-center">{action.icon}</View>
-                  )}
-
+                  <View className="mr-4">{action.icon}</View>
                   <Text
-                    className="text-base font-semiBold px-7 text-textPrimaryLight dark:text-textPrimaryDark"
-                    style={action.color ? { color: action.color } : undefined}
+                    className="text-base font-semibold"
+                    style={{ color: action.color || themeColors.textPrimary }}
                   >
                     {action.label}
                   </Text>
-                </Pressable>
-
-                {index < actions.length - 1 && (
-                  <View className="h-[0.5px] mx-3 bg-black/10 dark:bg-white/10" />
-                )}
-              </View>
-            ))}
+                </TouchableOpacity>
+              ))}
+            </View>
           </Pressable>
         </Animated.View>
       </Pressable>

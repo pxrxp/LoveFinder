@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import {
   Modal,
   View,
@@ -9,6 +9,13 @@ import {
   ScrollView,
   Platform,
 } from "react-native";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  Easing,
+  runOnJS,
+} from "react-native-reanimated";
 import {
   AntDesign,
   Feather,
@@ -76,92 +83,110 @@ export default function SettingsModal({ visible, onDismiss }: Props) {
     </View>
   );
 
+  const scale = useSharedValue(0.85);
+  const opacity = useSharedValue(0);
+
+  useEffect(() => {
+    if (visible) {
+      scale.value = withTiming(1, { duration: 250, easing: Easing.out(Easing.cubic) });
+      opacity.value = withTiming(1, { duration: 200 });
+    } else {
+      scale.value = withTiming(0.85, { duration: 200 });
+      opacity.value = withTiming(0, { duration: 150 });
+    }
+  }, [visible]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+    opacity: opacity.value,
+  }));
+
   return (
     <Modal visible={visible} transparent animationType="fade">
-      <Pressable onPress={onDismiss} className="flex-1 bg-black/60 justify-end">
-        <Pressable
-          className="rounded-t-3xl p-6 shadow-2xl"
-          style={{ backgroundColor: themeColors.bgPrimary }}
-          onPress={(e) => e.stopPropagation()}
+      <Pressable onPress={onDismiss} className="flex-1 bg-black/60 justify-center items-center px-6">
+        <Animated.View
+          className="rounded-3xl p-6 shadow-2xl w-full max-h-[85%]"
+          style={[{ backgroundColor: themeColors.bgPrimary }, animatedStyle]}
         >
-          <View className="flex-row justify-between items-center mb-2">
-            <Text
-              className="text-xl font-bold"
-              style={{ color: themeColors.textPrimary }}
-            >
-              Settings
-            </Text>
-            <TouchableOpacity onPress={onDismiss} className="p-2 -mr-2">
-              <AntDesign
-                name="close"
-                size={24}
-                color={themeColors.textPrimary}
-              />
-            </TouchableOpacity>
-          </View>
-
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 30 }}
-          >
-            <SettingRow
-              label="Dark Mode"
-              value={theme === "dark"}
-              onValueChange={toggleTheme}
-              isSwitch={true}
-              icon={
-                <Ionicons
-                  name="moon-outline"
-                  size={22}
-                  color={themeColors.textPrimary}
-                />
-              }
-            />
-
-            <SettingRow
-              label="Read Receipts"
-              value={settings.sendReceipts}
-              onValueChange={(val) => setSetting("sendReceipts", val)}
-              icon={
-                <Ionicons
-                  name="checkmark-done-circle-outline"
+          <Pressable onPress={(e) => e.stopPropagation()}>
+            <View className="flex-row justify-between items-center mb-6">
+              <Text
+                className="text-xl font-bold"
+                style={{ color: themeColors.textPrimary }}
+              >
+                Settings
+              </Text>
+              <TouchableOpacity onPress={onDismiss} className="p-2 -mr-2">
+                <AntDesign
+                  name="close"
                   size={24}
                   color={themeColors.textPrimary}
                 />
-              }
-            />
+              </TouchableOpacity>
+            </View>
 
-            <SettingRow
-              label="In-app Notifications"
-              value={settings.getNotifications}
-              onValueChange={(val) => setSetting("getNotifications", val)}
-              icon={
-                <Ionicons
-                  name="notifications-outline"
-                  size={24}
-                  color={themeColors.textPrimary}
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <View className="space-y-6">
+                <SettingRow
+                  label="Dark Mode"
+                  value={theme === "dark"}
+                  onValueChange={toggleTheme}
+                  isSwitch={true}
+                  icon={
+                    <Ionicons
+                      name="moon-outline"
+                      size={22}
+                      color={themeColors.textPrimary}
+                    />
+                  }
                 />
-              }
-            />
 
-            <TouchableOpacity
-              onPress={() => {
-                onDismiss();
-                logout();
-              }}
-              className="mt-8 bg-red-500 rounded-2xl py-3.5 flex-row items-center justify-center shadow-sm"
-              activeOpacity={0.8}
-            >
-              <MaterialIcons
-                name="logout"
-                size={20}
-                color="white"
-                style={{ marginRight: 8 }}
-              />
-              <Text className="text-white font-bold text-base">Log Out</Text>
-            </TouchableOpacity>
-          </ScrollView>
-        </Pressable>
+                <SettingRow
+                  label="Read Receipts"
+                  value={settings.sendReceipts}
+                  onValueChange={(val) => setSetting("sendReceipts", val)}
+                  icon={
+                    <Ionicons
+                      name="checkmark-done-circle-outline"
+                      size={24}
+                      color={themeColors.textPrimary}
+                    />
+                  }
+                />
+
+                <SettingRow
+                  label="In-app Notifications"
+                  value={settings.getNotifications}
+                  onValueChange={(val) => setSetting("getNotifications", val)}
+                  icon={
+                    <Ionicons
+                      name="notifications-outline"
+                      size={24}
+                      color={themeColors.textPrimary}
+                    />
+                  }
+                />
+
+                <TouchableOpacity
+                  onPress={() => {
+                    onDismiss();
+                    logout();
+                  }}
+                  className="mt-8 bg-red-500 rounded-2xl py-3.5 flex-row items-center justify-center shadow-sm"
+                  activeOpacity={0.8}
+                >
+                  <MaterialIcons
+                    name="logout"
+                    size={20}
+                    color="white"
+                    style={{ marginRight: 8 }}
+                  />
+                  <Text className="text-white font-bold text-base">Log Out</Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
+          </Pressable>
+        </Animated.View>
       </Pressable>
     </Modal>
   );

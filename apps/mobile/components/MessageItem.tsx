@@ -41,34 +41,32 @@ export default function MessageItem({
 
   const renderText = () => (
     <View
-      className={`max-w-52 px-2 items-end flex-row-reverse rounded-2xl ${
-        isMine
-          ? "bg-accent shadow-md"
+      style={{ minWidth: 60 }}
+      className={`max-w-[260px] rounded-2xl ${isMine
+          ? "bg-accent shadow-sm"
           : "bg-bgPrimaryDark dark:bg-bgPrimaryLight"
-      }`}
-    >
-      {item.is_read && (
-        <Ionicons
-          name="checkmark-done-sharp"
-          size={18}
-          color={
-            isMine
-              ? "white"
-              : theme === "dark"
-                ? colors.light.textPrimary
-                : colors.dark.textPrimary
-          }
-        />
-      )}
-      <Text
-        className={`px-2 py-2 text-base ${
-          isMine
-            ? "text-white"
-            : "text-textPrimaryDark dark:text-textPrimaryLight"
         }`}
-      >
-        {item.message_content}
-      </Text>
+    >
+      <View className="px-4 py-3">
+        <Text
+          className={`text-[16px] leading-6 ${isMine
+              ? "text-white"
+              : "text-textPrimaryDark dark:text-textPrimaryLight"
+            }`}
+        >
+          {item.message_content}
+        </Text>
+        {isMine && item.is_read && (
+          <View className="flex-row justify-end mt-1 -mr-1">
+            <Ionicons
+              name="checkmark-done-sharp"
+              size={14}
+              color="white"
+              style={{ opacity: 0.9 }}
+            />
+          </View>
+        )}
+      </View>
     </View>
   );
 
@@ -101,9 +99,8 @@ export default function MessageItem({
 
   const renderAudio = () => (
     <View
-      className={`p-3 rounded-2xl w-52 ${
-        isMine ? "bg-accent" : "bg-bgPrimaryDark dark:bg-bgPrimaryLight"
-      }`}
+      className={`p-3 rounded-2xl w-52 ${isMine ? "bg-accent" : "bg-bgPrimaryDark dark:bg-bgPrimaryLight"
+        }`}
     >
       <AudioPlayer
         uri={item.message_content}

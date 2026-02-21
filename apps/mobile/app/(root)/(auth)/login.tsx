@@ -26,7 +26,7 @@ export default function LoginScreen() {
       return showThemedError("Please fill in all fields", themeColors);
     }
     try {
-      login(email, password);
+      await login(email, password);
     } catch (e: any) {
       showThemedError("Invalid email or password", themeColors);
     }
@@ -38,24 +38,32 @@ export default function LoginScreen() {
       behavior="padding"
       className="flex-1 bg-bgPrimaryLight dark:bg-bgPrimaryDark px-8 justify-center"
     >
-      <View className="items-center my-8">
+      <View className="items-center my-10 px-4">
         <MaskedView
-          style={{ marginBottom: 12 }}
+          style={{ marginBottom: 16 }}
           maskElement={
-            <MaterialCommunityIcons name="heart-multiple" size={80} />
+            <MaterialCommunityIcons name="heart-multiple" size={90} />
           }
         >
           <LinearGradient
             colors={["#FD267D", "#FE6D58"]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            style={{ width: 80, height: 80 }}
+            style={{ width: 90, height: 90 }}
           />
         </MaskedView>
-        <Text className="text-4xl font-extrabold mt-4 text-textPrimaryLight dark:text-textPrimaryDark">
+        <Text
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          className="text-4xl font-extrabold mt-4 text-textPrimaryLight dark:text-textPrimaryDark text-center"
+        >
           LoveFinder
         </Text>
-        <Text className="text-gray-500 font-regular text-lg my-5">
+        <Text
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          className="text-gray-500 font-regular text-lg mt-6 mb-2 text-center"
+        >
           Sign in to continue.
         </Text>
       </View>
@@ -112,7 +120,7 @@ export default function LoginScreen() {
           onPress={() => router.push("/(root)/(auth)/signup")}
         >
           <Text className="text-gray-500 font-semibold">
-            Don't have an account?{" "}
+            Don{"'"}t have an account?{" "}
             <Text className="text-[#FD267D]">Sign Up</Text>
           </Text>
         </TouchableOpacity>

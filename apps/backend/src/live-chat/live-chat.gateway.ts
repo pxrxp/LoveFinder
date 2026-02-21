@@ -8,7 +8,7 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { sessionMiddleware } from '../common/middlwares/session.middleware';
+import { sessionMiddleware } from '../common/middleware/session.middleware';
 import { UserDto } from '../users/dto/user.dto';
 import { ChatService } from '../chat/chat.service';
 import { UsersService } from '../users/users.service';
@@ -54,6 +54,8 @@ export class LiveChatGateway
       socket.disconnect();
       return;
     }
+    socket.join(user.user_id);
+    console.log(`User ${user.user_id} connected and joined global room`);
   }
 
   handleDisconnect(socket: Socket) {
@@ -113,6 +115,7 @@ export class LiveChatGateway
         messageType,
       );
       this.server.to(roomId).emit('new_message', msg);
+      this.server.to(otherUserId).emit('new_message', msg); // For global in-app notifications
     } catch (err: any) {
       socket.emit('ws_error', { action: 'send_message', error: err.message });
     }
@@ -150,6 +153,11 @@ export class LiveChatGateway
 
     try {
       await this.chatService.markAsRead(user.user_id, otherUserId);
+      const roomId = this.chatService.getRoomId(user.user_id, otherUserId);
+      this.server.to(roomId).emit('messages_read', {
+        reader_id: user.user_id,
+        sender_id: otherUserId,
+      });
     } catch (err: any) {
       socket.emit('ws_error', { action: 'mark_as_read', error: err.message });
     }

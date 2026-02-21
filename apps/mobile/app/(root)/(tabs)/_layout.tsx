@@ -17,7 +17,9 @@ export default function TabsLayout() {
 
   const renderLabel = (label: string, focused: boolean) => (
     <Text
-      className="text-sm font-regular"
+      numberOfLines={1}
+      adjustsFontSizeToFit
+      className="text-sm font-regular px-1"
       style={{
         includeFontPadding: false,
         fontWeight: focused ? "700" : "400",

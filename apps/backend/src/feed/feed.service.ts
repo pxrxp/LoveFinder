@@ -67,10 +67,10 @@ export class FeedService {
         and other.is_active = true
         and other.is_onboarded = true
         and (me.pref_genders is null or other.gender = any (me.pref_genders))
-        and extract(year from age(other.birth_date)) between me.pref_min_age and me.pref_max_age
+        and extract(year from age(other.birth_date)) between coalesce(me.pref_min_age, 18) and coalesce(me.pref_max_age, 100)
         and (
             (other.latitude is null or me.latitude is null) 
-            or distances.distance_km <= me.pref_distance_radius_km
+            or distances.distance_km <= greatest(coalesce(me.pref_distance_radius_km, 50), 50)
         )
         and not exists (
           select 1 from swipes s 

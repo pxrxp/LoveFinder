@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 
 @Injectable()
 export class PhotosService {
@@ -8,26 +8,33 @@ export class PhotosService {
     isPrimary: boolean,
     replacePhotoId?: string,
   ) {
-    if (replacePhotoId) {
-      await Bun.sql`
-        DELETE FROM PHOTOS 
-        WHERE PHOTO_ID = ${replacePhotoId} AND UPLOADER_ID = ${userId}
+    try {
+      if (replacePhotoId) {
+        await Bun.sql`
+          DELETE FROM PHOTOS 
+          WHERE PHOTO_ID = ${replacePhotoId} AND UPLOADER_ID = ${userId}
+        `;
+      }
+
+      const result = await Bun.sql`
+        INSERT INTO PHOTOS (UPLOADER_ID, IMAGE_URL, IS_PRIMARY)
+        VALUES (${userId}, ${url}, FALSE)
+        RETURNING *
       `;
+
+      const newPhoto = result[0];
+
+      if (isPrimary && !newPhoto.is_primary) {
+        return this.setPrimary(userId, newPhoto.photo_id);
+      }
+
+      return newPhoto;
+    } catch (err: any) {
+      if (err.message?.includes('maximum of 6 photos')) {
+        throw new BadRequestException('You can only have up to 6 photos.');
+      }
+      throw err;
     }
-
-    const result = await Bun.sql`
-      INSERT INTO PHOTOS (UPLOADER_ID, IMAGE_URL, IS_PRIMARY)
-      VALUES (${userId}, ${url}, FALSE)
-      RETURNING *
-    `;
-
-    const newPhoto = result[0];
-
-    if (isPrimary && !newPhoto.is_primary) {
-      return this.setPrimary(userId, newPhoto.photo_id);
-    }
-
-    return newPhoto;
   }
 
   async setPrimary(userId: string, photoId: string) {

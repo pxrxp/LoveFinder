@@ -1,9 +1,11 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { LiveChatGateway } from './live-chat.gateway';
-import { ChatService } from '../chat/chat.service';
-import { UsersService } from '../users/users.service';
+import { ChatModule } from '../chat/chat.module';
+import { UsersModule } from '../users/users.module';
 
 @Module({
-  providers: [LiveChatGateway, ChatService, UsersService],
+  imports: [ChatModule, forwardRef(() => UsersModule)],
+  providers: [LiveChatGateway],
+  exports: [LiveChatGateway],
 })
-export class LiveChatModule {}
+export class LiveChatModule { }

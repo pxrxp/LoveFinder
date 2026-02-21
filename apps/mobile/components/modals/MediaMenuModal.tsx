@@ -4,6 +4,7 @@ import Entypo from "@expo/vector-icons/Entypo";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useEffect } from "react";
 
 type Props = {
   visible: boolean;

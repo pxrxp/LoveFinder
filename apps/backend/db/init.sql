@@ -154,7 +154,8 @@ create table if not exists interests (
     interest_id serial primary key,
     interest_name citext not null unique check (
         length(interest_name) >= 2 and interest_name ~ $$^[a-za-z0-9\s\-\']{1,50}$$ and interest_name !~ $$(.)\1{4,}$$
-    )
+    ),
+    is_approved boolean not null default false
 );
 
 create trigger trg_trim_interest_name before insert or update on interests for each row execute function trim_interest_name();

@@ -9,7 +9,7 @@ export class UserDto {
   birth_date!: Date;
   bio!: string;
   created_at!: Date;
-  pref_genders!: string;
+  pref_genders!: string[];
   pref_min_age!: number;
   pref_max_age!: number;
   pref_distance_radius_km!: number;
