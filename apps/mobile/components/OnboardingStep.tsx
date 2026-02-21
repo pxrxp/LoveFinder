@@ -42,7 +42,7 @@ export default function OnboardingStep({
               {title}
             </Text>
             {description && (
-              <Text className="text-gray-500 font-semibold text-base mt-2 text-center">
+              <Text className="text-gray-500 font-regular text-base mt-2 text-center">
                 {description}
               </Text>
             )}

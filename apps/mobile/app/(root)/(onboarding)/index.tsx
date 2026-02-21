@@ -11,7 +11,7 @@ export default function WelcomeScreen() {
   const { theme } = useTheme();
 
   return (
-    <SafeAreaView className="flex-1 px-8 justify-center bg-bgPrimaryLight dark:bg-bgPrimaryDark">
+    <SafeAreaView edges={["bottom"]} className="flex-1 px-8 justify-center bg-bgPrimaryLight dark:bg-bgPrimaryDark">
         <View className="mb-4">
           <MaskedView
             maskElement={
@@ -42,7 +42,7 @@ export default function WelcomeScreen() {
           </Text>
 
           <Text 
-            className={`pt-5 font-bold text-xl ${theme === "dark" ? "text-textPrimaryDark" : "text-textPrimaryLight"}`}
+            className={`pt-8 font-bold text-xl ${theme === "dark" ? "text-textPrimaryDark" : "text-textPrimaryLight"}`}
           >
             Be yourself.
           </Text>
@@ -53,7 +53,7 @@ export default function WelcomeScreen() {
           </Text>
 
           <Text 
-            className={`pt-5 text-xl font-bold ${theme === "dark" ? "text-textPrimaryDark" : "text-textPrimaryLight"}`}
+            className={`pt-8 text-xl font-bold ${theme === "dark" ? "text-textPrimaryDark" : "text-textPrimaryLight"}`}
           >
             Stay safe.
           </Text>
@@ -64,7 +64,7 @@ export default function WelcomeScreen() {
           </Text>
 
           <Text 
-            className={`pt-5 text-xl font-bold ${theme === "dark" ? "text-textPrimaryDark" : "text-textPrimaryLight"}`}
+            className={`pt-8 text-xl font-bold ${theme === "dark" ? "text-textPrimaryDark" : "text-textPrimaryLight"}`}
           >
             Play it cool.
           </Text>
@@ -75,7 +75,7 @@ export default function WelcomeScreen() {
           </Text>
 
           <Text 
-            className={`pt-5 text-xl font-bold ${theme === "dark" ? "text-textPrimaryDark" : "text-textPrimaryLight"}`}
+            className={`pt-8 text-xl font-bold ${theme === "dark" ? "text-textPrimaryDark" : "text-textPrimaryLight"}`}
           >
             Be proactive.
           </Text>

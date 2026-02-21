@@ -53,7 +53,7 @@ export function WheelPicker({
     <View style={{ height: ITEM_HEIGHT * 3, flex: 1 }}>
       <View 
         pointerEvents="none"
-        className="absolute top-[50px] left-2 right-2 border-y border-[#FD267D] bg-[#FD267D]/5" 
+        className="absolute top-[50px] left-2 right-2 border-y border-accent bg-accent/5" 
         style={{ height: ITEM_HEIGHT }} 
       />
       
@@ -63,7 +63,7 @@ export function WheelPicker({
         renderItem={({ item }) => (
           <View style={{ height: ITEM_HEIGHT }} className="justify-center items-center">
             <Text 
-              className={`text-xl font-bold ${item.value === value ? 'text-[#FD267D]' : 'text-gray-400'}`}
+              className={`text-xl font-bold ${item.value === value ? 'text-accent' : 'text-gray-400'}`}
               style={{ color: item.value === value ? themeColors.accent : themeColors.textSecondary }}
             >
               {item.label}

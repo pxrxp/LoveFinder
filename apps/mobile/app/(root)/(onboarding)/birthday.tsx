@@ -91,7 +91,7 @@ export default function StepBirthday() {
         <Text
           className="mt-8 font-regular text-lg text-center"
           style={{
-            color: isOldEnough ? themeColors.textSecondary : themeColors.accent,
+            color: isOldEnough ? themeColors.textSecondary : "red",
           }}
         >
           {isOldEnough

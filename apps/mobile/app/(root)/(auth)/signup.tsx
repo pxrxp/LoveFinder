@@ -19,7 +19,7 @@ export default function SignupScreen() {
         method: 'POST',
         body: JSON.stringify({ email, password, full_name: name }),
       });
-      router.replace("/(auth)/login");
+      router.replace("/(root)/(auth)/login");
     } catch (e: any) {
       showThemedError("Signup failed", themeColors);
     }
