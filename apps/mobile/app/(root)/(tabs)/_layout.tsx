@@ -97,8 +97,8 @@ function TabsContent() {
                 <View
                   style={{
                     position: "absolute",
-                    top: -2,
-                    right: -4,
+                    top: -4,
+                    right: -6,
                     width: 9,
                     height: 9,
                     borderRadius: 5,

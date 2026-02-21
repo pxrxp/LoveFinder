@@ -197,7 +197,7 @@ export default function OtherUserScreen() {
         const textContent = messageToSend.trim();
         const tempMsg: Message = {
           message_id: Date.now().toString(),
-          sender_id: user!.user_id,
+          sender_id: user!.user_id!,
           message_content: textContent,
           message_type: "text",
           sent_at: new Date().toISOString(),
@@ -227,7 +227,7 @@ export default function OtherUserScreen() {
 
         const tempMsg: Message = {
           message_id: Date.now().toString(),
-          sender_id: user!.user_id,
+          sender_id: user!.user_id!,
           message_content: data.url,
           message_type: type,
           sent_at: new Date().toISOString(),
