@@ -6,8 +6,12 @@
  */
 const BACKEND_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
+console.log("INITIALIZED API SERVICE WITH URL:", BACKEND_BASE_URL);
+
 export const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
   const isFormData = options.body instanceof FormData;
+
+  console.log(`[API FETCH] Making request to: ${BACKEND_BASE_URL}${endpoint}`);
 
   const res = await fetch(`${BACKEND_BASE_URL}${endpoint}`, {
     ...options,
