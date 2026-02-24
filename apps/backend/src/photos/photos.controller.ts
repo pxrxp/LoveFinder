@@ -7,9 +7,11 @@ import {
   Param,
   ParseUUIDPipe,
   Post,
+  Request,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
+import type { Request as ExpressRequest } from 'express';
 import { PhotosService } from './photos.service';
 import { UserDto } from '../users/dto/user.dto';
 import { GetUser } from '../auth/decorators/get-user.decorator';
@@ -20,7 +22,7 @@ import { extname } from 'path';
 
 @Controller('photos')
 export class PhotosController {
-  constructor(private readonly photosService: PhotosService) {}
+  constructor(private readonly photosService: PhotosService) { }
 
   @Post('upload')
   @UseInterceptors(
@@ -42,6 +44,7 @@ export class PhotosController {
     }),
   )
   upload(
+    @Request() req: ExpressRequest,
     @GetUser() user: UserDto,
     @UploadedFile() file: Express.Multer.File,
     @Body('is_primary') is_primary?: string,
@@ -50,7 +53,9 @@ export class PhotosController {
     if (!file) {
       throw new BadRequestException('No file provided or file type invalid');
     }
-    const url = `${process.env.BACKEND_URL}/static/profile/${file.filename}`;
+    const baseUrl = process.env.BACKEND_URL || `${req.protocol}://${req.get('host')}`;
+    const url = `${baseUrl}/static/profile/${file.filename}`;
+    console.log(`[PhotosController] Uploaded photo stored at: ${url}`);
     const isPrimaryBool = is_primary === 'true';
 
     return this.photosService.create(

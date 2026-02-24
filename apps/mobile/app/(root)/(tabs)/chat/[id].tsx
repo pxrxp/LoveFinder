@@ -9,6 +9,7 @@ import { ImageBackground } from "expo-image";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { useState, useEffect, useCallback, useContext, useRef } from "react";
+import { useIsFocused } from "@react-navigation/native";
 
 import { useFetch } from "@/hooks/useFetch";
 import { useChatSocket } from "@/hooks/useChatSocket";
@@ -48,6 +49,7 @@ export default function OtherUserScreen() {
   const tabBarHeight = useBottomTabBarHeight();
   const { settings } = useSettings();
   const { user } = useContext(AuthContext)!;
+  const isFocused = useIsFocused();
 
   const { openImageViewer } = useImageViewerContext();
   const { openVideoPlayer, loading: videoLoading } = useVideoPlayerContext();
@@ -105,10 +107,10 @@ export default function OtherUserScreen() {
     });
 
     // If this message came from the other person and receipts are enabled, acknowledge it immediately
-    if (msg.sender_id !== user?.user_id && settings.sendReceipts) {
+    if (msg.sender_id !== user?.user_id && settings.sendReceipts && isFocused) {
       socketRef.current?.emit("mark_as_read", { other_user_id: id });
     }
-  }, [user?.user_id, id, settings.sendReceipts]);
+  }, [user?.user_id, id, settings.sendReceipts, isFocused]);
 
   const handleDeleteMessage = useCallback((messageId: string) => {
     setMessages((prev) => prev.filter((m) => m.message_id !== messageId));

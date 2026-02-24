@@ -9,10 +9,14 @@ export async function uploadFile(
   const fileType = uriParts[uriParts.length - 1];
 
   const formData = new FormData();
+  const finalType = media.type.includes("/")
+    ? media.type
+    : `${media.type}/${fileType}`;
+
   formData.append("file", {
     uri: media.uri,
     name: `file.${fileType}`,
-    type: `${media.type}/${fileType}`,
+    type: finalType,
   } as any);
 
   if (extraFields) {

@@ -4,7 +4,9 @@ import {
   Post,
   UploadedFile,
   UseInterceptors,
+  Request,
 } from '@nestjs/common';
+import type { Request as ExpressRequest } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { randomUUID } from 'crypto';
 import { diskStorage } from 'multer';
@@ -35,11 +37,19 @@ export class ChatMediaController {
       limits: { fileSize: 5 * 1024 * 1024 },
     }),
   )
-  uploadChatMedia(@UploadedFile() file: Express.Multer.File) {
+  uploadChatMedia(
+    @Request() req: ExpressRequest,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
     if (!file) throw new BadRequestException('No file');
 
+    const baseUrl =
+      process.env.BACKEND_URL || `${req.protocol}://${req.get('host')}`;
+    const url = `${baseUrl}/static/chat/${file.filename}`;
+    console.log(`[ChatMediaController] Uploaded media stored at: ${url}`);
+
     return {
-      url: `${process.env.BACKEND_URL}/static/chat/${file.filename}`,
+      url,
       filename: file.filename,
       mimetype: file.mimetype,
       size: file.size,
