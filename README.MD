@@ -104,12 +104,23 @@ The app finds people for you based on:
 Install **Bun** and **Docker**.
 
 ### 2. Fast Setup
-Run this from the root folder to install everything and set up the database:
+Run this from the root folder to configure your environment, install dependencies, and set up the database:
 ```bash
 bun run setup
 ```
 
-### 3. Scripts
+This will launch an **Interactive CLI** that walks you through:
+- 🗄️ Database credentials
+- 🌐 **Backend URL** (The URL used by the mobile app, detected from your network!)
+- 🔑 Generating secure session secrets
+
+### 3. Environment Configuration
+If you need to update your settings later, you can re-run just the configuration tool:
+```bash
+bun run setup:env
+```
+
+### 4. Scripts
 
 | Script | Command | Result |
 | :--- | :--- | :--- |

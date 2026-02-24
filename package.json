@@ -25,6 +25,7 @@
     "typescript": "^5.9.3"
   },
   "devDependencies": {
+    "@clack/prompts": "^1.0.1",
     "@eslint/js": "^10.0.1",
     "@nestjs/mapped-types": "^2.1.0",
     "@types/bun": "^1.3.6",
@@ -35,6 +36,7 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.5",
     "globals": "^17.3.0",
+    "picocolors": "^1.1.1",
     "prettier": "^3.8.1"
   },
   "scripts": {
@@ -59,7 +61,7 @@
     "start:mobile": "bun run --cwd apps/mobile start",
     "build-ts:backend": "bun run --cwd apps/backend build",
     "start:backend": "bun run --cwd apps/backend start:dev",
-    "reseed": "bun --env-file=.env apps/backend/db/seed.ts",
-    "setup": "bun install && docker compose up -d db redis && sleep 5 && bun run reseed"
+    "setup:env": "bun run scripts/setup-env.ts",
+    "setup": "bun run setup:env && bun install && docker compose up -d db redis && sleep 5 && bun run reseed"
   }
 }
