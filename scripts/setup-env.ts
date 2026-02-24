@@ -2,22 +2,37 @@ import {
     intro,
     outro,
     text,
-    confirm,
-    select,
     spinner,
     note,
     group
 } from '@clack/prompts';
 import pc from 'picocolors';
-import { writeFileSync, existsSync } from 'node:fs';
+import { writeFileSync, existsSync, readFileSync } from 'node:fs';
 import { networkInterfaces } from 'node:os';
 import { join } from 'node:path';
 import { randomBytes } from 'node:crypto';
+
+function parseEnv(path: string): Record<string, string> {
+    if (!existsSync(path)) return {};
+    const content = readFileSync(path, 'utf-8');
+    const lines = content.split('\n');
+    const config: Record<string, string> = {};
+    for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed || trimmed.startsWith('#')) continue;
+        const [key, ...valueParts] = trimmed.split('=');
+        if (key && valueParts.length > 0) {
+            config[key.trim()] = valueParts.join('=').trim();
+        }
+    }
+    return config;
+}
 
 async function main() {
     intro(pc.bgCyan(pc.black(' LoveFinder Setup ')));
 
     const s = spinner();
+    const existingEnv = parseEnv('.env');
 
     const getLocalIp = () => {
         const nets = networkInterfaces();
@@ -39,38 +54,38 @@ async function main() {
             dbUser: () =>
                 text({
                     message: 'Database username:',
-                    placeholder: 'app',
-                    initialValue: 'app',
+                    placeholder: existingEnv.POSTGRES_USER || 'app',
+                    initialValue: existingEnv.POSTGRES_USER || 'app',
                 }),
             dbPassword: () =>
                 text({
                     message: 'Database password:',
-                    placeholder: 'leave blank for none',
-                    initialValue: 'app_password',
+                    placeholder: existingEnv.POSTGRES_PASSWORD || 'leave blank for none',
+                    initialValue: existingEnv.POSTGRES_PASSWORD || 'app_password',
                 }),
             dbName: () =>
                 text({
                     message: 'Database name:',
-                    placeholder: 'app',
-                    initialValue: 'app',
+                    placeholder: existingEnv.POSTGRES_DB || 'app',
+                    initialValue: existingEnv.POSTGRES_DB || 'app',
                 }),
             dbPort: () =>
                 text({
                     message: 'Database port (outer):',
-                    placeholder: '5430',
-                    initialValue: '5430',
+                    placeholder: existingEnv.DB_PORT || '5430',
+                    initialValue: existingEnv.DB_PORT || '5430',
                 }),
             backendPort: () =>
                 text({
                     message: 'Backend port (internal):',
-                    placeholder: '3000',
-                    initialValue: '3000',
+                    placeholder: existingEnv.BACKEND_PORT || '3000',
+                    initialValue: existingEnv.BACKEND_PORT || '3000',
                 }),
             backendUrl: () =>
                 text({
                     message: 'Public Backend URL (for mobile access):',
-                    placeholder: `http://${localIp}:3000`,
-                    initialValue: `http://${localIp}:3000`,
+                    placeholder: existingEnv.BACKEND_URL || `http://${localIp}:3000`,
+                    initialValue: existingEnv.BACKEND_URL || `http://${localIp}:3000`,
                 }),
         },
         {
@@ -83,10 +98,10 @@ async function main() {
 
     s.start('Generating environment files...');
 
-    const sessionSecret = randomBytes(32).toString('hex');
+    const sessionSecret = existingEnv.SESSION_SECRET || randomBytes(32).toString('hex');
     const databaseUrl = `postgres://${config.dbUser}:${config.dbPassword}@localhost:${config.dbPort}/${config.dbName}`;
 
-    const rootEnv = `
+    const envContent = `
 POSTGRES_USER=${config.dbUser}
 POSTGRES_PASSWORD=${config.dbPassword}
 POSTGRES_DB=${config.dbName}
@@ -98,14 +113,14 @@ SESSION_SECRET=${sessionSecret}
 BACKEND_URL=${config.backendUrl}
 `.trim();
 
-    const mobileEnv = `
+    const mobileEnvContent = `
 EXPO_PUBLIC_API_URL=${config.backendUrl}/api/v1
 EXPO_PUBLIC_SOCKET_URL=${config.backendUrl}
 `.trim();
 
-    writeFileSync('.env', rootEnv);
-    writeFileSync(join('apps', 'mobile', '.env'), mobileEnv);
-    writeFileSync(join('apps', 'backend', '.env'), rootEnv);
+    writeFileSync('.env', envContent);
+    writeFileSync(join('apps', 'mobile', '.env'), mobileEnvContent);
+    writeFileSync(join('apps', 'backend', '.env'), envContent);
 
     s.stop('Environment files generated!');
 
