@@ -8,6 +8,10 @@
 
 This is a dating app built with **NestJS** (on Bun) and **Expo**. It handles matching, swiping, and real-time chat.
 
+<img width="614" height="1200" alt="image" src="https://github.com/user-attachments/assets/dd8bec0f-af78-4478-bee3-e2bf4305892b" />
+<img width="614" height="1200" alt="image" src="https://github.com/user-attachments/assets/1df92305-1c76-4855-a8fa-eded23520cb7" />
+<img width="614" height="1200" alt="image" src="https://github.com/user-attachments/assets/d29a8800-b684-492d-b58e-251118443a8a" />
+
 ---
 
 ## 📖 Contents
