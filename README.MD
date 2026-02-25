@@ -23,6 +23,7 @@ This is a dating app built with **NestJS** (on Bun) and **Expo**. It handles mat
 <p align="center">
   <img alt="Screenshot of Swipe tab" src="https://github.com/user-attachments/assets/dd8bec0f-af78-4478-bee3-e2bf4305892b" width="200"/>
   <img alt="Screenshot of Chat tab" src="https://github.com/user-attachments/assets/7de180c0-db6b-4c69-8ab9-aa779d3c5079" width="200" />
+  <img alt="Screenshot of a test chat" src="https://github.com/user-attachments/assets/bdb7410f-a573-47cb-b403-f239f27d6ca5" width="200" />
   <img alt="Screenshot of Profile tab" src="https://github.com/user-attachments/assets/82766022-f444-496c-86b8-d276e93fa650" width="200" />
 </p>
 
