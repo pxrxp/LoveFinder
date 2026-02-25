@@ -11,7 +11,7 @@ export class SwipesService {
   constructor(
     @Inject(forwardRef(() => LiveChatGateway))
     private readonly liveChatGateway: LiveChatGateway,
-  ) {}
+  ) { }
 
   async swipe(
     swiper_id: string,
@@ -74,11 +74,11 @@ export class SwipesService {
       select
         exists(
           select 1 from swipes
-          where swiper_id = ${userId} and receiver_id = ${otherUserId}
+          where swiper_id = ${userId} and receiver_id = ${otherUserId} and swipe_type = 'like'
         ) as you_swiped,
         exists(
           select 1 from swipes
-          where swiper_id = ${otherUserId} and receiver_id = ${userId}
+          where swiper_id = ${otherUserId} and receiver_id = ${userId} and swipe_type = 'like'
         ) as they_swiped
     `;
 

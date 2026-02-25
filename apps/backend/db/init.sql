@@ -186,8 +186,9 @@ create table if not exists swipes (
 create or replace function check_allow_messages_from_strangers() returns trigger as $$
 begin
     if (select allow_messages_from_strangers from users where user_id = new.receiver_id) then return new; end if;
-    if exists(select 1 from swipes where swiper_id = new.receiver_id and receiver_id = new.sender_id and swipe_type = 'like') then return new; end if;
-    raise exception 'cannot message: recipient does not allow strangers and no swipe exists';
+    if exists(select 1 from swipes where swiper_id = new.receiver_id and receiver_id = new.sender_id and swipe_type = 'like')
+       and exists(select 1 from swipes where swiper_id = new.sender_id and receiver_id = new.receiver_id and swipe_type = 'like') then return new; end if;
+    raise exception 'cannot message: recipient does not allow strangers and no mutual match exists';
 end;
 $$ language plpgsql;
 
