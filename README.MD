@@ -1,4 +1,4 @@
-# LoveFinder 💖
+<img width="512" height="154" alt="LoveFinder" src="https://github.com/user-attachments/assets/0560b393-42f2-4095-8b5a-0f4c4eeb08f5" />
 
 [![Bun](https://img.shields.io/badge/Bun-%23000000.svg?style=flat&logo=bun&logoColor=white)](https://bun.sh/)
 [![NestJS](https://img.shields.io/badge/NestJS-%23E0234E.svg?style=flat&logo=nestjs&logoColor=white)](https://nestjs.com/)
@@ -9,9 +9,9 @@
 This is a dating app built with **NestJS** (on Bun) and **Expo**. It handles matching, swiping, and real-time chat.
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/dd8bec0f-af78-4478-bee3-e2bf4305892b" width="250"/>
-  <img src="https://github.com/user-attachments/assets/1df92305-1c76-4855-a8fa-eded23520cb7" width="250"/>
-  <img src="https://github.com/user-attachments/assets/d29a8800-b684-492d-b58e-251118443a8a" width="250"/>
+  <img alt="Screenshot of Swipe tab" src="https://github.com/user-attachments/assets/dd8bec0f-af78-4478-bee3-e2bf4305892b" width="250"/>
+  <img alt="Screenshot of Chat tab" src="https://github.com/user-attachments/assets/7de180c0-db6b-4c69-8ab9-aa779d3c5079" width="250" />
+  <img alt="Screenshot of Profile tab" src="https://github.com/user-attachments/assets/82766022-f444-496c-86b8-d276e93fa650" width="250" />
 </p>
 
 ---
