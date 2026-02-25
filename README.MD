@@ -1,19 +1,29 @@
 <p align="center">
-  <img width="512" height="154" alt="LoveFinder" src="https://github.com/user-attachments/assets/0560b393-42f2-4095-8b5a-0f4c4eeb08f5" />
+  <img width="400" alt="LoveFinder" src="https://github.com/user-attachments/assets/0560b393-42f2-4095-8b5a-0f4c4eeb08f5" />
   <br/>
-  [![Bun](https://img.shields.io/badge/Bun-%23000000.svg?style=flat&logo=bun&logoColor=white)](https://bun.sh/)
-  [![NestJS](https://img.shields.io/badge/NestJS-%23E0234E.svg?style=flat&logo=nestjs&logoColor=white)](https://nestjs.com/)
-  [![Expo](https://img.shields.io/badge/Expo-000020?style=flat&logo=expo&logoColor=white)](https://expo.dev/)
-  [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-%23316192.svg?style=flat&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
-  [![Redis](https://img.shields.io/badge/Redis-%23DD0031.svg?style=flat&logo=redis&logoColor=white)](https://redis.io/)
+  <a href="https://bun.sh/">
+    <img src="https://img.shields.io/badge/Bun-%23000000.svg?style=flat&logo=bun&logoColor=white"/>
+  </a>
+  <a href="https://nestjs.com/">
+    <img src="https://img.shields.io/badge/NestJS-%23E0234E.svg?style=flat&logo=nestjs&logoColor=white"/>
+  </a>
+  <a href="https://expo.dev/">
+    <img src="https://img.shields.io/badge/Expo-000020?style=flat&logo=expo&logoColor=white"/>
+  </a>
+  <a href="https://www.postgresql.org/">
+    <img src="https://img.shields.io/badge/PostgreSQL-%23316192.svg?style=flat&logo=postgresql&logoColor=white"/>
+  </a>
+  <a href="https://redis.io/">
+    <img src="https://img.shields.io/badge/Redis-%23DD0031.svg?style=flat&logo=redis&logoColor=white"/>
+  </a>
 </p>
 
 This is a dating app built with **NestJS** (on Bun) and **Expo**. It handles matching, swiping, and real-time chat.
 
 <p align="center">
-  <img alt="Screenshot of Swipe tab" src="https://github.com/user-attachments/assets/dd8bec0f-af78-4478-bee3-e2bf4305892b" width="250"/>
-  <img alt="Screenshot of Chat tab" src="https://github.com/user-attachments/assets/7de180c0-db6b-4c69-8ab9-aa779d3c5079" width="250" />
-  <img alt="Screenshot of Profile tab" src="https://github.com/user-attachments/assets/82766022-f444-496c-86b8-d276e93fa650" width="250" />
+  <img alt="Screenshot of Swipe tab" src="https://github.com/user-attachments/assets/dd8bec0f-af78-4478-bee3-e2bf4305892b" width="200"/>
+  <img alt="Screenshot of Chat tab" src="https://github.com/user-attachments/assets/7de180c0-db6b-4c69-8ab9-aa779d3c5079" width="200" />
+  <img alt="Screenshot of Profile tab" src="https://github.com/user-attachments/assets/82766022-f444-496c-86b8-d276e93fa650" width="200" />
 </p>
 
 ---
